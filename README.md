@@ -11,8 +11,8 @@ Aplikasi full-stack SvelteKit untuk paket wisata, Paket Travel, rental, dan peng
 ## Menjalankan di perangkat baru
 
 ```bash
-git clone https://github.com/Maoelan/wonderful-lombok-.git
-cd wonderful-lombok-
+git clone https://github.com/Maoelan/wonderful-lombok.git
+cd wonderful-lombok
 npm ci
 ```
 
