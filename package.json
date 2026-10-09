@@ -1,0 +1,31 @@
+{
+  "name": "wonderful-lombok",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js dev",
+    "build": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js build",
+    "preview": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js preview",
+    "start": "node --env-file-if-exists=.env build",
+    "test": "node --test tests/*.test.js",
+    "db:init": "node --env-file=.env scripts/init-db.js",
+    "test:auth": "node --env-file=.env scripts/smoke-auth.js"
+    ,"test:booking": "node --env-file=.env scripts/smoke-booking.js"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "latest",
+    "@sveltejs/kit": "latest",
+    "@sveltejs/vite-plugin-svelte": "latest",
+    "svelte": "latest",
+    "vite": "latest"
+  },
+  "dependencies": {
+    "@sveltejs/adapter-node": "^6.0.0",
+    "leaflet": "^1.9.4",
+    "pg": "^8.23.1"
+  }
+}
