@@ -1,5 +1,4 @@
 import { readFile } from 'node:fs/promises';
-import { randomBytes, scryptSync } from 'node:crypto';
 import pg from 'pg';
 import { defaultCatalog } from '../src/lib/catalog.js';
 
@@ -25,14 +24,5 @@ await client.query(await readFile(new URL('../migrations/001_init.sql', import.m
 await client.query(await readFile(new URL('../migrations/002_bookings.sql', import.meta.url), 'utf8'));
 await client.query('INSERT INTO site_catalog (id, data) VALUES (1, $1) ON CONFLICT (id) DO NOTHING', [defaultCatalog]);
 
-const username = process.env.ADMIN_USERNAME;
-const password = process.env.ADMIN_INITIAL_PASSWORD;
-if (!username || !password) throw new Error('ADMIN_USERNAME dan ADMIN_INITIAL_PASSWORD wajib diisi.');
-const salt = randomBytes(16).toString('hex');
-const passwordHash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
-await client.query(
-  'INSERT INTO admin_users (username, password_hash) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash',
-  [username, passwordHash]
-);
 await client.end();
-console.log(`Database ${databaseName} siap. Admin: ${username}`);
+console.log(`Database ${databaseName} siap. Jalankan npm run admin:create untuk membuat akun admin.`);

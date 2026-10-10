@@ -8,3 +8,11 @@ build/
 .DS_Store
 Thumbs.db
 .idea/
+.npmrc
+*.pem
+*.key
+*.p12
+*.dump
+*.backup
+uploads/*
+!uploads/.gitkeep

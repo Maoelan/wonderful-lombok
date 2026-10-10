@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, readRoadRoute } from '../src/lib/pickup.js';
+import { calculatePickupPrice, isInsideLombok, readRoadRoute } from '../src/lib/pickup.js';
 import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
@@ -12,6 +12,12 @@ test('road route uses routed distance and converts GeoJSON coordinates for Leafl
   const route = readRoadRoute({ routes: [{ distance: 12_100, geometry: { coordinates: [[116.1, -8.5], [116.2, -8.6]] } }] });
   assert.equal(route.distanceKm, 13);
   assert.deepEqual(route.points, [[-8.5, 116.1], [-8.6, 116.2]]);
+});
+
+test('location bounds accept Lombok and reject other islands', () => {
+  assert.equal(isInsideLombok(-8.5833, 116.1167), true);
+  assert.equal(isInsideLombok(-8.65, 115.22), false);
+  assert.equal(isInsideLombok(-8.55, 117.42), false);
 });
 
 test('WhatsApp link targets the configured business number and encodes its message', () => {

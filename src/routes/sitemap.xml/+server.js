@@ -1,5 +1,7 @@
+import { getSiteOrigin } from '#lib/server/site-url.js';
+
 export function GET({ url }) {
-  const origin = url.origin;
+  const origin = getSiteOrigin(url.origin);
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${origin}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>

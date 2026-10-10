@@ -1,6 +1,7 @@
 import { DATABASE_URL } from '$app/env/private';
 import pg from 'pg';
 import { randomBytes } from 'node:crypto';
+import { defaultCatalog } from '../catalog.js';
 
 const { Pool } = pg;
 const pool = new Pool({ connectionString: DATABASE_URL, max: 10, options: '-c search_path=wonderful_lombok' });
@@ -12,7 +13,15 @@ export function query(text, values) {
 export async function getCatalog() {
   const result = await query('SELECT data FROM site_catalog WHERE id = 1');
   if (!result.rowCount) throw new Error('Katalog belum diinisialisasi. Jalankan npm run db:init.');
-  return result.rows[0].data;
+  const data = result.rows[0].data;
+  return {
+    ...defaultCatalog,
+    ...data,
+    settings: { ...defaultCatalog.settings, ...data.settings },
+    packages: (data.packages || defaultCatalog.packages).map((item) => ({ detail: '', images: [], ...item })),
+    destinations: (data.destinations || defaultCatalog.destinations).map((item) => ({ images: [], ...item })),
+    faqs: data.faqs || defaultCatalog.faqs
+  };
 }
 
 export async function updateCatalog(data) {

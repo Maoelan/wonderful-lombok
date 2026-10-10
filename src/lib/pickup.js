@@ -6,6 +6,12 @@ export const places = [
   { id: 'bangsal', name: 'Pelabuhan Bangsal', detail: 'Pemenang, Lombok Utara', lat: -8.3936, lng: 116.0994 }
 ];
 
+export const lombokBounds = { west: 115.78, south: -9.15, east: 116.82, north: -8.15 };
+
+export function isInsideLombok(lat, lng) {
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= lombokBounds.south && lat <= lombokBounds.north && lng >= lombokBounds.west && lng <= lombokBounds.east;
+}
+
 export function readRoadRoute(payload) {
   const route = payload?.routes?.[0];
   if (!route?.distance || !route.geometry?.coordinates?.length) {

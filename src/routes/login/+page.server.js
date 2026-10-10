@@ -13,6 +13,7 @@ export const actions = {
     const username = String(data.get('username') || '').trim();
     const password = String(data.get('password') || '');
     if (!username || !password) return fail(400, { error: 'Isi username dan password.', username });
+    if (username.length > 50 || password.length > 256) return fail(400, { error: 'Username atau password tidak valid.' });
     const user = await authenticate(username, password);
     if (!user) return fail(401, { error: 'Username atau password salah.', username });
     await createSession(user.id, cookies);

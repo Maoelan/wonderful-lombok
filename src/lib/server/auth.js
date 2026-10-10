@@ -2,15 +2,21 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypt
 import { query } from './db.js';
 
 const sessionCookie = 'wl_admin_session';
+const dummyHash = `scrypt:${'0'.repeat(32)}:${scryptSync('invalid-password', '0'.repeat(32), 64).toString('hex')}`;
 
 export async function authenticate(username, password) {
   const result = await query('SELECT id, username, password_hash FROM admin_users WHERE username = $1', [username]);
   const user = result.rows[0];
-  if (!user) return null;
-  const [, salt, expectedHex] = user.password_hash.split(':');
-  const actual = scryptSync(password, salt, 64);
-  const expected = Buffer.from(expectedHex, 'hex');
-  return expected.length === actual.length && timingSafeEqual(expected, actual) ? user : null;
+  const storedHash = user?.password_hash || dummyHash;
+  try {
+    const [algorithm, salt, expectedHex] = storedHash.split(':');
+    if (algorithm !== 'scrypt' || !/^[a-f0-9]{32}$/.test(salt) || !/^[a-f0-9]{128}$/.test(expectedHex)) return null;
+    const actual = scryptSync(password, salt, 64);
+    const expected = Buffer.from(expectedHex, 'hex');
+    return user && timingSafeEqual(expected, actual) ? user : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function createSession(userId, cookies) {

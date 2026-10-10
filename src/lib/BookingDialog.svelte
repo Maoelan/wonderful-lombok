@@ -8,14 +8,17 @@
   function close() { if (!loading) booking = null; }
   async function submit() {
     error = ''; loading = true;
+    const whatsappWindow = window.open('about:blank', '_blank');
+    if (whatsappWindow) whatsappWindow.opener = null;
     try {
       const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, whatsapp: phone, travelDate, people: Number(people), serviceType: booking.type, serviceName: booking.name, details: { notes } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       const message = `Halo Wonderful Lombok, saya sudah membuat pemesanan ${booking.name}.\nKode: ${result.code}\nNama: ${name}\nTanggal: ${travelDate}\nPeserta: ${people} orang`;
-      window.open(createWhatsAppUrl(message, whatsapp), '_blank', 'noopener,noreferrer');
+      if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(message, whatsapp);
+      else window.location.href = createWhatsAppUrl(message, whatsapp);
       booking = null;
-    } catch (e) { error = e.message || 'Pemesanan belum dapat disimpan.'; }
+    } catch (e) { whatsappWindow?.close(); error = e.message || 'Pemesanan belum dapat disimpan.'; }
     finally { loading = false; }
   }
 </script>
