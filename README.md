@@ -61,7 +61,7 @@ Kemudian deploy dengan `npx vercel --prod`. Hubungkan repository GitHub agar pus
 
 ## Konten showcase
 
-Foto demo Lombok/Gili menggunakan lisensi Creative Commons dari Wikimedia Commons. Atribusi tersedia pada halaman sumber: [Tanjung Aan](https://commons.wikimedia.org/wiki/File:Tanjung_Aan,_Lombok.jpg), [Gili Trawangan](https://commons.wikimedia.org/wiki/File:Gili_Trawangan.jpeg), dan [Sunset over Lombok Strait](https://commons.wikimedia.org/wiki/File:Gili_Trawangan_Island,_View_of_Bali_and_Agung_Volcano,_Sunset_over_Lombok_Strait,_Indonesia.jpg).
+Foto demo menggunakan materi berlisensi Creative Commons dari Wikimedia Commons. Atribusi dan ketentuan lisensi tersedia pada halaman sumber: [Tanjung Aan](https://commons.wikimedia.org/wiki/Category:Tanjung_Aan_Beach), [Pantai Seger](https://commons.wikimedia.org/wiki/File:PANTAI_SEGER.jpg), [Desa Sade](https://commons.wikimedia.org/wiki/File:Traditional_Sasak_Village_Sade_houses.JPG), [Tiga Gili](https://commons.wikimedia.org/wiki/Category:Gili_Islands), [Senggigi](https://commons.wikimedia.org/wiki/Category:Senggigi), serta [Rinjani dan Sembalun](https://commons.wikimedia.org/wiki/Category:Rinjani-Lombok_UNESCO_Global_Geopark).
 
 Ganti nomor WhatsApp, email, harga, dan konten demo melalui admin sebelum dipakai sebagai website bisnis resmi.
 
