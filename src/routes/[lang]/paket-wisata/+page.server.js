@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { getCatalog } from '#lib/server/db.js';
-import { isLocale, localizeCatalog } from '#lib/i18n.js';
+import { alternateUrls, isLocale, localePath, localizeCatalog } from '#lib/i18n.js';
 import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
 
 export async function load({ params, url }) {
@@ -10,8 +10,8 @@ export async function load({ params, url }) {
   return {
     locale: params.lang,
     catalog,
-    canonicalUrl: `${origin}/${params.lang}/paket-wisata`,
-    alternateUrls: { id: `${origin}/id/paket-wisata`, en: `${origin}/en/paket-wisata` },
+    canonicalUrl: `${origin}${localePath(params.lang, '/paket-wisata')}`,
+    alternateUrls: alternateUrls(origin, '/paket-wisata'),
     socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', origin)
   };
 }

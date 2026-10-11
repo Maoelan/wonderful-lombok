@@ -137,6 +137,14 @@ nav a:not(.nav-action):hover {
   display: none;
 }
 
+.brand-logo { width: 142px; height: 58px; overflow: hidden; align-items: center; justify-content: center; }
+.brand-logo img { width: 100%; height: 100%; object-fit: contain; object-position: center; transform: scale(2.12); }
+.language-picker { display: inline-flex; align-items: center; }
+.language-picker select { min-height: 44px; max-width: 190px; padding: 0 34px 0 11px; border: 1px solid currentColor; border-radius: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
+.site-header .language-picker select { border-color: rgba(255,255,255,.55); color: white; }
+.site-header .language-picker option { color: #143d34; background: white; }
+.inner-header .language-picker select { color: var(--forest-deep); }
+
 .hero {
   position: relative;
   display: grid;
@@ -1690,6 +1698,8 @@ footer {
 .admin-sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 52px; padding: 34px 26px; background: var(--forest-deep); color: white; }
 .admin-brand { display: flex; width: fit-content; flex-direction: column; color: white; font-family: Georgia, serif; font-size: 13px; line-height: .9; text-decoration: none; }
 .admin-brand b { color: var(--gold); font-size: 25px; }
+.admin-logo { width: 150px; height: 70px; overflow: hidden; align-items: center; justify-content: center; }
+.admin-logo img { width: 100%; height: 100%; object-fit: contain; transform: scale(2.08); }
 .admin-sidebar h1 { margin: 6px 0 0; font-size: 42px; }
 .admin-kicker { margin: 0; color: #88754b; font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .admin-sidebar .admin-kicker { color: #bfb38e; }

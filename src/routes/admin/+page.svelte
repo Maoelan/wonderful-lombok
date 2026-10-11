@@ -129,7 +129,7 @@
 
 <div class="admin-shell">
   <aside class="admin-sidebar">
-    <a class="admin-brand" href="/"><span>Wonderful</span><b>Lombok</b></a>
+    <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
     <div><p class="admin-kicker">Pengelolaan konten</p><h1>Admin</h1></div>
     <nav aria-label="Menu admin">
       <button class:active={active === 'bookings'} on:click={() => active = 'bookings'}>Pemesanan <span>{bookings.filter((item) => item.status === 'baru').length}</span></button>

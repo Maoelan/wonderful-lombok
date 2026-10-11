@@ -1,19 +1,18 @@
 <script>
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
-  import { getCopy } from '#lib/i18n.js';
+  import { getCopy, languages, localePath } from '#lib/i18n.js';
+  import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
   const c = getCopy(data.locale);
-  const home = data.locale === 'en' ? '/en' : '/';
-  const counterpart = data.locale === 'en' ? '/id/paket-wisata' : '/en/paket-wisata';
+  const home = localePath(data.locale);
 </script>
 
 <svelte:head>
   <title>{c.catalogTitle} | Wonderful Lombok</title>
   <meta name="description" content={c.catalogIntro} />
   <link rel="canonical" href={data.canonicalUrl} />
-  <link rel="alternate" hreflang="id-ID" href={data.alternateUrls.id} />
-  <link rel="alternate" hreflang="en" href={data.alternateUrls.en} />
+  {#each languages as language}<link rel="alternate" hreflang={language.hreflang} href={data.alternateUrls[language.code]} />{/each}
   <link rel="alternate" hreflang="x-default" href={data.alternateUrls.id} />
   <meta property="og:title" content={`${c.catalogTitle} | Wonderful Lombok`} />
   <meta property="og:description" content={c.catalogIntro} />
@@ -22,8 +21,8 @@
 </svelte:head>
 
 <header class="inner-header">
-  <a class="brand" href={home}><span>Wonderful</span><b>Lombok</b></a>
-  <nav aria-label={c.language}><a href={home}>{c.backHome}</a><a class="language-switch" href={counterpart}>{data.locale === 'en' ? 'ID' : 'EN'}</a></nav>
+  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
+  <nav aria-label={c.language}><a href={home}>{c.backHome}</a><LanguageSelector locale={data.locale} suffix="/paket-wisata" /></nav>
 </header>
 <main class="catalog-page">
   <section class="catalog-intro"><p class="label">Wonderful Lombok</p><h1>{c.catalogTitle}</h1><p>{c.catalogIntro}</p></section>
@@ -41,6 +40,6 @@
       </article>
     {/each}
   </section>
-  <aside class="catalog-help"><h2>{data.locale === 'en' ? 'Need a custom itinerary?' : 'Butuh itinerary khusus?'}</h2><a class="button primary" href={createWhatsAppUrl(data.locale === 'en' ? 'Hello Wonderful Lombok, I would like a custom Lombok itinerary.' : 'Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.', data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
+  <aside class="catalog-help"><h2>{data.locale !== 'id' ? 'Need a custom itinerary?' : 'Butuh itinerary khusus?'}</h2><a class="button primary" href={createWhatsAppUrl(data.locale !== 'id' ? 'Hello Wonderful Lombok, I would like a custom Lombok itinerary.' : 'Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.', data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
 <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />

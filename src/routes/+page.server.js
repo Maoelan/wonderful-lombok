@@ -1,6 +1,6 @@
 import { getCatalog } from '#lib/server/db.js';
 import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
-import { localizeCatalog } from '#lib/i18n.js';
+import { alternateUrls, localizeCatalog } from '#lib/i18n.js';
 
 export async function load({ url }) {
   const catalog = await getCatalog();
@@ -9,7 +9,7 @@ export async function load({ url }) {
     catalog: localizeCatalog(catalog, 'id'),
     locale: 'id',
     canonicalUrl: `${siteOrigin}/`,
-    alternateUrls: { id: `${siteOrigin}/`, en: `${siteOrigin}/en` },
+    alternateUrls: alternateUrls(siteOrigin),
     socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', siteOrigin)
   };
 }

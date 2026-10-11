@@ -16,7 +16,7 @@
   export let whatsapp = '6281916550731';
   export let locale = 'id';
   const today = new Date().toISOString().slice(0, 10);
-  $: rupiah = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  $: rupiah = new Intl.NumberFormat(locale !== 'id' ? 'en-US' : 'id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
   $: price = calculatePickupPrice(distance, rate);
   $: routeReady = Boolean(origin && destination && (origin.lat !== destination.lat || origin.lng !== destination.lng));
@@ -151,32 +151,32 @@
   <div class="pickup-fields">
     <div class="location-tools">
       <div class="location-field">
-        <label><span>{locale === 'en' ? 'Pick-up location' : 'Lokasi jemput'}</span><input bind:value={originQuery} placeholder={searchLoading === 'origin' ? (locale === 'en' ? 'Searching…' : 'Mencari alamat…') : (locale === 'en' ? 'Type an address, then press Enter' : 'Ketik alamat, lalu tekan Enter')} on:focus={() => activateMapTarget('origin')} on:keydown={(event) => event.key === 'Enter' && searchAddress('origin')} /></label>
-        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? (locale === 'en' ? 'Locating…' : 'Mencari GPS…') : (locale === 'en' ? 'Use my location' : 'Gunakan lokasi saya')}</button>
-        <select aria-label={locale === 'en' ? 'Popular pick-up location' : 'Lokasi jemput populer'} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{locale === 'en' ? 'Or choose a popular location' : 'Atau pilih lokasi populer'}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <label><span>{locale !== 'id' ? 'Pick-up location' : 'Lokasi jemput'}</span><input bind:value={originQuery} placeholder={searchLoading === 'origin' ? (locale !== 'id' ? 'Searching…' : 'Mencari alamat…') : (locale !== 'id' ? 'Type an address, then press Enter' : 'Ketik alamat, lalu tekan Enter')} on:focus={() => activateMapTarget('origin')} on:keydown={(event) => event.key === 'Enter' && searchAddress('origin')} /></label>
+        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? (locale !== 'id' ? 'Locating…' : 'Mencari GPS…') : (locale !== 'id' ? 'Use my location' : 'Gunakan lokasi saya')}</button>
+        <select aria-label={locale !== 'id' ? 'Popular pick-up location' : 'Lokasi jemput populer'} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{locale !== 'id' ? 'Or choose a popular location' : 'Atau pilih lokasi populer'}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
       <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label="Tukar lokasi jemput dan tujuan">⇅</button>
       <div class="location-field">
-        <label><span>{locale === 'en' ? 'Destination' : 'Tujuan'}</span><input bind:value={destinationQuery} placeholder={searchLoading === 'destination' ? (locale === 'en' ? 'Searching…' : 'Mencari alamat…') : (locale === 'en' ? 'Type an address, then press Enter' : 'Ketik alamat, lalu tekan Enter')} on:focus={() => activateMapTarget('destination')} on:keydown={(event) => event.key === 'Enter' && searchAddress('destination')} /></label>
-        <select aria-label={locale === 'en' ? 'Popular destination' : 'Tujuan populer'} on:change={(event) => choosePreset('destination', event.currentTarget.value)}><option value="">{locale === 'en' ? 'Or choose a popular location' : 'Atau pilih lokasi populer'}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <label><span>{locale !== 'id' ? 'Destination' : 'Tujuan'}</span><input bind:value={destinationQuery} placeholder={searchLoading === 'destination' ? (locale !== 'id' ? 'Searching…' : 'Mencari alamat…') : (locale !== 'id' ? 'Type an address, then press Enter' : 'Ketik alamat, lalu tekan Enter')} on:focus={() => activateMapTarget('destination')} on:keydown={(event) => event.key === 'Enter' && searchAddress('destination')} /></label>
+        <select aria-label={locale !== 'id' ? 'Popular destination' : 'Tujuan populer'} on:change={(event) => choosePreset('destination', event.currentTarget.value)}><option value="">{locale !== 'id' ? 'Or choose a popular location' : 'Atau pilih lokasi populer'}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
     </div>
-    <p class="helper location-guidance" aria-live="polite"><strong>{locale === 'en' ? (mapTarget === 'origin' ? 'Setting pick-up.' : 'Setting destination.') : (mapTarget === 'origin' ? 'Mengatur lokasi jemput.' : 'Mengatur tujuan.')}</strong> {locationMessage || (locale === 'en' ? 'Type an address and press Enter, choose a popular location, or click the map.' : 'Ketik alamat lalu tekan Enter, pilih lokasi populer, atau klik langsung pada peta.')}</p>
+    <p class="helper location-guidance" aria-live="polite"><strong>{locale !== 'id' ? (mapTarget === 'origin' ? 'Setting pick-up.' : 'Setting destination.') : (mapTarget === 'origin' ? 'Mengatur lokasi jemput.' : 'Mengatur tujuan.')}</strong> {locationMessage || (locale !== 'id' ? 'Type an address and press Enter, choose a popular location, or click the map.' : 'Ketik alamat lalu tekan Enter, pilih lokasi populer, atau klik langsung pada peta.')}</p>
     <div class="map-wrap" class:has-route={routeReady}>
       <div class="map" bind:this={mapElement} aria-label="Peta interaktif rute penjemputan"></div>
-      {#if mapLoading}<div class="map-state" role="status"><span class="spinner"></span>{locale === 'en' ? 'Loading Lombok map' : 'Memuat peta Lombok'}</div>{:else if mapError}<div class="map-state error" role="alert">{mapError}</div>{:else if routeLoading}<div class="map-state" role="status"><span class="spinner"></span>{locale === 'en' ? 'Finding road route' : 'Mencari rute jalan'}</div>{:else if routeError}<div class="map-state error" role="alert">{routeError}</div>{/if}
+      {#if mapLoading}<div class="map-state" role="status"><span class="spinner"></span>{locale !== 'id' ? 'Loading Lombok map' : 'Memuat peta Lombok'}</div>{:else if mapError}<div class="map-state error" role="alert">{mapError}</div>{:else if routeLoading}<div class="map-state" role="status"><span class="spinner"></span>{locale !== 'id' ? 'Finding road route' : 'Mencari rute jalan'}</div>{:else if routeError}<div class="map-state error" role="alert">{routeError}</div>{/if}
     </div>
   </div>
 
   <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
-    <div class="quote-heading"><p>{locale === 'en' ? 'Trip estimate' : 'Estimasi perjalanan'}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? (locale === 'en' ? 'Calculating…' : 'Menghitung…') : price ? rupiah.format(price) : 'Rp0'}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : (locale === 'en' ? `Rate ${rupiah.format(rate)} per road kilometre` : `Tarif ${rupiah.format(rate)} per km rute jalan`)}</span></div>
-    <div class="route-summary" aria-live="polite"><div><span>{locale === 'en' ? 'From' : 'Dari'}</span><b>{origin?.name ?? (locale === 'en' ? 'Not selected' : 'Belum dipilih')}</b></div><div><span>{locale === 'en' ? 'To' : 'Ke'}</span><b>{destination?.name ?? (locale === 'en' ? 'Not selected' : 'Belum dipilih')}</b></div></div>
-    <label><span>{locale === 'en' ? 'Customer name' : 'Nama pemesan'}</span><input bind:value={customerName} autocomplete="name" placeholder={locale === 'en' ? 'Full name' : 'Nama lengkap'} /></label>
+    <div class="quote-heading"><p>{locale !== 'id' ? 'Trip estimate' : 'Estimasi perjalanan'}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? (locale !== 'id' ? 'Calculating…' : 'Menghitung…') : price ? rupiah.format(price) : 'Rp0'}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : (locale !== 'id' ? `Rate ${rupiah.format(rate)} per road kilometre` : `Tarif ${rupiah.format(rate)} per km rute jalan`)}</span></div>
+    <div class="route-summary" aria-live="polite"><div><span>{locale !== 'id' ? 'From' : 'Dari'}</span><b>{origin?.name ?? (locale !== 'id' ? 'Not selected' : 'Belum dipilih')}</b></div><div><span>{locale !== 'id' ? 'To' : 'Ke'}</span><b>{destination?.name ?? (locale !== 'id' ? 'Not selected' : 'Belum dipilih')}</b></div></div>
+    <label><span>{locale !== 'id' ? 'Customer name' : 'Nama pemesan'}</span><input bind:value={customerName} autocomplete="name" placeholder={locale !== 'id' ? 'Full name' : 'Nama lengkap'} /></label>
     <label><span>Nomor WhatsApp</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="Contoh: 0812 3456 7890" /></label>
-    <div class="form-row"><label><span>{locale === 'en' ? 'Date' : 'Tanggal'}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{locale === 'en' ? 'Time' : 'Waktu'}</span><input bind:value={pickupTime} type="time" /></label></div>
-    <label><span>{locale === 'en' ? 'Passengers' : 'Jumlah penumpang'}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
-    {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{locale === 'en' ? 'The travel request has opened in WhatsApp.' : 'Ringkasan Paket Travel sudah dibuka di WhatsApp.'}</p>{/if}
-    <button class="submit" type="submit" disabled={submitting}>{submitting ? (locale === 'en' ? 'Saving…' : 'Menyimpan pemesanan…') : (locale === 'en' ? 'Book Travel Service via WhatsApp' : 'Pesan Paket Travel via WhatsApp')}</button>
-    <small>{locale === 'en' ? 'This is an estimate. Wonderful Lombok will confirm the trip details through WhatsApp.' : 'Harga merupakan perkiraan. Tim Wonderful Lombok akan mengonfirmasi detail perjalanan melalui WhatsApp.'}</small>
+    <div class="form-row"><label><span>{locale !== 'id' ? 'Date' : 'Tanggal'}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{locale !== 'id' ? 'Time' : 'Waktu'}</span><input bind:value={pickupTime} type="time" /></label></div>
+    <label><span>{locale !== 'id' ? 'Passengers' : 'Jumlah penumpang'}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
+    {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{locale !== 'id' ? 'The travel request has opened in WhatsApp.' : 'Ringkasan Paket Travel sudah dibuka di WhatsApp.'}</p>{/if}
+    <button class="submit" type="submit" disabled={submitting}>{submitting ? (locale !== 'id' ? 'Saving…' : 'Menyimpan pemesanan…') : (locale !== 'id' ? 'Book Travel Service via WhatsApp' : 'Pesan Paket Travel via WhatsApp')}</button>
+    <small>{locale !== 'id' ? 'This is an estimate. Wonderful Lombok will confirm the trip details through WhatsApp.' : 'Harga merupakan perkiraan. Tim Wonderful Lombok akan mengonfirmasi detail perjalanan melalui WhatsApp.'}</small>
   </form>
 </div>
