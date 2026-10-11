@@ -1,8 +1,9 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 
 export const variables = defineEnvVars({
-  DATABASE_URL: {
-    description: 'PostgreSQL connection string for the Wonderful Lombok backend.'
+  PUBLIC_CONVEX_URL: {
+    public: true,
+    description: 'Convex deployment URL for server-side data access.'
   },
   PUBLIC_SITE_URL: {
     description: 'Canonical public origin, for example https://wonderfullombok.example.',

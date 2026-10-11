@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-vercel';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -18,7 +18,7 @@ export default defineConfig({
           'style-src-elem': ['self'],
           'style-src-attr': ['unsafe-inline'],
           'font-src': ['self', 'data:'],
-          'img-src': ['self', 'data:', 'https://images.unsplash.com', 'https://*.tile.openstreetmap.org'],
+          'img-src': ['self', 'data:', 'https://images.unsplash.com', 'https://commons.wikimedia.org', 'https://thumb.wikimedia.org', 'https://upload.wikimedia.org', 'https://*.convex.cloud', 'https://*.tile.openstreetmap.org'],
           'connect-src': ['self', 'https://nominatim.openstreetmap.org', 'https://router.project-osrm.org'],
           'frame-src': ['none']
         }

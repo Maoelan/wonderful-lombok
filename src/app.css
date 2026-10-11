@@ -1580,6 +1580,99 @@ footer {
   .detail-copy h2 { font-size: 38px; }
 }
 
+/* Localized tour catalogue and detail pages */
+.language-switch { min-width: 44px; justify-content: center; padding: 0 11px !important; border: 1px solid currentColor; font-size: 12px; letter-spacing: .08em; }
+.all-packages { margin-top: 30px; }
+.inner-header { display: flex; min-height: 92px; align-items: center; justify-content: space-between; padding: 0 max(28px, calc((100vw - 1240px) / 2)); background: var(--forest-deep); color: white; }
+.inner-header nav { display: flex; gap: 26px; }
+.catalog-page, .tour-detail-page { width: min(1240px, calc(100% - 56px)); margin: 0 auto; padding: 74px 0 100px; }
+.catalog-intro { max-width: 760px; margin-bottom: 58px; }
+.catalog-intro h1, .tour-summary h1 { margin-bottom: 22px; font-size: clamp(48px, 7vw, 82px); line-height: 1; }
+.catalog-intro > p:last-child, .tour-summary > p { color: var(--muted); font-size: 17px; line-height: 1.75; }
+.tour-catalog { display: grid; gap: 22px; }
+.tour-listing { display: grid; grid-template-columns: minmax(300px, .9fr) 1.1fr; min-height: 390px; border: 1px solid var(--line); background: var(--paper); }
+.tour-listing-image { min-height: 390px; overflow: hidden; }
+.tour-listing-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.tour-listing-image:hover img { transform: scale(1.025); }
+.tour-listing-body { display: flex; flex-direction: column; align-items: flex-start; padding: 42px; }
+.tour-listing-body h2 { margin: 18px 0 14px; font-size: 42px; }
+.tour-listing-body h2 a { text-decoration: none; }
+.tour-listing-body p { margin: 0 0 24px; color: var(--muted); line-height: 1.7; }
+.tour-listing-body > strong { margin-top: auto; font-family: Georgia, serif; font-size: 25px; }
+.tour-listing-body strong small { color: var(--muted); font-family: Arial, sans-serif; font-size: 12px; font-weight: 400; }
+.tour-listing-body .button { margin-top: 20px; }
+.tour-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.tour-meta span { padding: 7px 10px; background: #e8e1d2; color: var(--forest); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.catalog-help { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: 52px; padding: 38px 42px; background: var(--forest); color: white; }
+.catalog-help h2 { margin: 0; font-size: 34px; }
+.breadcrumbs { display: flex; gap: 10px; margin-bottom: 28px; color: var(--muted); font-size: 13px; }
+.breadcrumbs a { min-height: 32px; display: inline-flex; align-items: center; }
+.tour-hero { display: grid; grid-template-columns: 1.18fr .82fr; border: 1px solid var(--line); background: var(--paper); }
+.tour-gallery { min-width: 0; background: #e8e1d2; }
+.tour-main-image { height: 570px; overflow: hidden; }
+.tour-main-image img { width: 100%; height: 100%; object-fit: cover; }
+.tour-thumbnails { display: flex; gap: 10px; overflow-x: auto; padding: 12px; }
+.tour-thumbnails button { flex: 0 0 88px; height: 66px; padding: 0; border: 2px solid transparent; background: transparent; cursor: pointer; }
+.tour-thumbnails button.active { border-color: var(--forest); }
+.tour-thumbnails img { width: 100%; height: 100%; object-fit: cover; }
+.tour-summary { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 48px; }
+.tour-summary h1 { margin-top: 22px; font-size: clamp(44px, 5vw, 66px); }
+.tour-route { display: grid; gap: 7px; margin-top: 18px; padding-top: 20px; border-top: 1px solid var(--line); line-height: 1.6; }
+.tour-route span, .tour-price > span { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.tour-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin: 30px 0 20px; }
+.tour-price b { font-family: Georgia, serif; font-size: 32px; }
+.tour-price small { color: var(--muted); }
+.tour-content { display: grid; grid-template-columns: 1.2fr .8fr; gap: 70px; padding: 92px 0; }
+.tour-content h2, .price-section h2, .detail-cta h2 { font-size: clamp(36px, 4vw, 52px); }
+.itinerary-list { margin-top: 42px; border-top: 1px solid var(--line); }
+.itinerary-list article { display: grid; grid-template-columns: 90px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+.itinerary-list article > span { color: #88754b; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.itinerary-list h3 { margin-bottom: 12px; font-size: 25px; }
+.itinerary-list ul, .tour-inclusions ul { margin: 0; padding-left: 20px; color: var(--muted); line-height: 1.8; }
+.tour-inclusions { align-self: start; display: grid; gap: 1px; background: var(--line); }
+.tour-inclusions > div { padding: 32px; background: var(--paper); }
+.tour-inclusions h2 { margin-bottom: 18px; font-size: 28px; }
+.price-section { padding: 58px; background: var(--forest-deep); color: white; }
+.price-table { margin-top: 34px; border-top: 1px solid rgba(255,255,255,.24); }
+.price-row { display: grid; grid-template-columns: 1fr 180px 1fr; gap: 20px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.2); }
+.price-row b { color: var(--gold); }
+.price-row span { color: #b9cac4; }
+.detail-cta { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding-top: 76px; }
+.detail-cta h2 { margin: 0; }
+.admin-translation { padding: 16px 18px; border: 1px solid #c8c4b9; background: #f4efe3; }
+.admin-translation summary { min-height: 42px; cursor: pointer; color: var(--forest); font-weight: 800; line-height: 42px; }
+.admin-translation[open] summary { margin-bottom: 18px; }
+.admin-subsection { display: grid; gap: 12px; margin: 0; padding: 18px; border: 1px solid #c8c4b9; }
+.admin-subsection legend { padding: 0 8px; font-weight: 800; }
+.admin-price-tier { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
+.admin-price-tier button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #932f25; cursor: pointer; font-weight: 800; }
+.admin-secondary.compact { width: fit-content; min-height: 42px; margin-top: 6px; padding: 8px 14px; }
+.whatsapp-float { position: fixed; z-index: 1500; right: max(22px, calc((100vw - 1240px) / 2)); bottom: 24px; display: flex; min-height: 56px; align-items: center; gap: 0; color: var(--forest-deep); text-decoration: none; filter: drop-shadow(0 8px 18px rgba(5,35,29,.22)); }
+.whatsapp-float span { display: flex; min-height: 44px; align-items: center; margin-right: -9px; padding: 0 25px 0 20px; border: 1px solid rgba(18,63,53,.12); border-radius: 24px 0 0 24px; background: white; font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.whatsapp-float b { display: grid; width: 56px; height: 56px; place-items: center; border: 3px solid white; border-radius: 50%; background: #25d366; color: white; transition: transform .18s ease, background .18s ease; }
+.whatsapp-float svg { width: 29px; height: 29px; fill: currentColor; }
+.whatsapp-float:hover b, .whatsapp-float:focus-visible b { background: #18b956; transform: scale(1.06); }
+
+@media (max-width: 760px) {
+  .inner-header { min-height: 76px; padding: 0 20px; }
+  .inner-header nav { gap: 10px; font-size: 12px; }
+  .catalog-page, .tour-detail-page { width: calc(100% - 36px); padding: 52px 0 72px; }
+  .tour-listing, .tour-hero, .tour-content { grid-template-columns: 1fr; }
+  .tour-listing-image { min-height: 250px; }
+  .tour-listing-body, .tour-summary { padding: 28px 22px; }
+  .tour-listing-body h2 { font-size: 34px; }
+  .catalog-help, .detail-cta { align-items: flex-start; flex-direction: column; padding: 30px 22px; }
+  .tour-main-image { height: 360px; }
+  .tour-content { gap: 44px; padding: 64px 0; }
+  .itinerary-list article { grid-template-columns: 1fr; gap: 8px; }
+  .price-section { margin: 0 -18px; padding: 42px 18px; }
+  .price-row { grid-template-columns: 1fr auto; }
+  .price-row span { grid-column: 1 / -1; }
+  .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .whatsapp-float { right: 16px; bottom: 16px; }
+  .whatsapp-float span { padding-left: 16px; }
+}
+
 /* Admin uses the same editorial identity, with denser spacing for operational work. */
 .admin-shell { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; background: #eee9dd; }
 .admin-sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 52px; padding: 34px 26px; background: var(--forest-deep); color: white; }

@@ -16,3 +16,6 @@ Thumbs.db
 *.backup
 uploads/*
 !uploads/.gitkeep
+.convex/
+
+.vercel

@@ -10,7 +10,10 @@ export async function handle({ event, resolve }) {
   }
 
   event.locals.user = await getSessionUser(event.cookies);
-  const response = await resolve(event);
+  const pageLanguage = event.url.pathname === '/en' || event.url.pathname.startsWith('/en/') ? 'en' : 'id';
+  const response = await resolve(event, {
+    transformPageChunk: ({ html }) => html.replace('<html lang="id">', `<html lang="${pageLanguage}">`)
+  });
   const production = process.env.NODE_ENV === 'production';
   response.headers.set('x-content-type-options', 'nosniff');
   response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');

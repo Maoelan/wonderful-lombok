@@ -1,8 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { randomBytes } from 'node:crypto';
 import { rateLimit } from '#lib/server/rate-limit.js';
+import { convexMutation } from '#lib/server/db.js';
 
 const formats = [
   { type: 'image/jpeg', extension: 'jpg', signature: [0xff, 0xd8, 0xff] },
@@ -23,9 +21,10 @@ export async function POST({ locals, request }) {
   const format = formats.find((item) => item.type === file.type && item.signature.every((byte, index) => bytes[index] === byte) && (!item.suffix || item.suffix.every((byte, index) => bytes[index + 8] === byte)));
   if (!format) return json({ error: 'Format gambar harus JPG, PNG, atau WebP yang valid.' }, { status: 400 });
 
-  const name = `${Date.now()}-${randomBytes(12).toString('hex')}.${format.extension}`;
-  const directory = join(process.cwd(), 'uploads');
-  await mkdir(directory, { recursive: true });
-  await writeFile(join(directory, name), bytes, { flag: 'wx' });
-  return json({ url: `/uploads/${name}` }, { status: 201 });
+  const uploadUrl = await convexMutation('files:generateUploadUrl');
+  const uploadResponse = await fetch(uploadUrl, { method: 'POST', headers: { 'content-type': format.type }, body: bytes });
+  if (!uploadResponse.ok) return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
+  const { storageId } = await uploadResponse.json();
+  const url = await convexMutation('files:getUrl', { storageId });
+  return json({ url }, { status: 201 });
 }
