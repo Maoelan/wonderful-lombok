@@ -29,6 +29,6 @@
     "@sveltejs/adapter-vercel": "^7.0.0",
     "convex": "^1.46.0",
     "leaflet": "1.9.4",
-    "sanitize-html": "^2.18.0"
+    "xss": "^1.0.15"
   }
 }
