@@ -8,6 +8,6 @@
 <details class="language-picker">
   <summary aria-label="Language"><img src={`/flags/${current.flag}.png`} alt="" /><span>{current.name}</span></summary>
   <div class="language-menu">
-    {#each languages as language}<a class:active={language.code === locale} href={localePath(language.code, suffix)} hreflang={language.hreflang}><img src={`/flags/${language.flag}.png`} alt="" loading="lazy" /><span>{language.name}</span></a>{/each}
+    {#each languages as language}<a class:active={language.code === locale} href={localePath(language.code, suffix)} hreflang={language.hreflang}><img src={`/flags/${language.flag}.png`} alt="" /><span>{language.name}</span></a>{/each}
   </div>
 </details>
