@@ -36,7 +36,7 @@
         <div class="tour-listing-body">
           <div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div>
           <h2><a href={`/${data.locale}/paket-wisata/${item.slug}`}>{item.name}</a></h2>
-          <p>{item.detail}</p>
+          <div class="rich-content">{@html item.detail}</div>
           <strong>{c.from} {item.price} <small>{item.unit}</small></strong>
           <a class="button dark" href={`/${data.locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a>
         </div>

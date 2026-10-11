@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 import { defaultCatalog } from '../catalog.js';
 import { slugify } from '../i18n.js';
+import { sanitizeCatalogRichText } from './rich-text.js';
 
 const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 const ref = (name, type) => makeFunctionReference(name, type);
@@ -11,7 +12,7 @@ export const convexMutation = (name, args = {}) => client.mutation(ref(name, 'mu
 
 export async function getCatalog() {
   const data = await convexQuery('catalog:get') || defaultCatalog;
-  return {
+  return sanitizeCatalogRichText({
     ...defaultCatalog,
     ...data,
     settings: { ...defaultCatalog.settings, ...data.settings },
@@ -29,7 +30,7 @@ export async function getCatalog() {
     destinations: (data.destinations || defaultCatalog.destinations).map((item, index) => ({ ...(defaultCatalog.destinations[index] || {}), images: [], ...item })),
     rentals: (data.rentals || defaultCatalog.rentals).map((item, index) => ({ ...(defaultCatalog.rentals[index] || {}), ...item })),
     faqs: (data.faqs || defaultCatalog.faqs).map((item, index) => ({ ...(defaultCatalog.faqs[index] || {}), ...item }))
-  };
+  });
 }
 
 export async function updateCatalog(data) {

@@ -74,7 +74,7 @@
       </div>
       <div class="detail-copy">
         <p class="label">{locale === 'id' ? `Detail ${kind}` : t.destinationDetails}</p><h2 id="detail-title">{item.name}</h2>
-        {#if item.detail}<p>{item.detail}</p>{/if}
+        {#if item.detail}<div class="rich-content">{@html item.detail}</div>{/if}
         {#if item.route}<strong>{item.route}</strong>{/if}
         {#if item.price}<div class="detail-price"><b>{item.price}</b><span>{item.unit}</span></div>{/if}
         {#if onBook}<button class="submit" type="button" on:click={() => { const current = item; close(); onBook(current); }}>Pesan paket ini</button>{/if}

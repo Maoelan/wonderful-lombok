@@ -16,6 +16,7 @@
   $: message = data.locale === 'id'
     ? `Halo Wonderful Lombok, saya ingin memesan ${item.name}.`
     : `Hello Wonderful Lombok, I would like to book ${item.name}.`;
+  $: plainDetail = item.detail.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   const showImage = (index) => selectedIndex = (index + gallery.length) % gallery.length;
   onMount(() => {
     if (gallery.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -25,9 +26,9 @@
 </script>
 
 <svelte:head>
-  <title>{item.name} | Wonderful Lombok</title><meta name="description" content={item.detail} />
+  <title>{item.name} | Wonderful Lombok</title><meta name="description" content={plainDetail} />
   <link rel="canonical" href={data.canonicalUrl} />{#each languages as language}<link rel="alternate" hreflang={language.hreflang} href={data.alternateUrls[language.code]} />{/each}<link rel="alternate" hreflang="x-default" href={data.alternateUrls.id} />
-  <meta property="og:type" content="product" /><meta property="og:title" content={item.name} /><meta property="og:description" content={item.detail} /><meta property="og:url" content={data.canonicalUrl} /><meta property="og:image" content={data.socialImageUrl} />
+  <meta property="og:type" content="product" /><meta property="og:title" content={item.name} /><meta property="og:description" content={plainDetail} /><meta property="og:url" content={data.canonicalUrl} /><meta property="og:image" content={data.socialImageUrl} />
 </svelte:head>
 
 <header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a><nav><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix={`/paket-wisata/${item.slug}`} /></nav></header>
@@ -35,7 +36,7 @@
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`/${data.locale}/paket-wisata`}>{c.tours}</a></nav>
   <section class="tour-hero">
     <div class="tour-gallery"><div class="tour-main-image">{#key selectedImage}<img class="package-slide" src={selectedImage} alt={`${item.name}, ${c.image} ${selectedIndex + 1}`} />{/key}{#if gallery.length > 1}<button class="tour-gallery-arrow previous" type="button" on:click={() => showImage(selectedIndex - 1)} aria-label={formCopy.previousImage}>‹</button><button class="tour-gallery-arrow next" type="button" on:click={() => showImage(selectedIndex + 1)} aria-label={formCopy.nextImage}>›</button><span class="tour-gallery-count">{selectedIndex + 1}/{gallery.length}</span>{/if}</div>{#if gallery.length > 1}<div class="tour-thumbnails">{#each gallery as image, index}<button class:active={selectedIndex === index} on:click={() => showImage(index)} aria-label={`${c.viewImage} ${index + 1}`}><img src={image} alt="" /></button>{/each}</div>{/if}</div>
-    <div class="tour-summary"><div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div><h1>{item.name}</h1><p>{item.detail}</p><div class="tour-route"><span>{c.highlights}</span><strong>{item.route}</strong></div><div class="tour-price"><span>{c.from}</span><b>{item.price}</b><small>{item.unit}</small></div><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookWhatsapp}</a></div>
+    <div class="tour-summary"><div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div><h1>{item.name}</h1><div class="rich-content">{@html item.detail}</div><div class="tour-route"><span>{c.highlights}</span><strong>{item.route}</strong></div><div class="tour-price"><span>{c.from}</span><b>{item.price}</b><small>{item.unit}</small></div><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookWhatsapp}</a></div>
   </section>
   <div class="tour-content">
     <section><p class="label">{c.itinerary}</p><h2>{c.itineraryHeading}</h2><div class="itinerary-list">{#each item.itinerary as day}<article><span>{day.day}</span><div><h3>{day.title}</h3><ul>{#each day.items as point}<li>{point}</li>{/each}</ul></div></article>{/each}</div></section>

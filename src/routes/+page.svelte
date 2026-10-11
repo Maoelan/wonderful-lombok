@@ -106,7 +106,7 @@
     <div class="hero-image" role="img" aria-label="Pantai tropis dengan laut biru"></div><div class="hero-shade"></div>
     <div class="hero-copy">
       <p class="label">{c.heroLabel}</p><h1 id="hero-title">{settings.heroTitle}</h1>
-      <p class="hero-intro">{settings.heroDescription}</p>
+      <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
       <div class="hero-actions"><a class="button primary" href="#pilih-layanan">{c.heroPrimary}</a><a class="text-link" href="#paket">{c.heroSecondary}</a></div>
     </div>
   </section>
@@ -157,19 +157,19 @@
     <div class="section-heading"><div><p class="label">{c.rentalLabel}</p><h2 id="rental-title">{c.rentalHeading}</h2></div><p>{c.rentalIntro}</p></div>
     <div class="rental-list">
       {#each transport as item}
-        <article><span class="transport-symbol" aria-hidden="true">{item.symbol}</span><div><h3>{item.name}</h3><p>{item.detail}</p><strong>{item.price}</strong></div><button class="inline-book" on:click={() => booking = { type: 'rental', name: item.name }}>{c.bookRental}</button></article>
+        <article><span class="transport-symbol" aria-hidden="true">{item.symbol}</span><div><h3>{item.name}</h3><div class="rich-content">{@html item.detail}</div><strong>{item.price}</strong></div><button class="inline-book" on:click={() => booking = { type: 'rental', name: item.name }}>{c.bookRental}</button></article>
       {/each}
     </div>
   </section>
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
     <div class="about-image" role="img" aria-label="Perbukitan hijau dan laut Lombok"></div>
-    <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><p>{settings.aboutDescription}</p><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
+    <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
   <section class="faq section" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
     <div><p class="label">{c.faq}</p><h2 id="faq-title">{c.faqHeading}</h2></div>
-    <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><p itemprop="text">{faq.answer}</p></div></details>{/each}</div>
+    <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
   </section>
 </main>
 

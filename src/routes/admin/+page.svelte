@@ -1,5 +1,6 @@
 <script>
   import { slugify } from '#lib/i18n.js';
+  import RichTextEditor from '#lib/RichTextEditor.svelte';
   export let data;
   let catalog = structuredClone(data.catalog);
   let bookings = data.bookings;
@@ -169,15 +170,17 @@
                 <label><span>Kategori</span><input value={item.category} on:input={(event) => updatePackage(index, 'category', event.currentTarget.value)} placeholder="Contoh: Private tour" /></label>
                 <label><span>Nama paket</span><input value={item.name} on:input={(event) => updatePackage(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Destinasi dan aktivitas</span><textarea rows="2" value={item.route} on:input={(event) => updatePackage(index, 'route', event.currentTarget.value)}></textarea></label>
-                <label><span>Detail paket</span><textarea rows="3" value={item.detail} on:input={(event) => updatePackage(index, 'detail', event.currentTarget.value)}></textarea></label>
+                <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
                 <div class="admin-field-row"><label><span>Harga</span><input value={item.price} on:input={(event) => updatePackage(index, 'price', event.currentTarget.value)} /></label><label><span>Satuan</span><input value={item.unit} on:input={(event) => updatePackage(index, 'unit', event.currentTarget.value)} /></label></div>
                 <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
                 <div class="admin-field-row"><label><span>Sudah termasuk</span><textarea rows="5" value={(item.includes || []).join('\n')} on:change={(event) => updateLines(index, 'includes', event.currentTarget.value)}></textarea><small>Satu fasilitas per baris.</small></label><label><span>Belum termasuk</span><textarea rows="5" value={(item.excludes || []).join('\n')} on:change={(event) => updateLines(index, 'excludes', event.currentTarget.value)}></textarea><small>Satu item per baris.</small></label></div>
                 <fieldset class="admin-subsection"><legend>Harga berdasarkan jumlah tamu</legend>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-price-tier"><input aria-label="Jumlah tamu" value={tier.guests} on:input={(event) => updatePriceTier(index, tierIndex, 'guests', event.currentTarget.value)} /><input aria-label="Harga" value={tier.price} on:input={(event) => updatePriceTier(index, tierIndex, 'price', event.currentTarget.value)} /><input aria-label="Keterangan" value={tier.note} on:input={(event) => updatePriceTier(index, tierIndex, 'note', event.currentTarget.value)} /><button type="button" on:click={() => removePriceTier(index, tierIndex)}>Hapus</button></div>{/each}<button class="admin-secondary compact" type="button" on:click={() => addPriceTier(index)}>Tambah pilihan harga</button></fieldset>
 
                 <label><span>URL gambar</span><input type="url" value={item.image} on:input={(event) => updatePackage(index, 'image', event.currentTarget.value)} /></label>
+                {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><div><strong>Gambar utama saat ini</strong><span>Gambar ini tampil pada kartu dan halaman detail.</span></div></div>{/if}
                 <label><span>Upload gambar utama</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'image', url), `package-${index}`)} /><small>{uploading === `package-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 <label><span>Galeri paket (satu URL per baris)</span><textarea rows="4" value={(item.images || []).join('\n')} on:input={(event) => updatePackage(index, 'images', event.currentTarget.value.split('\n').map((value) => value.trim()).filter(Boolean))}></textarea></label>
+                {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><figcaption>{imageIndex + 1}</figcaption></figure>{/each}</div>{/if}
                 <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'images', [...(item.images || []), url]), `gallery-${index}`)} /><small>{uploading === `gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri.'}</small></label>
               </div>
               <button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}">Hapus</button>
@@ -195,11 +198,13 @@
               <div class="admin-fields">
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Keterangan singkat</span><input value={item.note} on:input={(event) => updateDestination(index, 'note', event.currentTarget.value)} /></label>
-                <label><span>Detail destinasi</span><textarea rows="3" value={item.detail} on:input={(event) => updateDestination(index, 'detail', event.currentTarget.value)}></textarea></label>
+                <RichTextEditor label="Deskripsi destinasi" bind:value={item.detail} />
 
                 <label><span>URL gambar</span><input type="url" value={item.image} on:input={(event) => updateDestination(index, 'image', event.currentTarget.value)} /></label>
+                {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><div><strong>Gambar utama saat ini</strong><span>Gambar ini tampil pada daftar destinasi.</span></div></div>{/if}
                 <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 <label><span>Galeri destinasi (satu URL per baris)</span><textarea rows="4" value={(item.images || []).join('\n')} on:input={(event) => updateDestination(index, 'images', event.currentTarget.value.split('\n').map((value) => value.trim()).filter(Boolean))}></textarea></label>
+                {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><figcaption>{imageIndex + 1}</figcaption></figure>{/each}</div>{/if}
                 <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'images', [...(item.images || []), url]), `destination-gallery-${index}`)} /><small>{uploading === `destination-gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri destinasi.'}</small></label>
               </div>
               <button class="admin-delete" on:click={() => removeDestination(index)} aria-label="Hapus destinasi {item.name}">Hapus</button>
@@ -220,7 +225,7 @@
           {#each catalog.rentals as item, index}
             <article class="admin-editor-card rental-editor">
               <div class="admin-card-number">{item.symbol}</div>
-              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><label><span>Keterangan</span><textarea rows="2" value={item.detail} on:input={(event) => updateRental(index, 'detail', event.currentTarget.value)}></textarea></label><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label></div>
+              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><RichTextEditor label="Keterangan layanan" bind:value={item.detail} /><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label></div>
             </article>
           {/each}
         </div>
@@ -235,7 +240,7 @@
               <div class="admin-card-number">0{index + 1}</div>
               <div class="admin-fields">
                 <label><span>Pertanyaan</span><input maxlength="200" value={item.question} on:input={(event) => updateFaq(index, 'question', event.currentTarget.value)} /></label>
-                <label><span>Jawaban</span><textarea rows="4" maxlength="1500" value={item.answer} on:input={(event) => updateFaq(index, 'answer', event.currentTarget.value)}></textarea></label>
+                <RichTextEditor label="Jawaban" bind:value={item.answer} />
 
               </div>
               <button class="admin-delete" on:click={() => removeFaq(index)} aria-label="Hapus pertanyaan {item.question}">Hapus</button>
@@ -255,9 +260,9 @@
           </fieldset>
           <fieldset><legend>Halaman utama</legend>
             <label><span>Judul utama</span><textarea rows="2" bind:value={catalog.settings.heroTitle}></textarea></label>
-            <label><span>Deskripsi utama</span><textarea rows="3" bind:value={catalog.settings.heroDescription}></textarea></label>
+            <RichTextEditor label="Deskripsi utama" bind:value={catalog.settings.heroDescription} />
             <label><span>Judul bagian profil</span><textarea rows="2" bind:value={catalog.settings.aboutTitle}></textarea></label>
-            <label><span>Deskripsi profil</span><textarea rows="3" bind:value={catalog.settings.aboutDescription}></textarea></label>
+            <RichTextEditor label="Deskripsi profil" bind:value={catalog.settings.aboutDescription} />
 
           </fieldset>
           <fieldset><legend>Media sosial</legend>
