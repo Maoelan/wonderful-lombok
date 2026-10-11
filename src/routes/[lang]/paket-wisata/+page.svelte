@@ -4,8 +4,11 @@
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
-  const c = getCopy(data.locale);
-  const home = localePath(data.locale);
+  $: c = getCopy(data.locale);
+  $: home = localePath(data.locale);
+  $: message = data.locale === 'id'
+    ? 'Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.'
+    : 'Hello Wonderful Lombok, I would like a custom itinerary in Lombok.';
 </script>
 
 <svelte:head>
@@ -40,6 +43,6 @@
       </article>
     {/each}
   </section>
-  <aside class="catalog-help"><h2>Butuh itinerary khusus?</h2><a class="button primary" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.', data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
+  <aside class="catalog-help"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
-<WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale="id" />
+<WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />

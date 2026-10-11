@@ -88,6 +88,71 @@ const catalogTranslations = {
   }
 };
 
+const packageDetailTranslations = {
+  'zh-cn': [
+    {
+      itinerary: [
+        { day: '上午', title: '接送与萨德村', items: ['从酒店或龙目岛国际机场接送', '参观萨德村及传统萨萨克房屋', '继续前往曼达利卡'] },
+        { day: '下午', title: '南部海滩', items: ['在库塔曼达利卡享用午餐', '在丹绒安海滩自由活动', '时间允许时停留塞格海滩'] },
+        { day: '傍晚', title: '梅雷塞山与返程', items: ['步行前往梅雷塞山观景点', '傍晚结束后返回酒店'] }
+      ],
+      includes: ['私人空调汽车与司机', '燃油与停车费', '矿泉水', '约定区域内接送'],
+      excludes: ['餐饮', '门票或景点捐款', '个人消费与自选活动'],
+      priceTiers: [{ guests: '1至5人', price: 'Rp1.250.000', note: '每辆车总价' }, { guests: '6至10人', price: '联系我们', note: '使用更大型车辆' }]
+    },
+    {
+      itinerary: [
+        { day: '上午', title: '前往港口', items: ['酒店接送', '前往港口', '行程说明与装备准备'] },
+        { day: '下午', title: '浮潜与跳岛', items: ['根据海况安排浮潜', '停留吉利美诺与吉利艾尔', '自由午餐时间'] },
+        { day: '傍晚', title: '吉利特拉旺安与返程', items: ['在吉利特拉旺安自由活动', '乘船返回龙目岛', '送回酒店'] }
+      ],
+      includes: ['私人陆路接送', '私人船只与船员', '面镜、呼吸管与救生衣', '矿泉水'],
+      excludes: ['午餐', '当地费用', '水下摄影', '个人消费'],
+      priceTiers: [{ guests: '1至2人', price: 'Rp1.450.000', note: '套餐总价' }, { guests: '3至5人', price: 'Rp1.950.000', note: '套餐总价' }]
+    },
+    {
+      itinerary: [
+        { day: '第1天', title: '西海岸与日落', items: ['私人接送', '停留马林布观景点', '入住圣吉吉地区酒店', '海滨地区双人晚餐'] },
+        { day: '第2天', title: '吉利岛选项或悠闲早晨', items: ['酒店早餐', '选择吉利岛短途行程或自由活动', '退房与送行'] }
+      ],
+      includes: ['私人汽车与司机', '双人一晚酒店住宿', '酒店早餐', '双人晚餐'],
+      excludes: ['机票', '自选海上活动', '未列明餐饮', '个人消费'],
+      priceTiers: [{ guests: '1对情侣', price: 'Rp3.900.000', note: '套餐起价' }]
+    }
+  ],
+  'zh-tw': [
+    {
+      itinerary: [
+        { day: '上午', title: '接送與薩德村', items: ['從飯店或龍目島國際機場接送', '參觀薩德村與傳統薩薩克房屋', '繼續前往曼達利卡'] },
+        { day: '下午', title: '南部海灘', items: ['在庫塔曼達利卡享用午餐', '在丹絨安海灘自由活動', '時間允許時停留塞格海灘'] },
+        { day: '傍晚', title: '梅雷塞山與返程', items: ['步行前往梅雷塞山觀景點', '傍晚結束後返回飯店'] }
+      ],
+      includes: ['私人空調汽車與司機', '燃油與停車費', '礦泉水', '約定區域內接送'],
+      excludes: ['餐飲', '門票或景點捐款', '個人消費與自選活動'],
+      priceTiers: [{ guests: '1至5人', price: 'Rp1.250.000', note: '每輛車總價' }, { guests: '6至10人', price: '聯絡我們', note: '使用較大型車輛' }]
+    },
+    {
+      itinerary: [
+        { day: '上午', title: '前往港口', items: ['飯店接送', '前往港口', '行程說明與裝備準備'] },
+        { day: '下午', title: '浮潛與跳島', items: ['依海況安排浮潛', '停留吉利美諾與吉利艾爾', '自由午餐時間'] },
+        { day: '傍晚', title: '吉利特拉旺安與返程', items: ['在吉利特拉旺安自由活動', '搭船返回龍目島', '送回飯店'] }
+      ],
+      includes: ['私人陸路接送', '私人船隻與船員', '面鏡、呼吸管與救生衣', '礦泉水'],
+      excludes: ['午餐', '當地費用', '水下攝影', '個人消費'],
+      priceTiers: [{ guests: '1至2人', price: 'Rp1.450.000', note: '套裝總價' }, { guests: '3至5人', price: 'Rp1.950.000', note: '套裝總價' }]
+    },
+    {
+      itinerary: [
+        { day: '第1天', title: '西海岸與日落', items: ['私人接送', '停留馬林布觀景點', '入住聖吉吉地區飯店', '海濱地區雙人晚餐'] },
+        { day: '第2天', title: '吉利島選項或悠閒早晨', items: ['飯店早餐', '選擇吉利島短途行程或自由活動', '退房與送行'] }
+      ],
+      includes: ['私人汽車與司機', '雙人一晚飯店住宿', '飯店早餐', '雙人晚餐'],
+      excludes: ['機票', '自選海上活動', '未列明餐飲', '個人消費'],
+      priceTiers: [{ guests: '1對情侶', price: 'Rp3.900.000', note: '套裝起價' }]
+    }
+  ]
+};
+
 export function localizeCatalog(catalog, locale) {
   const translation = catalogTranslations[locale];
   const settings = { ...catalog.settings };
@@ -104,7 +169,8 @@ export function localizeCatalog(catalog, locale) {
       includes: locale !== 'id' && item.includesEn?.length ? item.includesEn : item.includes || [],
       excludes: locale !== 'id' && item.excludesEn?.length ? item.excludesEn : item.excludes || [],
       priceTiers: (item.priceTiers || []).map((tier) => ({ ...tier, guests: localized(tier, 'guests', locale), note: localized(tier, 'note', locale) })),
-      ...(translation?.packages[index] || {})
+      ...(translation?.packages[index] || {}),
+      ...(packageDetailTranslations[locale]?.[index] || {})
     })),
     destinations: catalog.destinations.map((item, index) => ({ ...item, name: localized(item, 'name', locale), note: localized(item, 'note', locale), detail: localized(item, 'detail', locale), ...(translation?.destinations[index] || {}) })),
     rentals: catalog.rentals.map((item, index) => ({ ...item, name: localized(item, 'name', locale), detail: localized(item, 'detail', locale), price: localized(item, 'price', locale), ...(translation?.rentals[index] || {}) })),
@@ -121,7 +187,7 @@ const id = {
   travelHeading: 'Antar-jemput sesuai titik perjalananmu.', travelIntro: 'Pilih lokasi jemput dan tujuan. Biaya dihitung berdasarkan perkiraan jarak perjalanan.', suitable: 'Cocok untuk', suitableValue: 'Bandara, pelabuhan, hotel, dan destinasi', ordering: 'Pemesanan', orderingValue: 'Konfirmasi langsung melalui WhatsApp', travelCalc: 'Hitung Paket Travel', travelCalcHeading: 'Masukkan titik jemput dan tujuanmu.', travelCalcIntro: 'Lihat perkiraan biaya, lalu kirim detail perjalanan kepada tim Wonderful Lombok.',
   rentalLabel: 'Rental kendaraan', rentalHeading: 'Kendaraan untuk dipakai selama di Lombok.', rentalIntro: 'Pilih rental harian jika kamu membutuhkan kendaraan untuk beberapa tujuan dalam satu hari.', bookRental: 'Pesan rental',
   why: 'Mengapa Wonderful Lombok', benefits: ['Private dan custom trip', 'Driver lokal', 'Itinerary fleksibel', 'Konsultasi melalui WhatsApp'], consultTrip: 'Konsultasikan perjalanan', faq: 'Pertanyaan umum', faqHeading: 'Sebelum berangkat.', localPartner: 'Partner lokal untuk perjalananmu di Lombok.', contact: 'Hubungi kami',
-  catalogTitle: 'Paket Wisata Lombok', catalogIntro: 'Pilih berdasarkan durasi dan pengalaman, lalu buka detail itinerary sebelum memesan.', backHome: 'Kembali ke beranda', highlights: 'Highlight perjalanan', from: 'Mulai', detail: 'Detail paket', itinerary: 'Itinerary', prices: 'Pilihan harga', guests: 'Jumlah tamu', price: 'Harga', note: 'Keterangan', includes: 'Sudah termasuk', excludes: 'Belum termasuk', bookWhatsapp: 'Pesan paket via WhatsApp', otherTours: 'Paket lainnya'
+  catalogTitle: 'Paket Wisata Lombok', catalogIntro: 'Pilih berdasarkan durasi dan pengalaman, lalu buka detail itinerary sebelum memesan.', backHome: 'Kembali ke beranda', home: 'Beranda', highlights: 'Highlight perjalanan', from: 'Mulai', detail: 'Detail paket', itinerary: 'Itinerary', itineraryHeading: 'Rangkaian perjalananmu', prices: 'Pilihan harga', priceHeading: 'Harga berdasarkan jumlah tamu', guests: 'Jumlah tamu', price: 'Harga', note: 'Keterangan', includes: 'Sudah termasuk', excludes: 'Belum termasuk', bookWhatsapp: 'Pesan paket via WhatsApp', otherTours: 'Paket lainnya', readyTitle: 'Siap menjelajahi Lombok?', customItinerary: 'Butuh itinerary khusus?', image: 'gambar', viewImage: 'Lihat gambar'
 };
 
 const en = {
@@ -133,7 +199,7 @@ const en = {
   travelHeading: 'Point-to-point travel for your journey.', travelIntro: 'Choose your pick-up point and destination. The estimate follows the road distance.', suitable: 'Suitable for', suitableValue: 'Airports, harbours, hotels, and attractions', ordering: 'Booking', orderingValue: 'Confirm directly through WhatsApp', travelCalc: 'Travel Cost Calculator', travelCalcHeading: 'Enter your pick-up point and destination.', travelCalcIntro: 'See the estimated cost, then send your trip details to Wonderful Lombok.',
   rentalLabel: 'Vehicle rental', rentalHeading: 'A vehicle for your time in Lombok.', rentalIntro: 'Choose a daily rental when you need transport for several destinations in one day.', bookRental: 'Book rental',
   why: 'Why Wonderful Lombok', benefits: ['Private and custom trips', 'Local drivers', 'Flexible itineraries', 'WhatsApp consultation'], consultTrip: 'Plan your journey', faq: 'Frequently asked questions', faqHeading: 'Before you travel.', localPartner: 'Your local partner for travelling around Lombok.', contact: 'Contact us',
-  catalogTitle: 'Lombok Tour Packages', catalogIntro: 'Choose by duration and experience, then review the itinerary before booking.', backHome: 'Back to home', highlights: 'Trip highlights', from: 'From', detail: 'Package details', itinerary: 'Itinerary', prices: 'Price options', guests: 'Guests', price: 'Price', note: 'Notes', includes: 'Included', excludes: 'Not included', bookWhatsapp: 'Book via WhatsApp', otherTours: 'Other packages'
+  catalogTitle: 'Lombok Tour Packages', catalogIntro: 'Choose by duration and experience, then review the itinerary before booking.', backHome: 'Back to home', home: 'Home', highlights: 'Trip highlights', from: 'From', detail: 'Package details', itinerary: 'Itinerary', itineraryHeading: 'Your trip itinerary', prices: 'Price options', priceHeading: 'Prices by group size', guests: 'Guests', price: 'Price', note: 'Notes', includes: 'Included', excludes: 'Not included', bookWhatsapp: 'Book via WhatsApp', otherTours: 'Other packages', readyTitle: 'Ready to explore Lombok?', customItinerary: 'Need a custom itinerary?', image: 'image', viewImage: 'View image'
 };
 
 export function getCopy(locale) {
@@ -153,7 +219,15 @@ export function getCopy(locale) {
     de: { language: 'Sprache', menu: 'Navigation öffnen', tourChoice: 'Für Reisende, die Route, Ziele und Transport vorbereitet wünschen.', travelChoice: 'Für Transfers zwischen Flughafen, Hafen, Hotel und Sehenswürdigkeiten.', rentalChoice: 'Für ein Auto mit Fahrer oder einen Roller während des Aufenthalts.', destinationIntro: 'Nutzen Sie diese Ziele als Inspiration. Wonderful Lombok plant daraus Ihre Route.', travelIntro: 'Wählen Sie Abholort und Ziel. Der Preis richtet sich nach der Straßenentfernung.', suitable: 'Geeignet für', suitableValue: 'Flughäfen, Häfen, Hotels und Sehenswürdigkeiten', ordering: 'Buchung', orderingValue: 'Direkte Bestätigung über WhatsApp', travelCalc: 'Transferpreis berechnen', travelCalcHeading: 'Abholort und Ziel eingeben.', travelCalcIntro: 'Schätzung ansehen und Reisedaten an Wonderful Lombok senden.', rentalIntro: 'Wählen Sie eine Tagesmiete für mehrere Ziele an einem Tag.', bookRental: 'Fahrzeug buchen', benefits: ['Private Reisen nach Maß', 'Lokale Fahrer', 'Flexible Routen', 'Beratung über WhatsApp'], localPartner: 'Ihr lokaler Reisepartner auf Lombok.', highlights: 'Höhepunkte', detail: 'Paketdetails', guests: 'Reisende', price: 'Preis', note: 'Hinweis', otherTours: 'Weitere Pakete' },
     ms: { language: 'Bahasa', menu: 'Buka navigasi', tourChoice: 'Untuk pelancong yang mahukan jadual, destinasi dan pengangkutan disediakan.', travelChoice: 'Untuk pemindahan antara lapangan terbang, pelabuhan, hotel dan tempat tarikan.', rentalChoice: 'Untuk menyewa kereta bersama pemandu atau motosikal sepanjang penginapan.', destinationIntro: 'Gunakan destinasi ini sebagai inspirasi. Wonderful Lombok boleh membantu menyusun jadual perjalanan.', travelIntro: 'Pilih lokasi jemput dan destinasi. Anggaran mengikut jarak jalan raya.', suitable: 'Sesuai untuk', suitableValue: 'Lapangan terbang, pelabuhan, hotel dan tempat tarikan', ordering: 'Tempahan', orderingValue: 'Sahkan terus melalui WhatsApp', travelCalc: 'Kalkulator tambang travel', travelCalcHeading: 'Masukkan lokasi jemput dan destinasi.', travelCalcIntro: 'Lihat anggaran dan hantar butiran perjalanan kepada Wonderful Lombok.', rentalIntro: 'Pilih sewaan harian jika anda menuju ke beberapa destinasi dalam sehari.', bookRental: 'Tempah kenderaan', benefits: ['Perjalanan peribadi dan tersuai', 'Pemandu tempatan', 'Jadual fleksibel', 'Konsultasi WhatsApp'], localPartner: 'Rakan tempatan untuk perjalanan anda di Lombok.', highlights: 'Sorotan perjalanan', detail: 'Butiran pakej', guests: 'Tetamu', price: 'Harga', note: 'Catatan', otherTours: 'Pakej lain' }
   };
-  return locale === 'id' ? id : { ...en, ...(translated[locale] || {}), ...(supplemental[locale] || {}) };
+  const detailTranslations = {
+    'zh-cn': { home: '首页', itineraryHeading: '您的旅行行程', priceHeading: '按人数选择价格', readyTitle: '准备探索龙目岛了吗？', customItinerary: '需要定制行程吗？', image: '图片', viewImage: '查看图片' },
+    'zh-tw': { home: '首頁', itineraryHeading: '您的旅行行程', priceHeading: '依人數選擇價格', readyTitle: '準備探索龍目島了嗎？', customItinerary: '需要客製行程嗎？', image: '圖片', viewImage: '查看圖片' },
+    nl: { home: 'Home', itineraryHeading: 'Uw reisprogramma', priceHeading: 'Prijzen per groepsgrootte', readyTitle: 'Klaar om Lombok te ontdekken?', customItinerary: 'Een route op maat nodig?', image: 'afbeelding', viewImage: 'Afbeelding bekijken' },
+    fr: { home: 'Accueil', itineraryHeading: 'Votre itinéraire', priceHeading: 'Tarifs selon la taille du groupe', readyTitle: 'Prêt à découvrir Lombok ?', customItinerary: 'Besoin d’un itinéraire sur mesure ?', image: 'image', viewImage: 'Voir l’image' },
+    de: { home: 'Startseite', itineraryHeading: 'Ihr Reiseablauf', priceHeading: 'Preise nach Gruppengröße', readyTitle: 'Bereit, Lombok zu entdecken?', customItinerary: 'Benötigen Sie eine individuelle Route?', image: 'Bild', viewImage: 'Bild ansehen' },
+    ms: { home: 'Laman utama', itineraryHeading: 'Jadual perjalanan anda', priceHeading: 'Harga mengikut bilangan tetamu', readyTitle: 'Bersedia meneroka Lombok?', customItinerary: 'Perlukan jadual khas?', image: 'gambar', viewImage: 'Lihat gambar' }
+  };
+  return locale === 'id' ? id : { ...en, ...(translated[locale] || {}), ...(supplemental[locale] || {}), ...(detailTranslations[locale] || {}) };
 }
 
 const formId = { pickup: 'Lokasi jemput', destination: 'Tujuan', address: 'Ketik alamat, lalu tekan Enter', searching: 'Mencari…', useLocation: 'Gunakan lokasi saya', locating: 'Mencari GPS…', popular: 'Atau pilih lokasi populer', guidance: 'Ketik alamat lalu tekan Enter, pilih lokasi populer, atau klik langsung pada peta.', loadingMap: 'Memuat peta Lombok', findingRoute: 'Mencari rute jalan', estimate: 'Estimasi perjalanan', calculating: 'Menghitung…', rate: 'Tarif per km rute jalan', from: 'Dari', to: 'Ke', notSelected: 'Belum dipilih', customer: 'Nama pemesan', fullName: 'Nama lengkap', whatsapp: 'Nomor WhatsApp', date: 'Tanggal', time: 'Waktu', passengers: 'Jumlah penumpang', bookTravel: 'Pesan Paket Travel via WhatsApp', estimateNote: 'Harga merupakan perkiraan. Tim Wonderful Lombok akan mengonfirmasi detail perjalanan melalui WhatsApp.', bookNow: 'Pesan Sekarang', close: 'Tutup', booking: 'Permintaan pemesanan', bookingIntro: 'Isi data singkat berikut, lalu lanjutkan konfirmasi melalui WhatsApp.', travelDate: 'Tanggal perjalanan', guests: 'Jumlah peserta', notes: 'Catatan opsional', notesPlaceholder: 'Permintaan khusus atau lokasi penjemputan', saveContinue: 'Simpan dan lanjut ke WhatsApp', saving: 'Menyimpan…', destinationDetails: 'Detail destinasi', previousImage: 'Gambar sebelumnya', nextImage: 'Gambar berikutnya' };

@@ -18,15 +18,15 @@
   $: c = getCopy(locale);
   $: formCopy = getFormCopy(locale);
   $: localeHome = localePath(locale);
-  let packages = data.catalog.packages;
-  let transport = data.catalog.rentals;
-  let travelRate = data.catalog.travelRate;
-  let settings = data.catalog.settings;
+  $: packages = data.catalog.packages;
+  $: transport = data.catalog.rentals;
+  $: travelRate = data.catalog.travelRate;
+  $: settings = data.catalog.settings;
   $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages, airport and harbour transfers, and vehicle rental with local drivers.' : 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
   $: seoTitle = locale === 'id' ? 'Paket Wisata Lombok, Travel & Rental | Wonderful Lombok' : `${c.catalogTitle}, ${c.travel} & ${c.rental} | Wonderful Lombok`;
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
-  let destinations = data.catalog.destinations;
-  let faqs = data.catalog.faqs;
+  $: destinations = data.catalog.destinations;
+  $: faqs = data.catalog.faqs;
   const packageGallery = (item) => [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
   onMount(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
