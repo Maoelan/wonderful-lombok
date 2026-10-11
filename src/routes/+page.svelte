@@ -87,10 +87,11 @@
 
 <header class="site-header">
   <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
+  <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
   <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen = !menuOpen}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="main-navigation" class:open={menuOpen} aria-label="Navigasi utama">
     <a href="#paket" on:click={closeMenu}>{c.tours}</a><a href="#paket-travel" on:click={closeMenu}>{c.travel}</a><a href="#rental" on:click={closeMenu}>{c.rental}</a><a href="#destinasi" on:click={closeMenu}>{c.destinations}</a>
-    <LanguageSelector {locale} />
+    <div class="nav-language"><LanguageSelector {locale} /></div>
     <a class="nav-action" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
   </nav>
 </header>

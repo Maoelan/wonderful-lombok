@@ -143,6 +143,9 @@ img {
   display: none;
 }
 
+.mobile-language { display: none; }
+.nav-language { display: contents; }
+
 .brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: transparent; }
 .brand-logo img { width: 100%; height: 100%; object-fit: contain; object-position: left center; filter: none; }
 .language-picker { position: relative; color: inherit; }
@@ -1241,6 +1244,27 @@ footer {
     width: calc(100% - 40px);
   }
 
+  .mobile-language {
+    display: block;
+    margin-left: auto;
+    margin-right: 10px;
+  }
+
+  .mobile-language .language-picker summary {
+    min-width: 124px;
+    min-height: 48px;
+    gap: 7px;
+    padding: 0 30px 0 10px;
+    border-color: rgba(255,255,255,.58);
+    background: rgba(10,45,39,.5);
+    color: white;
+  }
+
+  .mobile-language .language-picker summary::after { right: 12px; }
+  .mobile-language .language-picker summary > span:last-child { font-size: 11px; }
+  .mobile-language .language-menu { width: min(270px, calc(100vw - 40px)); }
+  .nav-language { display: none; }
+
   .menu-toggle {
     position: relative;
     z-index: 2;
@@ -1297,10 +1321,6 @@ footer {
   .site-header nav > a:not(.nav-action):focus-visible { background: rgba(255,255,255,.08); }
 
   .site-header nav .nav-action { justify-content: center; margin-top: 6px; }
-
-  .site-header nav .language-picker { width: 100%; }
-  .site-header nav .language-picker summary { width: 100%; }
-  .site-header nav .language-menu { position: static; width: 100%; margin-top: 6px; border-color: rgba(255,255,255,.15); box-shadow: none; }
 
   .hero {
     min-height: 720px;
@@ -1392,7 +1412,9 @@ footer {
     min-height: 76px;
   }
 
-  .brand-logo { width: 138px; height: 52px; }
+  .brand-logo { width: 122px; height: 48px; }
+  .mobile-language { margin-right: 8px; }
+  .mobile-language .language-picker summary { min-width: 124px; }
 
   .hero {
     min-height: 690px;
@@ -1459,8 +1481,10 @@ footer {
     grid-auto-rows: 220px;
   }
 
-  .destination-grid article.wide {
+  .destination-grid article.wide,
+  .destination-grid .destination-card.wide {
     grid-column: auto;
+    grid-row: auto;
   }
 
   .travel-section {
@@ -1582,11 +1606,14 @@ footer {
   .about {
     width: 100%;
     grid-template-columns: 1fr;
+    min-height: 0;
     padding: 0;
   }
 
   .about-image {
-    min-height: 390px;
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    background-position: center 42%;
   }
 
   .about-copy {
@@ -1615,6 +1642,14 @@ footer {
   .footer-note {
     grid-column: auto;
   }
+}
+
+@media (max-width: 340px) {
+  .site-header { width: calc(100% - 24px); }
+  .site-header .brand-logo { width: 100px; }
+  .mobile-language { margin-right: 6px; }
+  .mobile-language .language-picker summary { min-width: 120px; }
+  .menu-toggle { width: 44px; height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
