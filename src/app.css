@@ -155,7 +155,7 @@ nav a:not(.nav-action):hover {
 }
 
 .hero-image {
-  background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85') center 58% / cover;
+  background: url('https://commons.wikimedia.org/wiki/Special:Redirect/file/PANTAI%20TANJUNG%20AAN.jpg?width=2000') center 58% / cover;
   transform: scale(1.015);
 }
 
@@ -978,7 +978,7 @@ select:hover {
 
 .about-image {
   min-height: 510px;
-  background: url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=82') center / cover;
+  background: url('https://commons.wikimedia.org/wiki/Special:Redirect/file/Pemandangan%20Taman%20Nasional%20Sembalun%20di%20Kaki%20Gunung%20Rinjani%2C%20Menghadap%20Pemukiman%20Baru%20Korban%20Gempa%20Lombok%20Timur.jpg?width=1600') center / cover;
 }
 
 .about-copy {
@@ -1647,11 +1647,11 @@ footer {
 .admin-price-tier { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
 .admin-price-tier button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #932f25; cursor: pointer; font-weight: 800; }
 .admin-secondary.compact { width: fit-content; min-height: 42px; margin-top: 6px; padding: 8px 14px; }
-.whatsapp-float { position: fixed; z-index: 1500; right: max(22px, calc((100vw - 1240px) / 2)); bottom: 24px; display: flex; min-height: 56px; align-items: center; gap: 0; color: var(--forest-deep); text-decoration: none; filter: drop-shadow(0 8px 18px rgba(5,35,29,.22)); }
-.whatsapp-float span { display: flex; min-height: 44px; align-items: center; margin-right: -9px; padding: 0 25px 0 20px; border: 1px solid rgba(18,63,53,.12); border-radius: 24px 0 0 24px; background: white; font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
-.whatsapp-float b { display: grid; width: 56px; height: 56px; place-items: center; border: 3px solid white; border-radius: 50%; background: #25d366; color: white; transition: transform .18s ease, background .18s ease; }
-.whatsapp-float svg { width: 29px; height: 29px; fill: currentColor; }
-.whatsapp-float:hover b, .whatsapp-float:focus-visible b { background: #18b956; transform: scale(1.06); }
+.whatsapp-float { position: fixed; z-index: 1500; right: max(22px, calc((100vw - 1240px) / 2)); bottom: 24px; display: inline-flex; min-height: 54px; align-items: center; gap: 11px; padding: 0 18px; border: 2px solid white; border-radius: 28px; background: #168c49; color: white; text-decoration: none; box-shadow: 0 9px 24px rgba(5,35,29,.25); transition: background .18s ease, transform .18s ease; }
+.whatsapp-float span { font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.whatsapp-float b { display: grid; width: 25px; height: 25px; place-items: center; color: white; }
+.whatsapp-float svg { width: 25px; height: 25px; fill: currentColor; }
+.whatsapp-float:hover, .whatsapp-float:focus-visible { background: #11763d; transform: translateY(-2px); }
 
 @media (max-width: 760px) {
   .inner-header { min-height: 76px; padding: 0 20px; }
@@ -1670,7 +1670,7 @@ footer {
   .price-row span { grid-column: 1 / -1; }
   .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .whatsapp-float { right: 16px; bottom: 16px; }
-  .whatsapp-float span { padding-left: 16px; }
+  .whatsapp-float { min-height: 50px; padding: 0 15px; }
 }
 
 /* Admin uses the same editorial identity, with denser spacing for operational work. */

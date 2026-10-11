@@ -47,7 +47,8 @@
   <link rel="alternate" hreflang="id-ID" href={data.alternateUrls.id} />
   <link rel="alternate" hreflang="en" href={data.alternateUrls.en} />
   <link rel="alternate" hreflang="x-default" href={data.alternateUrls.id} />
-  <link rel="preconnect" href="https://images.unsplash.com" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://commons.wikimedia.org" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin="anonymous" />
   <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin="anonymous" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content={locale === 'en' ? 'en_US' : 'id_ID'} />
