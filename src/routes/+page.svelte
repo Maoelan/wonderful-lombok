@@ -27,8 +27,17 @@
   const packageGallery = (item) => [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
   onMount(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const timer = window.setInterval(() => galleryTick += 1, 4200);
-    return () => window.clearInterval(timer);
+    let timer;
+    let cancelled = false;
+    const preload = packages.flatMap(packageGallery).map((src) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = image.onerror = resolve;
+      image.src = src;
+    }));
+    Promise.allSettled(preload).then(() => {
+      if (!cancelled) timer = window.setInterval(() => galleryTick += 1, 5200);
+    });
+    return () => { cancelled = true; window.clearInterval(timer); };
   });
   function showDetail(item) { detailItem = item; }
   function closeMenu() { menuOpen = false; }
