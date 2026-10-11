@@ -192,9 +192,16 @@ img {
 .hero-copy {
   position: relative;
   z-index: 1;
-  max-width: 760px;
+  width: min(100%, 1040px);
   margin-inline: auto;
   text-align: center;
+}
+
+.hero-copy h1 {
+  max-width: 1040px;
+  margin-inline: auto;
+  font-size: clamp(54px, 5vw, 84px);
+  line-height: 1.02;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -244,7 +251,7 @@ h1 {
 
 .hero-intro {
   max-width: 610px;
-  margin: 0;
+  margin: 0 auto;
   color: #eef5f1;
   font-size: 18px;
   line-height: 1.65;
