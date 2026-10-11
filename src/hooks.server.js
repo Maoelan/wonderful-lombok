@@ -18,6 +18,10 @@ export async function handle({ event, resolve }) {
     const html = await response.text();
     const staticHtml = html
       .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/(<a\b[^>]*\bhref=")(\/[^"#]*)(#[^"]*)?("[^>]*>)/gi, (match, before, path, hash = '', after) => {
+        if (path.startsWith('/_app') || path.includes('translate=1')) return match;
+        return `${before}${path}${path.includes('?') ? '&' : '?'}translate=1${hash}${after}`;
+      })
       .replace('<body data-sveltekit-preload-data="hover">', '<body class="translation-static">');
     const headers = new Headers(response.headers);
     headers.delete('content-length');
