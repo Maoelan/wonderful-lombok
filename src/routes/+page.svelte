@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import PickupCalculator from '../lib/PickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
   import DetailDialog from '../lib/DetailDialog.svelte';
@@ -11,6 +12,7 @@
   let booking = null;
   let detailItem = null;
   let detailKind = 'destinasi';
+  let galleryTick = 0;
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
   $: localeHome = locale === 'en' ? '/en' : '/';
@@ -22,6 +24,12 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   let destinations = data.catalog.destinations;
   let faqs = data.catalog.faqs;
+  const packageGallery = (item) => [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
+  onMount(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => galleryTick += 1, 4200);
+    return () => window.clearInterval(timer);
+  });
   function showDetail(item) { detailItem = item; }
   function closeMenu() { menuOpen = false; }
   function reveal(node) {
@@ -106,7 +114,9 @@
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content="Paket perjalanan Wonderful Lombok" />
       {#each packages as item, index}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img src={item.image} alt={item.name} loading="lazy" itemprop="image" /></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a></div></article>
+        {@const gallery = packageGallery(item)}
+        {@const activeImage = gallery[(galleryTick + index) % gallery.length]}
+        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}>{#key activeImage}<img class="package-slide" src={activeImage} alt={item.name} loading={galleryTick === 0 ? 'lazy' : 'eager'} itemprop="image" />{/key}<span class="gallery-progress" aria-hidden="true">{(galleryTick + index) % gallery.length + 1}/{gallery.length}</span></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><a class="package-book" href={createWhatsAppUrl(locale === 'en' ? `Hello Wonderful Lombok, I would like to book ${item.name}.` : `Halo Wonderful Lombok, saya ingin memesan ${item.name}.`, settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookTour}</a></div></div></article>
       {/each}
     </div>
     <a class="button dark all-packages" href={`/${locale}/paket-wisata`}>{c.allTours}</a>
