@@ -107,6 +107,8 @@
     const requestId = ++routeRequest;
     const L = await import('leaflet');
     routeLayer.clearLayers(); distance = 0; routeError = '';
+    if (from) L.circleMarker([from.lat, from.lng], { radius: 7, color: '#123f35', fillColor: '#f2b84b', fillOpacity: 1, weight: 3 }).bindTooltip('Jemput: ' + from.name).addTo(routeLayer);
+    if (to) L.circleMarker([to.lat, to.lng], { radius: 7, color: '#123f35', fillColor: '#fffaf0', fillOpacity: 1, weight: 3 }).bindTooltip('Tujuan: ' + to.name).addTo(routeLayer);
     if (!routeReady) { routeLoading = false; return; }
     routeLoading = true;
     try {
@@ -115,8 +117,6 @@
       const roadRoute = readRoadRoute(await response.json());
       if (requestId !== routeRequest) return;
       distance = roadRoute.distanceKm;
-      L.circleMarker([from.lat, from.lng], { radius: 7, color: '#123f35', fillColor: '#f2b84b', fillOpacity: 1, weight: 3 }).bindTooltip('Jemput: ' + from.name).addTo(routeLayer);
-      L.circleMarker([to.lat, to.lng], { radius: 7, color: '#123f35', fillColor: '#fffaf0', fillOpacity: 1, weight: 3 }).bindTooltip('Tujuan: ' + to.name).addTo(routeLayer);
       L.polyline(roadRoute.points, { color: '#123f35', weight: 4 }).addTo(routeLayer);
       map.fitBounds(roadRoute.points, { padding: [48, 48] });
     } catch (error) { if (requestId === routeRequest) routeError = error.message || 'Rute jalan belum dapat dihitung.'; }

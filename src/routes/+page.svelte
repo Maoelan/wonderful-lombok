@@ -14,6 +14,7 @@
   let detailItem = null;
   let detailKind = 'destinasi';
   let galleryTick = 0;
+  const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
   $: formCopy = getFormCopy(locale);
@@ -177,6 +178,7 @@
   <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a><a href="#rental">{c.rentalLabel}</a><a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
+  <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en}</p>
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 <DetailDialog bind:item={detailItem} kind={detailKind} {locale} />

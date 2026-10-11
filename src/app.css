@@ -597,6 +597,13 @@ h1 {
   line-height: 1.6;
 }
 
+.rental-list .rich-content {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
 .rental-list strong {
   color: var(--forest);
   font-size: 14px;
@@ -1051,6 +1058,13 @@ select:hover {
   margin-bottom: 18px;
 }
 
+.about-copy > .rich-content {
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
 .about-note {
   padding-top: 18px;
   border-top: 1px solid #d7d7cd;
@@ -1209,6 +1223,17 @@ footer {
   max-width: 280px;
   justify-self: end;
   text-align: right;
+}
+
+.footer-copyright {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 8px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,.18);
+  color: #9eb3ac;
+  font-size: 11px;
+  letter-spacing: .02em;
 }
 
 @media (max-width: 900px) {
