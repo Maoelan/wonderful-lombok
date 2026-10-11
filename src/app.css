@@ -1145,11 +1145,19 @@ select:hover {
   padding: 0 45px 24px 0;
 }
 
-.faq details p {
+.faq details .rich-content {
   margin: -6px 0 0;
   color: var(--muted);
   line-height: 1.7;
 }
+
+.faq details .rich-content p {
+  margin: 0 0 12px;
+  color: inherit;
+  line-height: inherit;
+}
+
+.faq details .rich-content p:last-child { margin-bottom: 0; }
 
 .button.dark {
   width: fit-content;
