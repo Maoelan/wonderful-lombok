@@ -10,6 +10,7 @@ export async function load({ params, url }) {
   const canonicalUrl = `${siteOrigin}${localePath(params.lang)}`;
   return {
     catalog: localizeCatalog(catalog, params.lang), locale: params.lang, canonicalUrl,
+    rentalEnabled: process.env.PUBLIC_RENTAL_ENABLED === 'true',
     alternateUrls: alternateUrls(siteOrigin),
     socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', siteOrigin)
   };

@@ -9,7 +9,7 @@ export async function POST({ request, getClientAddress }) {
   try { body = await request.json(); } catch { return json({ error: 'Format JSON tidak valid.' }, { status: 400 }); }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'Data pemesanan tidak valid.' }, { status: 400 });
   const whatsapp = String(body.whatsapp || '').replace(/\D/g, '').replace(/^0/, '62');
-  const allowed = ['wisata', 'travel', 'rental'];
+  const allowed = ['wisata', 'travel', ...(process.env.PUBLIC_RENTAL_ENABLED === 'true' ? ['rental'] : [])];
   if (!String(body.name || '').trim() || String(body.name).length > 100 || !/^62\d{8,13}$/.test(whatsapp)) return json({ error: 'Nama dan nomor WhatsApp belum valid.' }, { status: 400 });
   if (!allowed.includes(body.serviceType) || !String(body.serviceName || '').trim() || String(body.serviceName).length > 120) return json({ error: 'Jenis layanan tidak valid.' }, { status: 400 });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(body.travelDate || '') || body.travelDate < new Date().toISOString().slice(0, 10)) return json({ error: 'Tanggal perjalanan tidak valid.' }, { status: 400 });

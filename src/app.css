@@ -367,6 +367,8 @@ h1 {
   border-top: 1px solid var(--line);
 }
 
+.choice-list.without-rental { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 .choice-list article {
   display: flex;
   min-width: 0;
@@ -1473,6 +1475,8 @@ footer {
   .choice-list {
     grid-template-columns: 1fr;
   }
+
+  .choice-list.without-rental { grid-template-columns: 1fr; }
 
   .choice-list article,
   .choice-list article + article {

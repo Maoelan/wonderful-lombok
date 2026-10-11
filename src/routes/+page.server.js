@@ -8,6 +8,7 @@ export async function load({ url }) {
   return {
     catalog: localizeCatalog(catalog, 'id'),
     locale: 'id',
+    rentalEnabled: process.env.PUBLIC_RENTAL_ENABLED === 'true',
     canonicalUrl: `${siteOrigin}/`,
     alternateUrls: alternateUrls(siteOrigin),
     socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', siteOrigin)

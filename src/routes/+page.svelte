@@ -23,8 +23,9 @@
   $: transport = data.catalog.rentals;
   $: travelRate = data.catalog.travelRate;
   $: settings = data.catalog.settings;
-  $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages, airport and harbour transfers, and vehicle rental with local drivers.' : 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
-  $: seoTitle = locale === 'id' ? 'Paket Wisata Lombok, Travel & Rental | Wonderful Lombok' : `${c.catalogTitle}, ${c.travel} & ${c.rental} | Wonderful Lombok`;
+  $: rentalEnabled = data.rentalEnabled === true;
+  $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages plus airport and harbour transfers with local drivers.' : 'Paket wisata Lombok serta travel bandara dan pelabuhan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
+  $: seoTitle = locale === 'id' ? 'Paket Wisata Lombok & Travel | Wonderful Lombok' : `${c.catalogTitle} & ${c.travel} | Wonderful Lombok`;
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
@@ -90,7 +91,7 @@
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
   <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen = !menuOpen}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="main-navigation" class:open={menuOpen} aria-label="Navigasi utama">
-    <a href="#paket" on:click={closeMenu}>{c.tours}</a><a href="#paket-travel" on:click={closeMenu}>{c.travel}</a><a href="#rental" on:click={closeMenu}>{c.rental}</a><a href="#destinasi" on:click={closeMenu}>{c.destinations}</a>
+    <a href="#paket" on:click={closeMenu}>{c.tours}</a><a href="#paket-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}<a href="#destinasi" on:click={closeMenu}>{c.destinations}</a>
     <div class="nav-language"><LanguageSelector {locale} /></div>
     <a class="nav-action" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
   </nav>
@@ -115,10 +116,10 @@
 
   <section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
     <div class="choice-heading"><p class="label">{c.start}</p><h2 id="choice-title">{c.choiceTitle}</h2></div>
-    <div class="choice-list">
+    <div class:without-rental={!rentalEnabled} class="choice-list">
       <article><span>01</span><h3>{c.tours}</h3><p>{c.tourChoice}</p><a href="#paket">{c.viewTours}</a></article>
       <article><span>02</span><h3>{c.travel}</h3><p>{c.travelChoice}</p><a href="#paket-travel">{c.calculate}</a></article>
-      <article><span>03</span><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>
+      {#if rentalEnabled}<article><span>03</span><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
   </section>
 
@@ -155,14 +156,16 @@
     </div>
   </section>
 
-  <section class="rental-section section" id="rental" aria-labelledby="rental-title" use:reveal>
-    <div class="section-heading"><div><p class="label">{c.rentalLabel}</p><h2 id="rental-title">{c.rentalHeading}</h2></div><p>{c.rentalIntro}</p></div>
-    <div class="rental-list">
-      {#each transport as item}
-        <article><span class="transport-symbol" aria-hidden="true">{item.symbol}</span><div><h3>{item.name}</h3><div class="rich-content">{@html item.detail}</div><strong>{item.price}</strong></div><button class="inline-book" on:click={() => booking = { type: 'rental', name: item.name }}>{c.bookRental}</button></article>
-      {/each}
-    </div>
-  </section>
+  {#if rentalEnabled}
+    <section class="rental-section section" id="rental" aria-labelledby="rental-title" use:reveal>
+      <div class="section-heading"><div><p class="label">{c.rentalLabel}</p><h2 id="rental-title">{c.rentalHeading}</h2></div><p>{c.rentalIntro}</p></div>
+      <div class="rental-list">
+        {#each transport as item}
+          <article><span class="transport-symbol" aria-hidden="true">{item.symbol}</span><div><h3>{item.name}</h3><div class="rich-content">{@html item.detail}</div><strong>{item.price}</strong></div><button class="inline-book" on:click={() => booking = { type: 'rental', name: item.name }}>{c.bookRental}</button></article>
+        {/each}
+      </div>
+    </section>
+  {/if}
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
     <div class="about-image" role="img" aria-label="Perbukitan hijau dan laut Lombok"></div>
@@ -177,7 +180,7 @@
 
 <footer id="kontak">
   <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
-  <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a><a href="#rental">{c.rentalLabel}</a><a href="#destinasi">{c.destinations}</a></div>
+  <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en}</p>
 </footer>
