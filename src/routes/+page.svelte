@@ -4,7 +4,7 @@
   import BookingDialog from '../lib/BookingDialog.svelte';
   import DetailDialog from '../lib/DetailDialog.svelte';
   import { createWhatsAppUrl } from '../lib/whatsapp.js';
-  import { getCopy, languages, localePath } from '../lib/i18n.js';
+  import { getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
 
@@ -16,13 +16,14 @@
   let galleryTick = 0;
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
+  $: formCopy = getFormCopy(locale);
   $: localeHome = localePath(locale);
   let packages = data.catalog.packages;
   let transport = data.catalog.rentals;
   let travelRate = data.catalog.travelRate;
   let settings = data.catalog.settings;
   $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages, airport and harbour transfers, and vehicle rental with local drivers.' : 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
-  $: seoTitle = locale !== 'id' ? 'Lombok Tour Packages, Travel & Rental | Wonderful Lombok' : 'Paket Wisata Lombok, Travel & Rental | Wonderful Lombok';
+  $: seoTitle = locale === 'id' ? 'Paket Wisata Lombok, Travel & Rental | Wonderful Lombok' : `${c.catalogTitle}, ${c.travel} & ${c.rental} | Wonderful Lombok`;
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   let destinations = data.catalog.destinations;
   let faqs = data.catalog.faqs;
@@ -144,7 +145,7 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section travel-heading" use:reveal>
       <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {locale !== 'id' ? `Rate Rp${formattedTravelRate} per kilometre.` : `Tarif Rp${formattedTravelRate} per kilometer.`}</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
+      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
