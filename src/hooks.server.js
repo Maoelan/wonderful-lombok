@@ -11,9 +11,19 @@ export async function handle({ event, resolve }) {
 
   event.locals.user = await getSessionUser(event.cookies);
   const pageLanguage = event.url.pathname === '/en' || event.url.pathname.startsWith('/en/') ? 'en' : 'id';
-  const response = await resolve(event, {
+  let response = await resolve(event, {
     transformPageChunk: ({ html }) => html.replace('<html lang="id">', `<html lang="${pageLanguage}">`)
   });
+  if (event.url.searchParams.get('translate') === '1' && response.headers.get('content-type')?.includes('text/html')) {
+    const html = await response.text();
+    const staticHtml = html
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace('<body data-sveltekit-preload-data="hover">', '<body class="translation-static">');
+    const headers = new Headers(response.headers);
+    headers.delete('content-length');
+    headers.delete('etag');
+    response = new Response(staticHtml, { status: response.status, statusText: response.statusText, headers });
+  }
   const production = process.env.NODE_ENV === 'production';
   response.headers.set('x-content-type-options', 'nosniff');
   response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');

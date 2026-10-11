@@ -13,7 +13,9 @@
       window.location.assign(sourceUrl());
       return;
     }
-    const destination = `https://translate.google.com/translate?sl=id&tl=${encodeURIComponent(googleCode(code))}&u=${encodeURIComponent(sourceUrl())}`;
+    const source = new URL(sourceUrl());
+    source.searchParams.set('translate', '1');
+    const destination = `https://translate.google.com/translate?sl=id&tl=${encodeURIComponent(googleCode(code))}&u=${encodeURIComponent(source.href)}`;
     window.location.assign(destination);
   }
 
