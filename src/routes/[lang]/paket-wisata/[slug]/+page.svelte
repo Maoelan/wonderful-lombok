@@ -5,7 +5,7 @@
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
-  const c = getCopy('id');
+  const c = getCopy(data.locale);
   const item = data.item;
   const gallery = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
   let selectedIndex = 0;

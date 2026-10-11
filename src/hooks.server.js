@@ -1,4 +1,5 @@
 import { getSessionUser } from '#lib/server/auth.js';
+import { languages } from '#lib/i18n.js';
 import { PUBLIC_SITE_URL } from '$app/env/private';
 
 export async function handle({ event, resolve }) {
@@ -10,24 +11,11 @@ export async function handle({ event, resolve }) {
   }
 
   event.locals.user = await getSessionUser(event.cookies);
-  const pageLanguage = event.url.pathname === '/en' || event.url.pathname.startsWith('/en/') ? 'en' : 'id';
+  const routeLocale = event.url.pathname.split('/')[1] || 'id';
+  const pageLanguage = languages.find(({ code }) => code === routeLocale)?.hreflang || 'id-ID';
   let response = await resolve(event, {
     transformPageChunk: ({ html }) => html.replace('<html lang="id">', `<html lang="${pageLanguage}">`)
   });
-  if (event.url.searchParams.get('translate') === '1' && response.headers.get('content-type')?.includes('text/html')) {
-    const html = await response.text();
-    const staticHtml = html
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/(<a\b[^>]*\bhref=")(\/[^"#]*)(#[^"]*)?("[^>]*>)/gi, (match, before, path, hash = '', after) => {
-        if (path.startsWith('/_app') || path.includes('translate=1')) return match;
-        return `${before}${path}${path.includes('?') ? '&' : '?'}translate=1${hash}${after}`;
-      })
-      .replace('<body data-sveltekit-preload-data="hover">', '<body class="translation-static">');
-    const headers = new Headers(response.headers);
-    headers.delete('content-length');
-    headers.delete('etag');
-    response = new Response(staticHtml, { status: response.status, statusText: response.statusText, headers });
-  }
   const production = process.env.NODE_ENV === 'production';
   response.headers.set('x-content-type-options', 'nosniff');
   response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');

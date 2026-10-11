@@ -4,7 +4,7 @@
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
-  const c = getCopy('id');
+  const c = getCopy(data.locale);
   const home = localePath(data.locale);
 </script>
 

@@ -15,13 +15,14 @@
   let detailKind = 'destinasi';
   let galleryTick = 0;
   $: locale = data.locale || 'id';
-  $: c = getCopy('id');
+  $: c = getCopy(locale);
   $: localeHome = localePath(locale);
   let packages = data.catalog.packages;
   let transport = data.catalog.rentals;
   let travelRate = data.catalog.travelRate;
   let settings = data.catalog.settings;
-  $: seoDescription = 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
+  $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages, airport and harbour transfers, and vehicle rental with local drivers.' : 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
+  $: seoTitle = locale !== 'id' ? 'Lombok Tour Packages, Travel & Rental | Wonderful Lombok' : 'Paket Wisata Lombok, Travel & Rental | Wonderful Lombok';
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   let destinations = data.catalog.destinations;
   let faqs = data.catalog.faqs;
@@ -57,7 +58,7 @@
 </script>
 
 <svelte:head>
-  <title>Paket Wisata Lombok, Travel & Rental | Wonderful Lombok</title>
+  <title>{seoTitle}</title>
   <meta name="description" content={seoDescription} />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
@@ -70,13 +71,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="id_ID" />
   <meta property="og:site_name" content="Wonderful Lombok" />
-  <meta property="og:title" content="Paket Wisata Lombok, Travel & Rental | Wonderful Lombok" />
+  <meta property="og:title" content={seoTitle} />
   <meta property="og:description" content={seoDescription} />
   <meta property="og:url" content={data.canonicalUrl} />
   <meta property="og:image" content={data.socialImageUrl} />
   <meta property="og:image:alt" content="Pemandangan perjalanan di Lombok bersama Wonderful Lombok" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Paket Wisata Lombok, Travel & Rental | Wonderful Lombok" />
+  <meta name="twitter:title" content={seoTitle} />
   <meta name="twitter:description" content={seoDescription} />
   <meta name="twitter:image" content={data.socialImageUrl} />
   <meta name="twitter:image:alt" content="Pemandangan perjalanan di Lombok bersama Wonderful Lombok" />
@@ -143,11 +144,11 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section travel-heading" use:reveal>
       <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} Tarif Rp{formattedTravelRate} per kilometer.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
+      <div class="travel-description"><p>{c.travelIntro} {locale !== 'id' ? `Rate Rp${formattedTravelRate} per kilometre.` : `Tarif Rp${formattedTravelRate} per kilometer.`}</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap"><PickupCalculator rate={travelRate} whatsapp={settings.whatsapp} locale="id" /></div>
+      <div class="calculator-wrap"><PickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} /></div>
     </div>
   </section>
 
@@ -176,6 +177,6 @@
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a><a href="#rental">{c.rentalLabel}</a><a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
 </footer>
-<BookingDialog bind:booking whatsapp={settings.whatsapp} locale="id" />
-<DetailDialog bind:item={detailItem} kind={detailKind} locale="id" />
-<WhatsAppFloat whatsapp={settings.whatsapp} locale="id" />
+<BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
+<DetailDialog bind:item={detailItem} kind={detailKind} {locale} />
+<WhatsAppFloat whatsapp={settings.whatsapp} {locale} />

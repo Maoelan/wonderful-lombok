@@ -5,7 +5,7 @@ import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
 
 export async function load({ params, url }) {
   if (!isLocale(params.lang)) error(404, 'Halaman tidak ditemukan');
-  const catalog = localizeCatalog(await getCatalog(), 'id');
+  const catalog = localizeCatalog(await getCatalog(), params.lang);
   const origin = getSiteOrigin(url.origin);
   return {
     locale: params.lang,

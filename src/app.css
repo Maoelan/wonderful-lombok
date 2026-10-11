@@ -140,9 +140,6 @@ img {
   display: none;
 }
 
-.translation-static .language-picker,
-.translation-static .menu-toggle { display: none; }
-
 .brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: transparent; }
 .brand-logo img { position: absolute; top: -74%; left: -2.5%; width: 105%; max-width: none; height: auto; filter: brightness(0) invert(1); }
 .language-picker { position: relative; color: inherit; }
@@ -1223,8 +1220,6 @@ footer {
     padding: 14px;
     background: var(--forest-deep);
   }
-
-  .translation-static .site-header nav { display: none; }
 
   .site-header nav.open {
     display: flex;
