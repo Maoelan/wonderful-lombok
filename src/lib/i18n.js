@@ -1,12 +1,12 @@
 export const languages = [
-  { code: 'en', name: 'English', flag: '🇬🇧', hreflang: 'en' },
-  { code: 'zh-cn', name: '中文（简体）', flag: '🇨🇳', hreflang: 'zh-Hans' },
-  { code: 'zh-tw', name: '中文（繁體）', flag: '🇹🇼', hreflang: 'zh-Hant' },
-  { code: 'nl', name: 'Nederlands', flag: '🇳🇱', hreflang: 'nl' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷', hreflang: 'fr' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪', hreflang: 'de' },
-  { code: 'id', name: 'Indonesia', flag: '🇮🇩', hreflang: 'id-ID' },
-  { code: 'ms', name: 'Melayu', flag: '🇲🇾', hreflang: 'ms' }
+  { code: 'en', name: 'English', flag: 'gb', hreflang: 'en' },
+  { code: 'zh-cn', name: '中文（简体）', flag: 'cn', hreflang: 'zh-Hans' },
+  { code: 'zh-tw', name: '中文（繁體）', flag: 'tw', hreflang: 'zh-Hant' },
+  { code: 'nl', name: 'Nederlands', flag: 'nl', hreflang: 'nl' },
+  { code: 'fr', name: 'Français', flag: 'fr', hreflang: 'fr' },
+  { code: 'de', name: 'Deutsch', flag: 'de', hreflang: 'de' },
+  { code: 'id', name: 'Indonesia', flag: 'id', hreflang: 'id-ID' },
+  { code: 'ms', name: 'Melayu', flag: 'my', hreflang: 'ms' }
 ];
 export const supportedLocales = languages.map((item) => item.code);
 export const localePath = (locale, suffix = '') => locale === 'id' && !suffix ? '/' : `/${locale}${suffix}`;

@@ -1,16 +1,13 @@
 <script>
-  import { goto } from '$app/navigation';
   import { languages, localePath } from './i18n.js';
   export let locale = 'id';
   export let suffix = '';
-  function change(event) { goto(localePath(event.currentTarget.value, suffix)); }
+  $: current = languages.find((language) => language.code === locale) || languages[0];
 </script>
 
-<label class="language-picker">
-  <span class="sr-only">Language</span>
-  <select value={locale} on:change={change} aria-label="Language">
-    {#each languages as language}
-      <option value={language.code}>{language.flag} {language.name}</option>
-    {/each}
-  </select>
-</label>
+<details class="language-picker">
+  <summary aria-label="Language"><img src={`https://flagcdn.com/w40/${current.flag}.png`} alt="" /><span>{current.name}</span></summary>
+  <div class="language-menu">
+    {#each languages as language}<a class:active={language.code === locale} href={localePath(language.code, suffix)} hreflang={language.hreflang}><img src={`https://flagcdn.com/w40/${language.flag}.png`} alt="" loading="lazy" /><span>{language.name}</span></a>{/each}
+  </div>
+</details>

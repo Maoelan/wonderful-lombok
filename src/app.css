@@ -139,11 +139,15 @@ nav a:not(.nav-action):hover {
 
 .brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: rgba(255, 252, 242, .94); border-radius: 2px; }
 .brand-logo img { position: absolute; top: -74%; left: -2.5%; width: 105%; max-width: none; height: auto; }
-.language-picker { display: inline-flex; align-items: center; }
-.language-picker select { min-height: 44px; max-width: 190px; padding: 0 34px 0 11px; border: 1px solid currentColor; border-radius: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
-.site-header .language-picker select { border-color: rgba(255,255,255,.55); color: white; }
-.site-header .language-picker option { color: #143d34; background: white; }
-.inner-header .language-picker select { color: var(--forest-deep); }
+.language-picker { position: relative; color: inherit; }
+.language-picker summary { display: flex; min-width: 148px; min-height: 44px; align-items: center; gap: 9px; padding: 0 34px 0 12px; border: 1px solid currentColor; cursor: pointer; font-size: 12px; font-weight: 700; list-style: none; }
+.language-picker summary::-webkit-details-marker { display: none; }
+.language-picker summary::after { position: absolute; right: 12px; content: '⌄'; font-size: 16px; }
+.language-picker img { width: 20px; height: 14px; border: 1px solid rgba(0,0,0,.15); object-fit: cover; }
+.language-menu { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 210px; padding: 6px; border: 1px solid #d9d2c3; background: #fffaf0; box-shadow: 0 16px 36px rgba(13,45,38,.2); color: var(--forest-deep); }
+.language-menu a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; color: inherit; text-decoration: none; }
+.language-menu a:hover, .language-menu a.active { background: #eee7d8; }
+.site-header .language-picker summary { border-color: rgba(255,255,255,.55); color: white; }
 
 .hero {
   position: relative;
