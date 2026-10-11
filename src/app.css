@@ -137,7 +137,7 @@ nav a:not(.nav-action):hover {
   display: none;
 }
 
-.brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; }
+.brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: rgba(255, 252, 242, .94); border-radius: 2px; }
 .brand-logo img { position: absolute; top: -74%; left: -2.5%; width: 105%; max-width: none; height: auto; }
 .language-picker { display: inline-flex; align-items: center; }
 .language-picker select { min-height: 44px; max-width: 190px; padding: 0 34px 0 11px; border: 1px solid currentColor; border-radius: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
@@ -1698,7 +1698,7 @@ footer {
 .admin-sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 52px; padding: 34px 26px; background: var(--forest-deep); color: white; }
 .admin-brand { display: flex; width: fit-content; flex-direction: column; color: white; font-family: Georgia, serif; font-size: 13px; line-height: .9; text-decoration: none; }
 .admin-brand b { color: var(--gold); font-size: 25px; }
-.admin-logo { position: relative; width: 170px; height: 58px; overflow: hidden; }
+.admin-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: #fffaf0; border-radius: 2px; }
 .admin-logo img { position: absolute; top: -74%; left: -2.5%; width: 105%; max-width: none; height: auto; }
 .admin-sidebar h1 { margin: 6px 0 0; font-size: 42px; }
 .admin-kicker { margin: 0; color: #88754b; font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
