@@ -9,7 +9,7 @@ export async function load({ params, url }) {
   const siteOrigin = getSiteOrigin(url.origin);
   const canonicalUrl = `${siteOrigin}${localePath(params.lang)}`;
   return {
-    catalog: localizeCatalog(catalog, params.lang), locale: params.lang, canonicalUrl,
+    catalog: localizeCatalog(catalog, 'id'), locale: params.lang, canonicalUrl,
     alternateUrls: alternateUrls(siteOrigin),
     socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', siteOrigin)
   };

@@ -15,13 +15,13 @@
   let detailKind = 'destinasi';
   let galleryTick = 0;
   $: locale = data.locale || 'id';
-  $: c = getCopy(locale);
+  $: c = getCopy('id');
   $: localeHome = localePath(locale);
   let packages = data.catalog.packages;
   let transport = data.catalog.rentals;
   let travelRate = data.catalog.travelRate;
   let settings = data.catalog.settings;
-  $: seoDescription = locale !== 'id' ? 'Private Lombok tour packages, airport and harbour transfers, and vehicle rental with local drivers.' : 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
+  $: seoDescription = 'Paket wisata Lombok, travel bandara dan pelabuhan, serta rental kendaraan dengan driver lokal. Pesan perjalanan privat bersama Wonderful Lombok.';
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   let destinations = data.catalog.destinations;
   let faqs = data.catalog.faqs;
@@ -57,7 +57,7 @@
 </script>
 
 <svelte:head>
-  <title>{locale !== 'id' ? 'Lombok Tour Packages, Travel & Rental' : 'Paket Wisata Lombok, Travel & Rental'} | Wonderful Lombok</title>
+  <title>Paket Wisata Lombok, Travel & Rental | Wonderful Lombok</title>
   <meta name="description" content={seoDescription} />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
@@ -68,7 +68,7 @@
   <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin="anonymous" />
   <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin="anonymous" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content={locale !== 'id' ? 'en_US' : 'id_ID'} />
+  <meta property="og:locale" content="id_ID" />
   <meta property="og:site_name" content="Wonderful Lombok" />
   <meta property="og:title" content="Paket Wisata Lombok, Travel & Rental | Wonderful Lombok" />
   <meta property="og:description" content={seoDescription} />
@@ -88,7 +88,7 @@
   <nav id="main-navigation" class:open={menuOpen} aria-label="Navigasi utama">
     <a href="#paket" on:click={closeMenu}>{c.tours}</a><a href="#paket-travel" on:click={closeMenu}>{c.travel}</a><a href="#rental" on:click={closeMenu}>{c.rental}</a><a href="#destinasi" on:click={closeMenu}>{c.destinations}</a>
     <LanguageSelector {locale} />
-    <a class="nav-action" href={createWhatsAppUrl(locale !== 'id' ? 'Hello Wonderful Lombok, I would like to plan a trip in Lombok.' : 'Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
+    <a class="nav-action" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
   </nav>
 </header>
 
@@ -125,7 +125,7 @@
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
         {@const activeImage = gallery[(galleryTick + index) % gallery.length]}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}>{#key activeImage}<img class="package-slide" src={activeImage} alt={item.name} loading={galleryTick === 0 ? 'lazy' : 'eager'} itemprop="image" />{/key}<span class="gallery-progress" aria-hidden="true">{(galleryTick + index) % gallery.length + 1}/{gallery.length}</span></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><a class="package-book" href={createWhatsAppUrl(locale !== 'id' ? `Hello Wonderful Lombok, I would like to book ${item.name}.` : `Halo Wonderful Lombok, saya ingin memesan ${item.name}.`, settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookTour}</a></div></div></article>
+        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}>{#key activeImage}<img class="package-slide" src={activeImage} alt={item.name} loading={galleryTick === 0 ? 'lazy' : 'eager'} itemprop="image" />{/key}<span class="gallery-progress" aria-hidden="true">{(galleryTick + index) % gallery.length + 1}/{gallery.length}</span></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><a class="package-book" href={createWhatsAppUrl(`Halo Wonderful Lombok, saya ingin memesan ${item.name}.`, settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookTour}</a></div></div></article>
       {/each}
     </div>
     <a class="button dark all-packages" href={`/${locale}/paket-wisata`}>{c.allTours}</a>
@@ -143,11 +143,11 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section travel-heading" use:reveal>
       <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {locale !== 'id' ? `Rate: Rp${formattedTravelRate} per kilometre.` : `Tarif Rp${formattedTravelRate} per kilometer.`}</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
+      <div class="travel-description"><p>{c.travelIntro} Tarif Rp{formattedTravelRate} per kilometer.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap"><PickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} /></div>
+      <div class="calculator-wrap"><PickupCalculator rate={travelRate} whatsapp={settings.whatsapp} locale="id" /></div>
     </div>
   </section>
 
@@ -162,7 +162,7 @@
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
     <div class="about-image" role="img" aria-label="Perbukitan hijau dan laut Lombok"></div>
-    <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><p>{settings.aboutDescription}</p><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl(locale !== 'id' ? 'Hello Wonderful Lombok, I would like to plan a Lombok trip.' : 'Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
+    <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><p>{settings.aboutDescription}</p><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
   <section class="faq section" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
@@ -176,6 +176,6 @@
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a><a href="#rental">{c.rentalLabel}</a><a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
 </footer>
-<BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
-<DetailDialog bind:item={detailItem} kind={detailKind} {locale} />
-<WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
+<BookingDialog bind:booking whatsapp={settings.whatsapp} locale="id" />
+<DetailDialog bind:item={detailItem} kind={detailKind} locale="id" />
+<WhatsAppFloat whatsapp={settings.whatsapp} locale="id" />

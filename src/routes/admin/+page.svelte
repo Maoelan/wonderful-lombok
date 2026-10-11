@@ -47,17 +47,15 @@
 
   function addPackage() {
     const name = 'Paket baru';
-    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', categoryEn: 'Private tour', duration: '1 hari', durationEn: '1 day', name, nameEn: 'New package', route: 'Isi destinasi paket', routeEn: 'Add package highlights', detail: 'Isi detail paket', detailEn: 'Add package description', price: 'Rp0', unit: 'per orang', unitEn: 'per person', image: '', images: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], itineraryEn: [{ day: 'Day 1', title: 'Trip title', items: ['First activity'] }], includes: ['Transportasi'], includesEn: ['Transport'], excludes: ['Pengeluaran pribadi'], excludesEn: ['Personal expenses'], priceTiers: [{ guests: '1–2 orang', guestsEn: '1–2 guests', price: 'Rp0', note: 'per orang', noteEn: 'per person' }] }];
+    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
     catalog = { ...catalog };
   }
 
   function updateLines(index, field, value) { updatePackage(index, field, value.split('\n').map((line) => line.trim()).filter(Boolean)); }
-  function updateItinerary(index, language, value) {
-    const field = language === 'en' ? 'itineraryEn' : 'itinerary';
-    const dayPrefix = language === 'en' ? 'Day' : 'Hari';
-    updatePackage(index, field, value.split('\n\n').map((block, dayIndex) => {
+  function updateItinerary(index, value) {
+    updatePackage(index, 'itinerary', value.split('\n\n').map((block, dayIndex) => {
       const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
-      return { day: `${dayPrefix} ${dayIndex + 1}`, title: lines[0] || '', items: lines.slice(1) };
+      return { day: `Hari ${dayIndex + 1}`, title: lines[0] || '', items: lines.slice(1) };
     }).filter((day) => day.title));
   }
   function itineraryText(days) { return (days || []).map((day) => [day.title, ...(day.items || [])].join('\n')).join('\n\n'); }
@@ -152,7 +150,7 @@
 
     {#if saveError}<p class="admin-error" role="alert">{saveError}</p>{/if}
 
-    <div class="admin-notice"><strong>Terhubung database</strong><span>Perubahan tersimpan di PostgreSQL dan langsung tersedia untuk setiap pengunjung website. Kamu masuk sebagai {data.user.username}.</span></div>
+    <div class="admin-notice"><strong>Konten utama Indonesia</strong><span>Isi website cukup dalam bahasa Indonesia. Pengunjung dapat memakai terjemahan otomatis pada menu bahasa. Perubahan tersimpan di database dan langsung tersedia untuk pengunjung. Kamu masuk sebagai {data.user.username}.</span></div>
 
     {#if active === 'bookings'}
       <section class="admin-section" aria-labelledby="admin-bookings-title">
@@ -173,10 +171,10 @@
                 <label><span>Destinasi dan aktivitas</span><textarea rows="2" value={item.route} on:input={(event) => updatePackage(index, 'route', event.currentTarget.value)}></textarea></label>
                 <label><span>Detail paket</span><textarea rows="3" value={item.detail} on:input={(event) => updatePackage(index, 'detail', event.currentTarget.value)}></textarea></label>
                 <div class="admin-field-row"><label><span>Harga</span><input value={item.price} on:input={(event) => updatePackage(index, 'price', event.currentTarget.value)} /></label><label><span>Satuan</span><input value={item.unit} on:input={(event) => updatePackage(index, 'unit', event.currentTarget.value)} /></label></div>
-                <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, 'id', event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
+                <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
                 <div class="admin-field-row"><label><span>Sudah termasuk</span><textarea rows="5" value={(item.includes || []).join('\n')} on:change={(event) => updateLines(index, 'includes', event.currentTarget.value)}></textarea><small>Satu fasilitas per baris.</small></label><label><span>Belum termasuk</span><textarea rows="5" value={(item.excludes || []).join('\n')} on:change={(event) => updateLines(index, 'excludes', event.currentTarget.value)}></textarea><small>Satu item per baris.</small></label></div>
                 <fieldset class="admin-subsection"><legend>Harga berdasarkan jumlah tamu</legend>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-price-tier"><input aria-label="Jumlah tamu" value={tier.guests} on:input={(event) => updatePriceTier(index, tierIndex, 'guests', event.currentTarget.value)} /><input aria-label="Harga" value={tier.price} on:input={(event) => updatePriceTier(index, tierIndex, 'price', event.currentTarget.value)} /><input aria-label="Keterangan" value={tier.note} on:input={(event) => updatePriceTier(index, tierIndex, 'note', event.currentTarget.value)} /><button type="button" on:click={() => removePriceTier(index, tierIndex)}>Hapus</button></div>{/each}<button class="admin-secondary compact" type="button" on:click={() => addPriceTier(index)}>Tambah pilihan harga</button></fieldset>
-                <details class="admin-translation"><summary>Konten bahasa Inggris</summary><div class="admin-fields"><div class="admin-field-row"><label><span>Category</span><input value={item.categoryEn || ''} on:input={(event) => updatePackage(index, 'categoryEn', event.currentTarget.value)} /></label><label><span>Duration</span><input value={item.durationEn || ''} on:input={(event) => updatePackage(index, 'durationEn', event.currentTarget.value)} /></label></div><label><span>Package name</span><input value={item.nameEn || ''} on:input={(event) => updatePackage(index, 'nameEn', event.currentTarget.value)} /></label><label><span>Highlights</span><textarea rows="2" value={item.routeEn || ''} on:input={(event) => updatePackage(index, 'routeEn', event.currentTarget.value)}></textarea></label><label><span>Description</span><textarea rows="3" value={item.detailEn || ''} on:input={(event) => updatePackage(index, 'detailEn', event.currentTarget.value)}></textarea></label><label><span>Price unit</span><input value={item.unitEn || ''} on:input={(event) => updatePackage(index, 'unitEn', event.currentTarget.value)} /></label><label><span>English itinerary</span><textarea rows="8" value={itineraryText(item.itineraryEn)} on:change={(event) => updateItinerary(index, 'en', event.currentTarget.value)}></textarea></label><div class="admin-field-row"><label><span>Included</span><textarea rows="5" value={(item.includesEn || []).join('\n')} on:change={(event) => updateLines(index, 'includesEn', event.currentTarget.value)}></textarea></label><label><span>Not included</span><textarea rows="5" value={(item.excludesEn || []).join('\n')} on:change={(event) => updateLines(index, 'excludesEn', event.currentTarget.value)}></textarea></label></div>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-field-row"><label><span>Guests</span><input value={tier.guestsEn || ''} on:input={(event) => updatePriceTier(index, tierIndex, 'guestsEn', event.currentTarget.value)} /></label><label><span>Price note</span><input value={tier.noteEn || ''} on:input={(event) => updatePriceTier(index, tierIndex, 'noteEn', event.currentTarget.value)} /></label></div>{/each}</div></details>
+
                 <label><span>URL gambar</span><input type="url" value={item.image} on:input={(event) => updatePackage(index, 'image', event.currentTarget.value)} /></label>
                 <label><span>Upload gambar utama</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'image', url), `package-${index}`)} /><small>{uploading === `package-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 <label><span>Galeri paket (satu URL per baris)</span><textarea rows="4" value={(item.images || []).join('\n')} on:input={(event) => updatePackage(index, 'images', event.currentTarget.value.split('\n').map((value) => value.trim()).filter(Boolean))}></textarea></label>
@@ -198,7 +196,7 @@
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Keterangan singkat</span><input value={item.note} on:input={(event) => updateDestination(index, 'note', event.currentTarget.value)} /></label>
                 <label><span>Detail destinasi</span><textarea rows="3" value={item.detail} on:input={(event) => updateDestination(index, 'detail', event.currentTarget.value)}></textarea></label>
-                <details class="admin-translation"><summary>Konten bahasa Inggris</summary><div class="admin-fields"><label><span>Destination name</span><input value={item.nameEn || ''} on:input={(event) => updateDestination(index, 'nameEn', event.currentTarget.value)} /></label><label><span>Short description</span><input value={item.noteEn || ''} on:input={(event) => updateDestination(index, 'noteEn', event.currentTarget.value)} /></label><label><span>Destination details</span><textarea rows="3" value={item.detailEn || ''} on:input={(event) => updateDestination(index, 'detailEn', event.currentTarget.value)}></textarea></label></div></details>
+
                 <label><span>URL gambar</span><input type="url" value={item.image} on:input={(event) => updateDestination(index, 'image', event.currentTarget.value)} /></label>
                 <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 <label><span>Galeri destinasi (satu URL per baris)</span><textarea rows="4" value={(item.images || []).join('\n')} on:input={(event) => updateDestination(index, 'images', event.currentTarget.value.split('\n').map((value) => value.trim()).filter(Boolean))}></textarea></label>
@@ -222,7 +220,7 @@
           {#each catalog.rentals as item, index}
             <article class="admin-editor-card rental-editor">
               <div class="admin-card-number">{item.symbol}</div>
-              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><label><span>Keterangan</span><textarea rows="2" value={item.detail} on:input={(event) => updateRental(index, 'detail', event.currentTarget.value)}></textarea></label><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label><details class="admin-translation"><summary>Konten bahasa Inggris</summary><div class="admin-fields"><label><span>Service name</span><input value={item.nameEn || ''} on:input={(event) => updateRental(index, 'nameEn', event.currentTarget.value)} /></label><label><span>Description</span><textarea rows="2" value={item.detailEn || ''} on:input={(event) => updateRental(index, 'detailEn', event.currentTarget.value)}></textarea></label><label><span>Displayed price</span><input value={item.priceEn || ''} on:input={(event) => updateRental(index, 'priceEn', event.currentTarget.value)} /></label></div></details></div>
+              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><label><span>Keterangan</span><textarea rows="2" value={item.detail} on:input={(event) => updateRental(index, 'detail', event.currentTarget.value)}></textarea></label><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label></div>
             </article>
           {/each}
         </div>
@@ -238,7 +236,7 @@
               <div class="admin-fields">
                 <label><span>Pertanyaan</span><input maxlength="200" value={item.question} on:input={(event) => updateFaq(index, 'question', event.currentTarget.value)} /></label>
                 <label><span>Jawaban</span><textarea rows="4" maxlength="1500" value={item.answer} on:input={(event) => updateFaq(index, 'answer', event.currentTarget.value)}></textarea></label>
-                <details class="admin-translation"><summary>Konten bahasa Inggris</summary><div class="admin-fields"><label><span>Question</span><input maxlength="200" value={item.questionEn || ''} on:input={(event) => updateFaq(index, 'questionEn', event.currentTarget.value)} /></label><label><span>Answer</span><textarea rows="4" maxlength="1500" value={item.answerEn || ''} on:input={(event) => updateFaq(index, 'answerEn', event.currentTarget.value)}></textarea></label></div></details>
+
               </div>
               <button class="admin-delete" on:click={() => removeFaq(index)} aria-label="Hapus pertanyaan {item.question}">Hapus</button>
             </article>
@@ -260,7 +258,7 @@
             <label><span>Deskripsi utama</span><textarea rows="3" bind:value={catalog.settings.heroDescription}></textarea></label>
             <label><span>Judul bagian profil</span><textarea rows="2" bind:value={catalog.settings.aboutTitle}></textarea></label>
             <label><span>Deskripsi profil</span><textarea rows="3" bind:value={catalog.settings.aboutDescription}></textarea></label>
-            <details class="admin-translation"><summary>Konten bahasa Inggris</summary><div class="admin-fields"><label><span>Main heading</span><textarea rows="2" bind:value={catalog.settings.heroTitleEn}></textarea></label><label><span>Main description</span><textarea rows="3" bind:value={catalog.settings.heroDescriptionEn}></textarea></label><label><span>Profile heading</span><textarea rows="2" bind:value={catalog.settings.aboutTitleEn}></textarea></label><label><span>Profile description</span><textarea rows="3" bind:value={catalog.settings.aboutDescriptionEn}></textarea></label></div></details>
+
           </fieldset>
           <fieldset><legend>Media sosial</legend>
             <label><span>URL Instagram</span><input bind:value={catalog.settings.instagram} type="url" placeholder="https://instagram.com/..." /></label>

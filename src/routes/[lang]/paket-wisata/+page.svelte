@@ -4,7 +4,7 @@
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
-  const c = getCopy(data.locale);
+  const c = getCopy('id');
   const home = localePath(data.locale);
 </script>
 
@@ -40,6 +40,6 @@
       </article>
     {/each}
   </section>
-  <aside class="catalog-help"><h2>{data.locale !== 'id' ? 'Need a custom itinerary?' : 'Butuh itinerary khusus?'}</h2><a class="button primary" href={createWhatsAppUrl(data.locale !== 'id' ? 'Hello Wonderful Lombok, I would like a custom Lombok itinerary.' : 'Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.', data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
+  <aside class="catalog-help"><h2>Butuh itinerary khusus?</h2><a class="button primary" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.', data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
-<WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
+<WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale="id" />
