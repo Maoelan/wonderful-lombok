@@ -7,41 +7,41 @@
 <h1 align="center">Wonderful Lombok</h1>
 
 <p align="center">
-  Website multibahasa untuk paket wisata privat dan layanan antar-jemput di Lombok, lengkap dengan katalog yang dikelola admin, pemesanan WhatsApp, dan kalkulator harga berdasarkan rute.
+  A multilingual website for private Lombok tours and point-to-point transfers, with an admin-managed catalog, WhatsApp booking, and route-based price estimates.
 </p>
 
 <p align="center">
-  <a href="https://wonderful-lombok-main.vercel.app">Lihat website</a>
+  <a href="https://wonderful-lombok-main.vercel.app">Live showcase</a>
 </p>
 
-## Tentang proyek
+## About
 
-Wonderful Lombok adalah website full-stack berbasis SvelteKit. Pengunjung dapat melihat paket dan destinasi, menghitung estimasi perjalanan antarlokasi, lalu melanjutkan pemesanan melalui WhatsApp. Admin dapat mengelola konten, terjemahan, gambar, harga, dan pesanan tanpa mengubah kode.
+Wonderful Lombok is a full-stack SvelteKit website for exploring tour packages and destinations, estimating transfer costs, and continuing a booking through WhatsApp. Its custom admin panel works as a lightweight content management system for translations, package details, prices, images, contact settings, and bookings.
 
-Website saat ini merupakan showcase sebelum dipindahkan ke hosting dan domain resmi milik klien.
+This repository currently powers a showcase deployment. Production hosting and the final domain will be configured after client approval.
 
-## Fitur utama
+## Features
 
-- Delapan bahasa: Indonesia, Inggris, Mandarin Sederhana, Mandarin Tradisional, Belanda, Prancis, Jerman, dan Melayu.
-- Katalog paket wisata dengan galeri, itinerary, fasilitas, serta harga berdasarkan jumlah tamu.
-- Daftar destinasi Lombok dengan detail dan galeri.
-- Kalkulator Paket Travel dengan peta, geolokasi, rute jalan, dan estimasi tarif per kilometer.
-- Pemesanan tersimpan di Convex dan dilanjutkan melalui WhatsApp.
-- Admin untuk mengelola katalog, terjemahan, rich text, gambar, pengaturan kontak, dan pesanan.
-- SEO dasar: metadata, canonical URL, `hreflang`, `robots.txt`, dan sitemap.
-- Tampilan responsif yang diutamakan untuk perangkat mobile.
-- Modul rental tetap tersedia di kode dan dapat diaktifkan melalui feature flag saat layanan siap.
+- Eight interface languages: Indonesian, English, Simplified Chinese, Traditional Chinese, Dutch, French, German, and Malay.
+- Tour catalog with galleries, itineraries, inclusions, and group-based pricing.
+- Lombok destination directory with image galleries and details.
+- Transfer calculator with geolocation, road routing, maps, and distance-based estimates.
+- Booking records stored in Convex before continuing through WhatsApp.
+- Custom admin CMS for catalog content, translations, rich text, images, settings, and bookings.
+- SEO essentials including metadata, canonical URLs, `hreflang`, `robots.txt`, and a sitemap.
+- Mobile-first responsive interface.
+- Rental functionality retained behind a disabled feature flag until the service is available.
 
-## Teknologi
+## Stack
 
-- SvelteKit dan Svelte 5
-- Convex Database dan File Storage
-- Leaflet, OpenStreetMap, Nominatim, dan OSRM
+- SvelteKit and Svelte 5
+- Convex Database and File Storage
+- Leaflet, OpenStreetMap, Nominatim, and OSRM
 - Vercel
 
-## Menjalankan secara lokal
+## Local development
 
-Persyaratan: Node.js 22+ dan akun Convex.
+Requirements: Node.js 22+ and a Convex account.
 
 ```bash
 git clone https://github.com/Maoelan/wonderful-lombok.git
@@ -53,22 +53,14 @@ npm run admin:create
 npm run dev
 ```
 
-Convex akan membuat `.env.local`. Lengkapi variabel berikut jika perlu:
+Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. Never commit real credentials or deployment secrets.
 
-```env
-PUBLIC_CONVEX_URL=https://deployment-anda.convex.cloud
-CONVEX_SERVER_SECRET=ganti-dengan-secret-acak-yang-panjang
-PUBLIC_RENTAL_ENABLED=false
-BODY_SIZE_LIMIT=6M
-PUBLIC_SITE_URL=http://127.0.0.1:5173
-```
-
-Buka `http://127.0.0.1:5173`. Halaman admin tersedia di `/admin`.
+Open `http://127.0.0.1:5173` after the development server starts.
 
 > [!WARNING]
-> `npm run showcase:seed` mengganti katalog pada deployment Convex aktif dengan data demo dari `src/lib/catalog.js`. Jangan jalankan pada data yang ingin dipertahankan.
+> `npm run showcase:seed` replaces the catalog in the active Convex deployment with demo data from `src/lib/catalog.js`. Do not run it against data that must be preserved.
 
-## Pemeriksaan
+## Checks
 
 ```bash
 npm test
@@ -77,31 +69,29 @@ npm run build
 
 ## Deployment
 
-Terbitkan fungsi Convex:
+Deploy the Convex functions:
 
 ```bash
 npx convex deploy
 ```
 
-Tambahkan variabel environment yang sama pada Vercel menggunakan URL production, kemudian deploy:
+Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Then deploy the SvelteKit application to Vercel.
 
-```bash
-npx vercel --prod
-```
+Do not commit admin credentials, environment files, deploy keys, customer records, database exports, or backups. Rotate a credential immediately if it is ever exposed.
 
-Jangan commit password admin, deploy key, `.env`, `.env.local`, data pelanggan, atau backup.
+## Security notes
 
-## Keamanan dan batasan showcase
+- Administrative access is authenticated and server-side mutations require an active session.
+- Session cookies use production-safe browser attributes and mutation requests are origin-checked.
+- Uploaded files and editable catalog content are validated before storage.
+- Security headers are applied by the application.
+- Environment files, local Vercel metadata, private keys, dumps, and backups are excluded through `.gitignore`.
+- The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment.
 
-- Password admin menggunakan scrypt dengan salt unik; token sesi hanya disimpan sebagai hash.
-- Cookie sesi memakai `HttpOnly`, `SameSite=Strict`, dan `Secure` pada production.
-- Endpoint admin memerlukan sesi aktif, request mutasi diperiksa origin, dan upload divalidasi.
-- CSP, HSTS, `nosniff`, referrer policy, permissions policy, dan `no-store` diterapkan.
-- Rate limit masih berada di memori function. Untuk trafik produksi yang besar, pindahkan ke penyimpanan bersama atau gateway khusus.
-- URL file Convex digunakan hanya untuk aset publik.
+No public repository or application can be guaranteed vulnerability-free. Run the test suite, dependency audit, secret scan, and production build before each release.
 
-## Kredit foto
+## Photo credits
 
-Materi demo berasal dari Wikimedia Commons. Atribusi dan lisensi tersedia pada halaman sumber: [Tanjung Aan](https://commons.wikimedia.org/wiki/Category:Tanjung_Aan_Beach), [Pantai Seger](https://commons.wikimedia.org/wiki/File:PANTAI_SEGER.jpg), [Desa Sade](https://commons.wikimedia.org/wiki/File:Traditional_Sasak_Village_Sade_houses.JPG), [Tiga Gili](https://commons.wikimedia.org/wiki/Category:Gili_Islands), [Senggigi](https://commons.wikimedia.org/wiki/Category:Senggigi), serta [Rinjani dan Sembalun](https://commons.wikimedia.org/wiki/Category:Rinjani-Lombok_UNESCO_Global_Geopark).
+Demo imagery is sourced from Wikimedia Commons. Attribution and license details are available on the source pages for [Tanjung Aan](https://commons.wikimedia.org/wiki/Category:Tanjung_Aan_Beach), [Seger Beach](https://commons.wikimedia.org/wiki/File:PANTAI_SEGER.jpg), [Sade Village](https://commons.wikimedia.org/wiki/File:Traditional_Sasak_Village_Sade_houses.JPG), [the Gili Islands](https://commons.wikimedia.org/wiki/Category:Gili_Islands), [Senggigi](https://commons.wikimedia.org/wiki/Category:Senggigi), and [Rinjani and Sembalun](https://commons.wikimedia.org/wiki/Category:Rinjani-Lombok_UNESCO_Global_Geopark).
 
-Ganti nomor WhatsApp, email, harga, dan seluruh konten demo melalui admin sebelum website dipakai sebagai layanan bisnis resmi.
+Replace all demo contact details, pricing, and content through the admin panel before using this project as an official business website.
