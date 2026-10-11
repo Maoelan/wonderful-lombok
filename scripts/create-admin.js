@@ -6,6 +6,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 
 if (!process.env.PUBLIC_CONVEX_URL) throw new Error('PUBLIC_CONVEX_URL belum diisi.');
+if (!process.env.CONVEX_SERVER_SECRET) throw new Error('CONVEX_SERVER_SECRET belum diisi.');
 let username = process.env.ADMIN_USERNAME?.trim();
 let password = process.env.ADMIN_PASSWORD;
 if (!username || !password) {
@@ -21,5 +22,5 @@ if (password.length < 12 || password.length > 256) throw new Error('Password adm
 const salt = randomBytes(16).toString('hex');
 const passwordHash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
 const client = new ConvexHttpClient(process.env.PUBLIC_CONVEX_URL);
-await client.mutation(makeFunctionReference('admin:upsert', 'mutation'), { username, passwordHash });
+await client.mutation(makeFunctionReference('admin:upsert', 'mutation'), { serverSecret: process.env.CONVEX_SERVER_SECRET, username, passwordHash });
 console.log(`Admin ${username} tersimpan di Convex.`);

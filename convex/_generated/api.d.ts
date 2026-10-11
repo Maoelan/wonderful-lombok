@@ -12,6 +12,7 @@ import type * as admin from "../admin.js";
 import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
 import type * as files from "../files.js";
+import type * as serverAuth from "../serverAuth.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   bookings: typeof bookings;
   catalog: typeof catalog;
   files: typeof files;
+  serverAuth: typeof serverAuth;
 }>;
 
 /**

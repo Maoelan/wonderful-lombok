@@ -7,8 +7,13 @@ import { sanitizeCatalogRichText } from './rich-text.js';
 
 const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 const ref = (name, type) => makeFunctionReference(name, type);
-export const convexQuery = (name, args = {}) => client.query(ref(name, 'query'), args);
-export const convexMutation = (name, args = {}) => client.mutation(ref(name, 'mutation'), args);
+const authorized = (args) => {
+  const serverSecret = process.env.CONVEX_SERVER_SECRET;
+  if (!serverSecret) throw new Error('CONVEX_SERVER_SECRET belum dikonfigurasi.');
+  return { ...args, serverSecret };
+};
+export const convexQuery = (name, args = {}) => client.query(ref(name, 'query'), authorized(args));
+export const convexMutation = (name, args = {}) => client.mutation(ref(name, 'mutation'), authorized(args));
 
 export async function getCatalog() {
   const data = await convexQuery('catalog:get') || defaultCatalog;
