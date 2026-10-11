@@ -144,7 +144,7 @@ img {
 }
 
 .brand-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: transparent; }
-.brand-logo img { position: absolute; top: -66%; left: 0; width: 100%; max-width: none; height: auto; filter: brightness(2) saturate(.9); }
+.brand-logo img { position: absolute; top: -66%; left: 0; width: 100%; max-width: none; height: auto; filter: none; }
 .language-picker { position: relative; color: inherit; }
 .language-picker summary { position: relative; display: flex; min-width: 148px; min-height: 44px; align-items: center; gap: 9px; padding: 0 38px 0 12px; border: 1px solid currentColor; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 700; list-style: none; white-space: nowrap; }
 .language-picker summary::-webkit-details-marker { display: none; }
@@ -1749,7 +1749,7 @@ footer {
 .admin-brand { display: flex; width: fit-content; flex-direction: column; color: white; font-family: Georgia, serif; font-size: 13px; line-height: .9; text-decoration: none; }
 .admin-brand b { color: var(--gold); font-size: 25px; }
 .admin-logo { position: relative; width: 170px; height: 58px; overflow: hidden; background: transparent; }
-.admin-logo img { position: absolute; top: -66%; left: 0; width: 100%; max-width: none; height: auto; filter: brightness(2) saturate(.9); }
+.admin-logo img { position: absolute; top: -66%; left: 0; width: 100%; max-width: none; height: auto; filter: none; }
 .admin-sidebar h1 { margin: 6px 0 0; font-size: 42px; }
 .admin-kicker { margin: 0; color: #88754b; font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .admin-sidebar .admin-kicker { color: #bfb38e; }
@@ -1802,7 +1802,7 @@ input[type='file']::file-selector-button:hover { border-color: var(--forest); ba
 .login-page { min-height: 100vh; display: grid; place-items: center; padding: 28px; background: var(--forest-deep); }
 .login-panel { width: min(470px, 100%); padding: 42px; background: var(--paper); }
 .login-panel .admin-brand { margin-bottom: 58px; color: var(--forest); }
-.login-panel .admin-logo img { filter: brightness(1.08) saturate(1.04); }
+.login-panel .admin-logo img { filter: none; }
 .login-panel h1 { margin: 8px 0 16px; font-size: clamp(42px, 7vw, 62px); line-height: 1; }
 .login-panel > div > p:last-child { margin: 0 0 30px; color: var(--muted); line-height: 1.65; }
 .login-panel form { display: grid; gap: 18px; }

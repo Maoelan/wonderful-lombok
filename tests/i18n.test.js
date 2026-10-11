@@ -24,3 +24,18 @@ test('each supported interface locale has detail-page copy', () => {
     assert.ok(copy.customItinerary);
   }
 });
+
+test('every non-English locale localizes dynamic public catalog content', () => {
+  const english = localizeCatalog(defaultCatalog, 'en');
+  for (const locale of ['zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
+    const catalog = localizeCatalog(defaultCatalog, locale);
+    catalog.packages.forEach((item, index) => {
+      assert.notEqual(item.name, english.packages[index].name, `${locale} package ${index + 1}`);
+      assert.notEqual(item.itinerary[0].day, english.packages[index].itinerary[0].day, `${locale} itinerary ${index + 1}`);
+      assert.notEqual(item.includes[0], english.packages[index].includes[0], `${locale} inclusions ${index + 1}`);
+    });
+    catalog.destinations.forEach((item, index) => assert.notEqual(item.detail, english.destinations[index].detail, `${locale} destination ${index + 1}`));
+    catalog.rentals.forEach((item, index) => assert.notEqual(item.name, english.rentals[index].name, `${locale} rental ${index + 1}`));
+    catalog.faqs.forEach((item, index) => assert.notEqual(item.question, english.faqs[index].question, `${locale} FAQ ${index + 1}`));
+  }
+});
