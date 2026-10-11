@@ -13,6 +13,8 @@
   let booking = null;
   let detailItem = null;
   let detailKind = 'destinasi';
+  let tourMenu;
+  let destinationMenu;
   let galleryTick = 0;
   const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
   $: locale = data.locale || 'id';
@@ -44,8 +46,18 @@
     });
     return () => { cancelled = true; window.clearInterval(timer); };
   });
-  function showDetail(item) { detailItem = item; }
-  function closeMenu() { menuOpen = false; }
+  function closeMenu() {
+    menuOpen = false;
+    if (tourMenu) tourMenu.open = false;
+    if (destinationMenu) destinationMenu.open = false;
+  }
+  function showDetail(item) { closeMenu(); detailItem = item; }
+  function handlePageClick(event) {
+    if (event.target instanceof Element && event.target.closest('.nav-dropdown')) return;
+    if (tourMenu) tourMenu.open = false;
+    if (destinationMenu) destinationMenu.open = false;
+  }
+  function keepOneDropdown(current, other) { if (current?.open && other) other.open = false; }
   function reveal(node) {
     if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return {};
     if (node.getBoundingClientRect().top < window.innerHeight * 0.82) return {};
@@ -86,12 +98,28 @@
   <meta name="twitter:image:alt" content="Pemandangan perjalanan di Lombok bersama Wonderful Lombok" />
 </svelte:head>
 
+<svelte:window on:click={handlePageClick} />
+
 <header class="site-header">
   <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
-  <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen = !menuOpen}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
+  <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="main-navigation" class:open={menuOpen} aria-label="Navigasi utama">
-    <a href="#paket" on:click={closeMenu}>{c.tours}</a><a href="#paket-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}<a href="#destinasi" on:click={closeMenu}>{c.destinations}</a>
+    <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
+      <summary>{c.tours}</summary>
+      <div class="nav-dropdown-menu">
+        <a class="nav-dropdown-all" href={`/${locale}/paket-wisata`} on:click={closeMenu}>{c.allTours}</a>
+        {#each packages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+      </div>
+    </details>
+    <a href="#paket-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
+    <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
+      <summary>{c.destinations}</summary>
+      <div class="nav-dropdown-menu">
+        <a class="nav-dropdown-all" href="#destinasi" on:click={closeMenu}>{c.destinationLabel}</a>
+        {#each destinations as destination}<button type="button" on:click={() => showDetail(destination)}><span>{destination.name}</span><small>{destination.note}</small></button>{/each}
+      </div>
+    </details>
     <div class="nav-language"><LanguageSelector {locale} /></div>
     <a class="nav-action" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
   </nav>
