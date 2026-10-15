@@ -13,8 +13,9 @@
   let autoplayTimer;
 
   $: gallery = item ? [...new Set([item.image, ...(item.images || [])].filter(Boolean))] : [];
+  $: if (item && !gallery.length) gallery = ['/wonderful-lombok-icon.png'];
   $: selectedIndex = Math.max(0, gallery.indexOf(selectedImage));
-  $: if (item && !selectedImage) selectedImage = item.image;
+  $: if (item && !selectedImage) selectedImage = gallery[0];
 
   onMount(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -57,7 +58,7 @@
       <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
       <div class="detail-media" role="group" aria-label="Galeri foto {item.name}" on:mouseenter={() => paused = true} on:mouseleave={() => paused = false} on:focusin={() => paused = true} on:focusout={() => paused = false}>
         <div class="detail-stage">
-          {#key selectedImage}<img src={selectedImage || item.image} alt="{item.name}" />{/key}
+          {#key selectedImage}<img src={selectedImage || gallery[0]} alt="{item.name}" />{/key}
           {#if gallery.length > 1}
             <button class="gallery-arrow previous" type="button" on:click={() => changeImage(-1)} aria-label={t.previousImage}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg></button>
             <button class="gallery-arrow next" type="button" on:click={() => changeImage(1)} aria-label={t.nextImage}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></button>

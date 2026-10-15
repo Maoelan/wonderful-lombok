@@ -8,6 +8,27 @@ export const places = [
 
 export const lombokBounds = { west: 115.78, south: -9.15, east: 116.82, north: -8.15 };
 
+export function placeSearchQueries(value) {
+  const query = String(value || '').trim().replace(/\s+/g, ' ');
+  if (!query) return [];
+  const compact = query.replace(/\s+/g, '');
+  return compact === query ? [query] : [query, compact];
+}
+
+export function readPlaceSearchResults(payload) {
+  const seen = new Set();
+  return (Array.isArray(payload) ? payload : []).flat().map((item) => ({
+    name: String(item?.display_name || '').trim(),
+    lat: Number(item?.lat),
+    lng: Number(item?.lon)
+  })).filter((item) => {
+    const key = `${item.lat},${item.lng}`;
+    if (!item.name || !isInsideLombok(item.lat, item.lng) || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 8);
+}
+
 export function isInsideLombok(lat, lng) {
   return Number.isFinite(lat) && Number.isFinite(lng) && lat >= lombokBounds.south && lat <= lombokBounds.north && lng >= lombokBounds.west && lng <= lombokBounds.east;
 }

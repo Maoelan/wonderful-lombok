@@ -15,12 +15,16 @@ export default defineConfig({
           'object-src': ['none'],
           'form-action': ['self'],
           'script-src': ['self'],
-          'style-src-elem': ['self'],
+          'style-src-elem': ['self', 'https://fonts.googleapis.com'],
           'style-src-attr': ['unsafe-inline'],
-          'font-src': ['self', 'data:'],
+          'font-src': ['self', 'data:', 'https://fonts.gstatic.com'],
           'img-src': ['self', 'data:', 'https://images.unsplash.com', 'https://commons.wikimedia.org', 'https://thumb.wikimedia.org', 'https://upload.wikimedia.org', 'https://*.convex.cloud', 'https://*.tile.openstreetmap.org'],
           'connect-src': ['self', 'https://nominatim.openstreetmap.org', 'https://router.project-osrm.org'],
-          'frame-src': ['none']
+          'frame-src': ['none'],
+          'manifest-src': ['self'],
+          'media-src': ['self'],
+          'worker-src': ['self', 'blob:'],
+          'upgrade-insecure-requests': true
         }
       }
     })

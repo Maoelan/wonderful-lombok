@@ -23,8 +23,9 @@
   <meta property="og:url" content={data.canonicalUrl} />
 </svelte:head>
 
+<div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
 <header class="inner-header">
-  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
+  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a>
   <nav aria-label={c.language}><a href={home}>{c.backHome}</a><LanguageSelector locale={data.locale} suffix="/paket-wisata" /></nav>
 </header>
 <main class="catalog-page">
@@ -32,7 +33,7 @@
   <section class="tour-catalog" aria-label={c.catalogTitle}>
     {#each data.catalog.packages as item}
       <article class="tour-listing">
-        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`}><img src={item.image} alt={item.name} /></a>
+        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`}><img src={item.image || '/wonderful-lombok-icon.png'} alt={item.name} /></a>
         <div class="tour-listing-body">
           <div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div>
           <h2><a href={`/${data.locale}/paket-wisata/${item.slug}`}>{item.name}</a></h2>
@@ -46,3 +47,4 @@
   <aside class="catalog-help"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
 <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
+</div>

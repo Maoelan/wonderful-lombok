@@ -14,6 +14,7 @@ export const defaultCatalog = {
   travelRate: 10_000,
   settings: {
     whatsapp: '6281916550731', email: 'hello@wonderfullombok.com', location: 'Lombok, Nusa Tenggara Barat', instagram: '', tiktok: '', facebook: '',
+    heroImage: p.aan2, aboutImage: p.sembalun, colorTheme: 'classic',
     heroTitle: 'Lombok, dirancang sesuai caramu bepergian.', heroTitleEn: 'Lombok, planned around the way you travel.',
     heroDescription: 'Pilih tur privat, antar-jemput antarlokasi, atau kendaraan dengan driver. Kami membantu merangkai rute yang masuk akal untuk waktu liburanmu.',
     heroDescriptionEn: 'Choose a private tour, point-to-point transfer, or a vehicle with a driver. We help shape a route that fits the time you have.',

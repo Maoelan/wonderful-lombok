@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
-  import { calculatePickupPrice, isInsideLombok, lombokBounds, places, readRoadRoute } from './pickup.js';
+  import { calculatePickupPrice, isInsideLombok, places, readRoadRoute } from './pickup.js';
   import { createWhatsAppUrl } from './whatsapp.js';
   import { getFormCopy } from './i18n.js';
 
@@ -8,7 +8,8 @@
   let mapLoading = true, mapError = '', routeLoading = false, routeError = '';
   let distance = 0, routeRequest = 0;
   let origin = null, destination = null, originQuery = '', destinationQuery = '';
-  let mapTarget = 'origin', locationMessage = '', searchLoading = '';
+  let mapTarget = 'origin', locationMessage = '', searchLoading = '', searchTarget = '', searchResults = [];
+  let searchTimer = null, searchController = null;
   let gpsLoading = false, gpsWatch = null, gpsTimer = null;
   let customerName = '', phone = '', pickupDate = '', pickupTime = '', passengers = 1;
   let formError = '', submitted = false, submitting = false;
@@ -35,11 +36,13 @@
     } catch { mapLoading = false; mapError = 'Peta belum dapat dimuat. Periksa koneksi lalu coba lagi.'; }
   });
 
-  onDestroy(stopGps);
+  onDestroy(() => { stopGps(); clearTimeout(searchTimer); searchController?.abort(); });
 
   function setLocation(target, place) {
     if (target === 'origin') { origin = place; originQuery = place.name; }
     else { destination = place; destinationQuery = place.name; }
+    searchTarget = '';
+    searchResults = [];
     locationMessage = `${target === 'origin' ? 'Lokasi jemput' : 'Tujuan'} dipilih: ${place.name}`;
   }
 
@@ -53,21 +56,48 @@
     if (place) setLocation(target, place);
   }
 
-  async function searchAddress(target) {
+  function queuePlaceSearch(target) {
+    clearTimeout(searchTimer);
     const query = (target === 'origin' ? originQuery : destinationQuery).trim();
-    if (query.length < 3) { locationMessage = 'Ketik minimal 3 karakter untuk mencari alamat.'; return; }
+    searchTarget = target;
+    if (query.length < 3) { searchResults = []; return; }
+    searchTimer = setTimeout(() => searchPlaces(target), 500);
+  }
+
+  async function searchPlaces(target, chooseFirst = false) {
+    const query = (target === 'origin' ? originQuery : destinationQuery).trim();
+    if (query.length < 3) { locationMessage = 'Ketik minimal 3 karakter untuk mencari nama tempat.'; return; }
+    searchController?.abort();
+    searchController = new AbortController();
     searchLoading = target;
     try {
-      const viewbox = `${lombokBounds.west},${lombokBounds.north},${lombokBounds.east},${lombokBounds.south}`;
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=id&bounded=1&viewbox=${viewbox}&q=${encodeURIComponent(`${query}, Lombok, Nusa Tenggara Barat`)}`, { headers: { 'accept-language': 'id' } });
-      const [result] = await response.json();
-      if (!result) throw new Error('Alamat tidak ditemukan. Coba kata kunci yang lebih spesifik.');
-      const lat = Number(result.lat), lng = Number(result.lon);
-      if (!isInsideLombok(lat, lng)) throw new Error('Alamat berada di luar Pulau Lombok.');
-      setLocation(target, { name: result.display_name, lat, lng });
-      map?.setView([lat, lng], 14);
-    } catch (error) { locationMessage = error.message || 'Pencarian alamat gagal.'; }
-    finally { searchLoading = ''; }
+      const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}&lang=${encodeURIComponent(locale)}`, { signal: searchController.signal });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Pencarian tempat gagal.');
+      searchTarget = target;
+      searchResults = result.results || [];
+      if (!searchResults.length) { locationMessage = 'Tempat tidak ditemukan di Pulau Lombok. Coba nama desa, hotel, atau objek wisata.'; return; }
+      locationMessage = `${searchResults.length} tempat ditemukan di Lombok. Pilih hasil yang paling sesuai.`;
+      if (chooseFirst) {
+        const [place] = searchResults;
+        setLocation(target, place);
+        map?.setView([place.lat, place.lng], 14);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') locationMessage = error.message || 'Pencarian tempat gagal.';
+    } finally {
+      if (searchLoading === target) searchLoading = '';
+    }
+  }
+
+  function chooseSearchResult(target, place) {
+    setLocation(target, place);
+    map?.setView([place.lat, place.lng], 14);
+  }
+
+  function handleSearchKey(event, target) {
+    if (event.key === 'Enter') { event.preventDefault(); searchPlaces(target, true); }
+    if (event.key === 'Escape') { searchTarget = ''; searchResults = []; }
   }
 
   function stopGps() {
@@ -153,13 +183,13 @@
   <div class="pickup-fields">
     <div class="location-tools">
       <div class="location-field">
-        <label><span>{t.pickup}</span><input bind:value={originQuery} placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => activateMapTarget('origin')} on:keydown={(event) => event.key === 'Enter' && searchAddress('origin')} /></label>
+        <div class="location-search"><label><span>{t.pickup}</span><input bind:value={originQuery} autocomplete="off" placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => { activateMapTarget('origin'); queuePlaceSearch('origin'); }} on:input={() => queuePlaceSearch('origin')} on:keydown={(event) => handleSearchKey(event, 'origin')} /></label>{#if searchTarget === 'origin' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label="Hasil pencarian lokasi jemput">{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>{/each}</div>{/if}</div>
         <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
         <select aria-label={t.pickup} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{t.popular}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
       <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label="Tukar lokasi jemput dan tujuan">⇅</button>
       <div class="location-field">
-        <label><span>{t.destination}</span><input bind:value={destinationQuery} placeholder={searchLoading === 'destination' ? t.searching : t.address} on:focus={() => activateMapTarget('destination')} on:keydown={(event) => event.key === 'Enter' && searchAddress('destination')} /></label>
+        <div class="location-search"><label><span>{t.destination}</span><input bind:value={destinationQuery} autocomplete="off" placeholder={searchLoading === 'destination' ? t.searching : t.address} on:focus={() => { activateMapTarget('destination'); queuePlaceSearch('destination'); }} on:input={() => queuePlaceSearch('destination')} on:keydown={(event) => handleSearchKey(event, 'destination')} /></label>{#if searchTarget === 'destination' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label="Hasil pencarian tujuan">{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('destination', place)}>{place.name}</button>{/each}</div>{/if}</div>
         <select aria-label={t.destination} on:change={(event) => choosePreset('destination', event.currentTarget.value)}><option value="">{t.popular}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
     </div>

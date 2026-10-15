@@ -1,8 +1,8 @@
-<script>export let form;</script>
+<script>export let form; export let data;</script>
 <svelte:head><title>Login Admin | Wonderful Lombok</title><meta name="robots" content="noindex,nofollow" /></svelte:head>
-<main class="login-page">
+<main class="login-page" class:theme-ocean={data.colorTheme === 'ocean'}>
   <section class="login-panel">
-    <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
+    <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a>
     <div><p class="admin-kicker">Area pengelola</p><h1>Masuk ke admin.</h1><p>Gunakan akun admin untuk mengubah informasi yang tampil di website.</p></div>
     <form method="POST">
       <label><span>Username</span><input name="username" autocomplete="username" value={form?.username ?? ''} required /></label>

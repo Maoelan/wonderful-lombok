@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, isInsideLombok, readRoadRoute } from '../src/lib/pickup.js';
+import { calculatePickupPrice, isInsideLombok, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
 import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
@@ -18,6 +18,14 @@ test('location bounds accept Lombok and reject other islands', () => {
   assert.equal(isInsideLombok(-8.5833, 116.1167), true);
   assert.equal(isInsideLombok(-8.65, 115.22), false);
   assert.equal(isInsideLombok(-8.55, 117.42), false);
+});
+
+test('place search retries joined village names and keeps only Lombok results', () => {
+  assert.deepEqual(placeSearchQueries('  Aik   Mual  '), ['Aik Mual', 'AikMual']);
+  assert.deepEqual(readPlaceSearchResults([
+    { display_name: 'Aikmual, Lombok Tengah', lat: '-8.6621668', lon: '116.2855197' },
+    { display_name: 'Denpasar, Bali', lat: '-8.65', lon: '115.22' }
+  ]), [{ name: 'Aikmual, Lombok Tengah', lat: -8.6621668, lng: 116.2855197 }]);
 });
 
 test('WhatsApp link targets the configured business number and encodes its message', () => {

@@ -9,9 +9,23 @@ test('default catalog passes server validation', () => {
 
 test('catalog rejects unsafe and malformed image URLs', () => {
   assert.equal(validImage('/uploads/photo-1.webp'), true);
-  assert.equal(validImage('https://images.example/photo.jpg'), true);
+  assert.equal(validImage('https://upload.wikimedia.org/photo.jpg'), true);
+  assert.equal(validImage('https://example.convex.cloud/api/storage/file'), true);
+  assert.equal(validImage('https://images.example/photo.jpg'), false);
   assert.equal(validImage('javascript:alert(1)'), false);
   assert.equal(validImage("https://images.example/x');color:red"), false);
+});
+
+test('catalog rejects unsafe public background images', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.settings.heroImage = 'javascript:alert(1)';
+  assert.equal(validateCatalog(catalog), 'Gambar latar website tidak valid.');
+});
+
+test('catalog accepts only the available public color themes', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.settings.colorTheme = 'unknown-theme';
+  assert.equal(validateCatalog(catalog), 'Pilihan warna website tidak valid.');
 });
 
 test('catalog rejects oversized editable content', () => {

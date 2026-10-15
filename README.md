@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wonderful-lombok-main.vercel.app">
-    <img src="./static/wonderful-lombok-logo.png" alt="Wonderful Lombok" width="360">
+    <img src="./static/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" width="360">
   </a>
 </p>
 

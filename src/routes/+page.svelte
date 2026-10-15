@@ -31,7 +31,11 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
-  const packageGallery = (item) => [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
+  const fallbackImage = '/wonderful-lombok-icon.png';
+  const packageGallery = (item) => {
+    const images = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
+    return images.length ? images : [fallbackImage];
+  };
   onMount(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let timer;
@@ -100,8 +104,9 @@
 
 <svelte:window on:click={handlePageClick} />
 
+<div class="site-theme" class:theme-ocean={settings.colorTheme === 'ocean'}>
 <header class="site-header">
-  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo.png" alt="Wonderful Lombok" /></a>
+  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a>
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
   <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="main-navigation" class:open={menuOpen} aria-label="Navigasi utama">
@@ -134,7 +139,7 @@
   <meta itemprop="telephone" content={`+${settings.whatsapp.replace(/\D/g, '')}`} />
   <meta itemprop="areaServed" content="Pulau Lombok, Nusa Tenggara Barat" />
   <section class="hero" aria-labelledby="hero-title">
-    <div class="hero-image" role="img" aria-label="Pantai tropis dengan laut biru"></div><div class="hero-shade"></div>
+    <div class="hero-image" role="img" aria-label="Pantai tropis dengan laut biru" style={`background-image: url('${settings.heroImage}')`}></div><div class="hero-shade"></div>
     <div class="hero-copy">
       <p class="label">{c.heroLabel}</p><h1 id="hero-title">{settings.heroTitle}</h1>
       <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
@@ -158,17 +163,16 @@
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
         {@const activeImage = gallery[(galleryTick + index) % gallery.length]}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}>{#key activeImage}<img class="package-slide" src={activeImage} alt={item.name} loading={galleryTick === 0 ? 'lazy' : 'eager'} itemprop="image" />{/key}<span class="gallery-progress" aria-hidden="true">{(galleryTick + index) % gallery.length + 1}/{gallery.length}</span></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><a class="package-book" href={createWhatsAppUrl(`Halo Wonderful Lombok, saya ingin memesan ${item.name}.`, settings.whatsapp)} target="_blank" rel="noreferrer">{c.bookTour}</a></div></div></article>
+        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}>{#key activeImage}<img class="package-slide" src={activeImage} alt={item.name} loading={galleryTick === 0 ? 'lazy' : 'eager'} itemprop="image" />{/key}<span class="gallery-progress" aria-hidden="true">{(galleryTick + index) % gallery.length + 1}/{gallery.length}</span></a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div></div></article>
       {/each}
     </div>
-    <a class="button dark all-packages" href={`/${locale}/paket-wisata`}>{c.allTours}</a>
   </section>
 
   <section class="destinations" id="destinasi" aria-labelledby="destinations-title">
     <div class="section section-heading" use:reveal><div><p class="label">{c.destinationLabel}</p><h2 id="destinations-title">{c.destinationHeading}</h2></div><p>{c.destinationIntro}</p></div>
     <div class="destination-grid section" use:reveal>
       {#each destinations as destination, index}
-        <button class:wide={index === 0} class="destination-card" type="button" style={`background-image: linear-gradient(0deg, rgba(5,35,29,.78), rgba(5,35,29,.02) 70%), url('${destination.image}')`} on:click={() => showDetail(destination)}><div><h3>{destination.name}</h3><p>{destination.note}</p></div></button>
+        <button class:wide={index === 0} class="destination-card" type="button" style={`background-image: var(--destination-gradient), url('${destination.image || fallbackImage}')`} on:click={() => showDetail(destination)}><div><h3>{destination.name}</h3><p>{destination.note}</p></div></button>
       {/each}
     </div>
   </section>
@@ -196,7 +200,7 @@
   {/if}
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
-    <div class="about-image" role="img" aria-label="Perbukitan hijau dan laut Lombok"></div>
+    <div class="about-image" role="img" aria-label="Perbukitan hijau dan laut Lombok" style={`background-image: url('${settings.aboutImage}')`}></div>
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
@@ -215,3 +219,4 @@
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 <DetailDialog bind:item={detailItem} kind={detailKind} {locale} />
 <WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
+</div>

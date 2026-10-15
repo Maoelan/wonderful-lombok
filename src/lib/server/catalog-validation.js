@@ -14,7 +14,11 @@ export function validUrl(value) {
 }
 
 export function validImage(value) {
-  return /^\/uploads\/[a-zA-Z0-9-]+\.(jpg|png|webp)$/.test(value || '') || validUrl(value);
+  if (!value) return true;
+  if (/^\/uploads\/[a-zA-Z0-9-]+\.(jpg|png|webp)$/.test(value || '')) return true;
+  if (!validUrl(value)) return false;
+  const hostname = new URL(value).hostname.toLowerCase();
+  return ['images.unsplash.com', 'commons.wikimedia.org', 'thumb.wikimedia.org', 'upload.wikimedia.org'].includes(hostname) || hostname.endsWith('.convex.cloud');
 }
 
 function validGallery(images) {
@@ -50,6 +54,8 @@ export function validateCatalog(catalog) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(settings.email || '')) || String(settings.email).length > 254) return 'Email tidak valid.';
   if (![settings.location, settings.heroTitle, settings.heroDescription, settings.aboutTitle, settings.aboutDescription].every((value) => text(value, 2, 1000))) return 'Informasi website tidak valid.';
   if (![settings.heroTitleEn, settings.heroDescriptionEn, settings.aboutTitleEn, settings.aboutDescriptionEn].every((value) => optionalText(value, 1000))) return 'Konten bahasa Inggris tidak valid.';
+  if (![settings.heroImage, settings.aboutImage].every(validImage)) return 'Gambar latar website tidak valid.';
+  if (!['classic', 'ocean'].includes(settings.colorTheme)) return 'Pilihan warna website tidak valid.';
   if (![settings.instagram, settings.tiktok, settings.facebook].every(validUrl)) return 'Tautan media sosial harus menggunakan HTTPS.';
   return null;
 }

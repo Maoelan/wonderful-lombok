@@ -1,7 +1,8 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { convexMutation, convexQuery } from './db.js';
 
-const sessionCookie = 'wl_admin_session';
+const production = process.env.NODE_ENV === 'production';
+const sessionCookie = production ? '__Host-wl_admin_session' : 'wl_admin_session';
 const dummyHash = `scrypt:${'0'.repeat(32)}:${scryptSync('invalid-password', '0'.repeat(32), 64).toString('hex')}`;
 
 export async function authenticate(username, password) {
@@ -23,7 +24,7 @@ export async function createSession(userId, cookies) {
   const tokenHash = createHash('sha256').update(token).digest('hex');
   const maxAge = 60 * 60 * 8;
   await convexMutation('admin:createSession', { tokenHash, adminId: userId, expiresAt: Date.now() + maxAge * 1000 });
-  cookies.set(sessionCookie, token, { path: '/', httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production', maxAge });
+  cookies.set(sessionCookie, token, { path: '/', httpOnly: true, sameSite: 'strict', secure: production, priority: 'high', maxAge });
 }
 
 export async function getSessionUser(cookies) {
@@ -36,5 +37,5 @@ export async function getSessionUser(cookies) {
 export async function destroySession(cookies) {
   const token = cookies.get(sessionCookie);
   if (token) await convexMutation('admin:destroySession', { tokenHash: createHash('sha256').update(token).digest('hex') });
-  cookies.delete(sessionCookie, { path: '/' });
+  cookies.delete(sessionCookie, { path: '/', secure: production, sameSite: 'strict' });
 }

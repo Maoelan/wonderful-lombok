@@ -14,13 +14,12 @@ export const sanitizeRichText = (value) => filter.process(String(value || '')).t
 
 export function sanitizeCatalogRichText(catalog) {
   const clean = structuredClone(catalog);
-  for (const item of clean.packages || []) item.detail = sanitizeRichText(item.detail);
-  for (const item of clean.destinations || []) item.detail = sanitizeRichText(item.detail);
-  for (const item of clean.rentals || []) item.detail = sanitizeRichText(item.detail);
-  for (const item of clean.faqs || []) item.answer = sanitizeRichText(item.answer);
+  for (const item of clean.packages || []) for (const field of ['detail', 'detailEn']) item[field] = sanitizeRichText(item[field]);
+  for (const item of clean.destinations || []) for (const field of ['detail', 'detailEn']) item[field] = sanitizeRichText(item[field]);
+  for (const item of clean.rentals || []) for (const field of ['detail', 'detailEn']) item[field] = sanitizeRichText(item[field]);
+  for (const item of clean.faqs || []) for (const field of ['answer', 'answerEn']) item[field] = sanitizeRichText(item[field]);
   if (clean.settings) {
-    clean.settings.heroDescription = sanitizeRichText(clean.settings.heroDescription);
-    clean.settings.aboutDescription = sanitizeRichText(clean.settings.aboutDescription);
+    for (const field of ['heroDescription', 'heroDescriptionEn', 'aboutDescription', 'aboutDescriptionEn']) clean.settings[field] = sanitizeRichText(clean.settings[field]);
   }
   return clean;
 }
