@@ -186,7 +186,7 @@
 
 <div class="admin-shell" class:theme-ocean={catalog.settings.colorTheme === 'ocean'}>
   <aside class="admin-sidebar">
-    <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a>
+    <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
     <div><p class="admin-kicker">Pengelolaan website</p><h1>Admin</h1></div>
     <nav aria-label="Menu admin">
       <p>Mulai</p>

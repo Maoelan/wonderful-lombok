@@ -1,12 +1,10 @@
-@import 'leaflet/dist/leaflet.css';
-
 :root {
   font-family: var(--font-body);
   color: #173c34;
   background: #f4efe3;
   font-synthesis: none;
-  --font-body: 'Source Sans 3', 'Segoe UI', Arial, sans-serif;
-  --font-display: 'Manrope', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Segoe UI Variable Text', 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI', Arial, sans-serif;
   --forest: #123f35;
   --forest-deep: #0a2d27;
   --cream: #f4efe3;
@@ -239,10 +237,10 @@ img {
 
 .hero-image {
   background-color: var(--forest-deep);
-  background-position: center 58%;
-  background-size: cover;
   transform: scale(1.015);
 }
+
+.hero-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 58%; }
 
 .hero-shade {
   background: var(--hero-shade);
@@ -507,6 +505,9 @@ h1 {
 
 .destination-card { border: 0; cursor: pointer; font: inherit; text-align: left; transition: filter .22s ease, transform .22s ease; }
 .destination-card:hover, .destination-card:focus-visible { filter: brightness(1.08); transform: translateY(-3px); }
+.destination-card::after { position: absolute; z-index: 1; inset: 0; background: var(--destination-gradient); content: ''; pointer-events: none; }
+.destination-card > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.destination-card > div { position: relative; z-index: 2; }
 
 .destination-grid article.wide,
 .destination-card.wide {
@@ -1109,10 +1110,21 @@ select:hover {
 .about-image {
   min-height: 510px;
   background-color: var(--surface-soft);
-  background-position: center;
-  background-size: cover;
+  overflow: hidden;
   border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
+
+.about-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+.calculator-placeholder { min-height: 620px; display: grid; grid-template-columns: 2fr 1fr; gap: 1px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.14); }
+.calculator-placeholder span { display: block; background: rgba(255,255,255,.07); }
+.calculator-placeholder span:nth-child(2), .calculator-placeholder span:nth-child(3) { min-height: 180px; }
+
+.packages,
+.destinations,
+.travel-section,
+.about,
+.faq { content-visibility: auto; contain-intrinsic-size: auto 900px; }
 
 .about-copy {
   display: flex;
@@ -1705,8 +1717,11 @@ footer {
   .about-image {
     min-height: 0;
     aspect-ratio: 4 / 3;
-    background-position: center 42%;
   }
+
+  .about-image img { object-position: center 42%; }
+
+  .calculator-placeholder { min-height: 820px; grid-template-columns: 1fr; }
 
   .about-copy {
     padding: 62px 20px 70px;

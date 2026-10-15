@@ -1,4 +1,5 @@
 <script>
+  import { imageSrcset, imageUrl } from './image.js';
   import { onDestroy, onMount } from 'svelte';
   import { getFormCopy } from './i18n.js';
 
@@ -13,7 +14,7 @@
   let autoplayTimer;
 
   $: gallery = item ? [...new Set([item.image, ...(item.images || [])].filter(Boolean))] : [];
-  $: if (item && !gallery.length) gallery = ['/wonderful-lombok-icon.png'];
+  $: if (item && !gallery.length) gallery = ['/wonderful-lombok-icon-192.png'];
   $: selectedIndex = Math.max(0, gallery.indexOf(selectedImage));
   $: if (item && !selectedImage) selectedImage = gallery[0];
 
@@ -58,7 +59,7 @@
       <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
       <div class="detail-media" role="group" aria-label="Galeri foto {item.name}" on:mouseenter={() => paused = true} on:mouseleave={() => paused = false} on:focusin={() => paused = true} on:focusout={() => paused = false}>
         <div class="detail-stage">
-          {#key selectedImage}<img src={selectedImage || gallery[0]} alt="{item.name}" />{/key}
+          {#key selectedImage}<img src={imageUrl(selectedImage || gallery[0], 900)} srcset={imageSrcset(selectedImage || gallery[0], [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 55vw" alt="{item.name}" decoding="async" width="900" height="650" />{/key}
           {#if gallery.length > 1}
             <button class="gallery-arrow previous" type="button" on:click={() => changeImage(-1)} aria-label={t.previousImage}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg></button>
             <button class="gallery-arrow next" type="button" on:click={() => changeImage(1)} aria-label={t.nextImage}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></button>
@@ -68,7 +69,7 @@
         {#if gallery.length > 1}
           <div class="detail-thumbnails" aria-label="Galeri {item.name}">
             {#each gallery as image, index}
-              <button class:active={selectedImage === image} type="button" on:click={() => chooseImage(image)} aria-label="Lihat gambar {index + 1}"><img src={image} alt="" /></button>
+              <button class:active={selectedImage === image} type="button" on:click={() => chooseImage(image)} aria-label="Lihat gambar {index + 1}"><img src={imageUrl(image, 240)} alt="" loading="lazy" decoding="async" width="120" height="80" /></button>
             {/each}
           </div>
         {/if}

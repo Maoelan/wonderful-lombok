@@ -1,4 +1,5 @@
 <script>
+  import 'leaflet/dist/leaflet.css';
   import { onDestroy, onMount } from 'svelte';
   import { calculatePickupPrice, isInsideLombok, places, readRoadRoute } from './pickup.js';
   import { createWhatsAppUrl } from './whatsapp.js';

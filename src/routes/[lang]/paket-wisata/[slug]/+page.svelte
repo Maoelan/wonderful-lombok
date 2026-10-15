@@ -1,4 +1,5 @@
 <script>
+  import { imageSrcset, imageUrl } from '../../../../lib/image.js';
   import { onMount } from 'svelte';
   import BookingDialog from '#lib/BookingDialog.svelte';
   import { getCopy, getFormCopy, languages, localePath } from '#lib/i18n.js';
@@ -9,7 +10,7 @@
   $: formCopy = getFormCopy(data.locale);
   $: item = data.item;
   $: gallery = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
-  $: if (!gallery.length) gallery = ['/wonderful-lombok-icon.png'];
+  $: if (!gallery.length) gallery = ['/wonderful-lombok-icon-192.png'];
   let selectedIndex = 0;
   let booking = null;
   $: if (selectedIndex >= gallery.length) selectedIndex = 0;
@@ -31,11 +32,11 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-<header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a><nav><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix={`/paket-wisata/${item.slug}`} /></nav></header>
+<header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a><nav><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix={`/paket-wisata/${item.slug}`} /></nav></header>
 <main class="tour-detail-page">
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`/${data.locale}/paket-wisata`}>{c.tours}</a></nav>
   <section class="tour-hero">
-    <div class="tour-gallery"><div class="tour-main-image">{#key selectedImage}<img class="package-slide" src={selectedImage} alt={`${item.name}, ${c.image} ${selectedIndex + 1}`} />{/key}{#if gallery.length > 1}<button class="tour-gallery-arrow previous" type="button" on:click={() => showImage(selectedIndex - 1)} aria-label={formCopy.previousImage}>‹</button><button class="tour-gallery-arrow next" type="button" on:click={() => showImage(selectedIndex + 1)} aria-label={formCopy.nextImage}>›</button><span class="tour-gallery-count">{selectedIndex + 1}/{gallery.length}</span>{/if}</div>{#if gallery.length > 1}<div class="tour-thumbnails">{#each gallery as image, index}<button class:active={selectedIndex === index} on:click={() => showImage(index)} aria-label={`${c.viewImage} ${index + 1}`}><img src={image} alt="" /></button>{/each}</div>{/if}</div>
+    <div class="tour-gallery"><div class="tour-main-image">{#key selectedImage}<img class="package-slide" src={imageUrl(selectedImage, 900)} srcset={imageSrcset(selectedImage, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 58vw" alt={`${item.name}, ${c.image} ${selectedIndex + 1}`} loading="eager" fetchpriority="high" decoding="async" width="900" height="650" />{/key}{#if gallery.length > 1}<button class="tour-gallery-arrow previous" type="button" on:click={() => showImage(selectedIndex - 1)} aria-label={formCopy.previousImage}>‹</button><button class="tour-gallery-arrow next" type="button" on:click={() => showImage(selectedIndex + 1)} aria-label={formCopy.nextImage}>›</button><span class="tour-gallery-count">{selectedIndex + 1}/{gallery.length}</span>{/if}</div>{#if gallery.length > 1}<div class="tour-thumbnails">{#each gallery as image, index}<button class:active={selectedIndex === index} on:click={() => showImage(index)} aria-label={`${c.viewImage} ${index + 1}`}><img src={imageUrl(image, 240)} alt="" loading="lazy" decoding="async" width="120" height="80" /></button>{/each}</div>{/if}</div>
     <div class="tour-summary"><div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div><h1>{item.name}</h1><div class="rich-content">{@html item.detail}</div><div class="tour-route"><span>{c.highlights}</span><strong>{item.route}</strong></div><div class="tour-price"><span>{c.from}</span><b>{item.price}</b><small>{item.unit}</small></div><button class="button primary" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookWhatsapp}</button></div>
   </section>
   <div class="tour-content">

@@ -1,4 +1,5 @@
 <script>
+  import { imageSrcset, imageUrl } from '../../../lib/image.js';
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
   import { getCopy, languages, localePath } from '#lib/i18n.js';
   import LanguageSelector from '#lib/LanguageSelector.svelte';
@@ -25,15 +26,15 @@
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
 <header class="inner-header">
-  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-new.png" alt="Wonderful Lombok" /></a>
+  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
   <nav aria-label={c.language}><a href={home}>{c.backHome}</a><LanguageSelector locale={data.locale} suffix="/paket-wisata" /></nav>
 </header>
 <main class="catalog-page">
   <section class="catalog-intro"><p class="label">Wonderful Lombok</p><h1>{c.catalogTitle}</h1><p>{c.catalogIntro}</p></section>
   <section class="tour-catalog" aria-label={c.catalogTitle}>
-    {#each data.catalog.packages as item}
+    {#each data.catalog.packages as item, index}
       <article class="tour-listing">
-        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`}><img src={item.image || '/wonderful-lombok-icon.png'} alt={item.name} /></a>
+        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`}><img src={imageUrl(item.image || '/wonderful-lombok-icon-192.png', 720)} srcset={imageSrcset(item.image || '/wonderful-lombok-icon-192.png', [480, 720, 960])} sizes="(max-width: 760px) 92vw, 44vw" alt={item.name} loading={index === 0 ? 'eager' : 'lazy'} fetchpriority={index === 0 ? 'high' : 'auto'} decoding="async" width="720" height="520" /></a>
         <div class="tour-listing-body">
           <div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div>
           <h2><a href={`/${data.locale}/paket-wisata/${item.slug}`}>{item.name}</a></h2>
