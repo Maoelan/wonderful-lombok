@@ -14,3 +14,13 @@ test('non-Wikimedia and local image URLs remain unchanged', () => {
   assert.equal(imageUrl('https://example.convex.cloud/api/storage/id', 640), 'https://example.convex.cloud/api/storage/id');
   assert.equal(imageUrl('/wonderful-lombok-icon-192.png', 640), '/wonderful-lombok-icon-192.png');
 });
+
+test('production image URLs use Vercel optimization', () => {
+  const previous = process.env.VERCEL;
+  process.env.VERCEL = '1';
+  const optimized = imageUrl('https://commons.wikimedia.org/wiki/Special:Redirect/file/Pantai.jpg?width=1600', 640);
+  assert.match(optimized, /^\/_vercel\/image\?/);
+  assert.match(optimized, /w=640&q=70$/);
+  if (previous === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = previous;
+});

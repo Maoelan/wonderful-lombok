@@ -1,6 +1,13 @@
 const WIKIMEDIA_UPLOAD = 'upload.wikimedia.org';
+const VERCEL_IMAGE_QUALITY = 70;
 
-export function imageUrl(source, width) {
+function canUseVercelImages() {
+  if (typeof process !== 'undefined' && process.env?.VERCEL) return true;
+  if (typeof location === 'undefined') return false;
+  return !['localhost', '127.0.0.1'].includes(location.hostname);
+}
+
+function resizedSource(source, width) {
   if (!source || !width) return source;
   try {
     const url = new URL(source);
@@ -16,6 +23,12 @@ export function imageUrl(source, width) {
     return source;
   }
   return source;
+}
+
+export function imageUrl(source, width) {
+  const resized = resizedSource(source, width);
+  if (!canUseVercelImages() || !resized) return resized;
+  return `/_vercel/image?url=${encodeURIComponent(resized)}&w=${width}&q=${VERCEL_IMAGE_QUALITY}`;
 }
 
 export function imageSrcset(source, widths) {

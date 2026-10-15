@@ -875,6 +875,7 @@ h1 {
 .gps-action { width: fit-content; }
 .location-field select { min-height: 42px; font-size: 12px; }
 .location-guidance strong { color: var(--forest); }
+.route-notice { margin-top: -10px; padding: 10px 12px; border-left: 3px solid var(--accent-strong); background: var(--surface-soft); color: var(--ink); }
 
 label {
   display: grid;

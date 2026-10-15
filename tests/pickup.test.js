@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, isInsideLombok, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
+import { calculatePickupPrice, coordinateDistanceMetres, hasStableGpsFix, isInsideLombok, isUsableGpsFix, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
 import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
@@ -8,10 +8,22 @@ test('pickup price bills each started kilometer at Rp10.000', () => {
   assert.equal(calculatePickupPrice(0), 0);
 });
 
-test('road route uses routed distance and converts GeoJSON coordinates for Leaflet', () => {
-  const route = readRoadRoute({ routes: [{ distance: 12_100, geometry: { coordinates: [[116.1, -8.5], [116.2, -8.6]] } }] });
+test('road route uses routed distance, snap distance, and Leaflet coordinates', () => {
+  const route = readRoadRoute({ routes: [{ distance: 12_100, geometry: { coordinates: [[116.1, -8.5], [116.2, -8.6]] } }], waypoints: [{ distance: 8 }, { distance: 16 }] });
   assert.equal(route.distanceKm, 13);
   assert.deepEqual(route.points, [[-8.5, 116.1], [-8.6, 116.2]]);
+  assert.equal(route.snapDistanceM, 16);
+});
+
+test('GPS fixes must be fresh, accurate, inside Lombok, and stable', () => {
+  const now = Date.now();
+  const first = { lat: -8.5833, lng: 116.1167, accuracy: 12, timestamp: now - 1_000 };
+  const second = { lat: -8.58331, lng: 116.11671, accuracy: 10, timestamp: now };
+  assert.equal(isUsableGpsFix(first, { now }), true);
+  assert.equal(hasStableGpsFix([first, second]), true);
+  assert.ok(coordinateDistanceMetres(first, second) < 2);
+  assert.equal(isUsableGpsFix({ ...first, accuracy: 90 }, { now }), false);
+  assert.equal(isUsableGpsFix({ ...first, timestamp: now - 30_000 }, { now }), false);
 });
 
 test('location bounds accept Lombok and reject other islands', () => {

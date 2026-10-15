@@ -19,7 +19,7 @@ export default defineConfig({
           'style-src-attr': ['unsafe-inline'],
           'font-src': ['self', 'data:', 'https://fonts.gstatic.com'],
           'img-src': ['self', 'data:', 'https://images.unsplash.com', 'https://commons.wikimedia.org', 'https://thumb.wikimedia.org', 'https://upload.wikimedia.org', 'https://*.convex.cloud', 'https://*.tile.openstreetmap.org'],
-          'connect-src': ['self', 'https://nominatim.openstreetmap.org', 'https://router.project-osrm.org'],
+          'connect-src': ['self'],
           'frame-src': ['none'],
           'manifest-src': ['self'],
           'media-src': ['self'],
