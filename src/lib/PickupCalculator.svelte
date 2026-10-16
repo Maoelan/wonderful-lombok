@@ -1,9 +1,9 @@
 <script>
   import 'leaflet/dist/leaflet.css';
   import { onDestroy, onMount } from 'svelte';
-  import { calculatePickupPrice, hasStableGpsFix, isInsideLombok, isUsableGpsFix, places, readRoadRoute } from './pickup.js';
+  import { calculatePickupPrice, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, readRoadRoute } from './pickup.js';
   import { createWhatsAppUrl } from './whatsapp.js';
-  import { getFormCopy } from './i18n.js';
+  import { getFormCopy, localeTag } from './i18n.js';
 
   let mapElement, map, routeLayer, gpsPreviewLayer, leaflet;
   let mapLoading = true, mapError = '', routeLoading = false, routeError = '';
@@ -20,26 +20,30 @@
   export let whatsapp = '6281916550731';
   export let locale = 'id';
   $: t = getFormCopy(locale);
+  $: availablePlaces = localizedPlaces(locale);
   const today = new Date().toISOString().slice(0, 10);
-  $: rupiah = new Intl.NumberFormat(locale !== 'id' ? 'en-US' : 'id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  $: rupiah = new Intl.NumberFormat(localeTag(locale), { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
   $: price = calculatePickupPrice(distance, rate);
   $: routeReady = Boolean(origin && destination && (origin.lat !== destination.lat || origin.lng !== destination.lng));
   $: if (map) drawRoute(origin, destination);
 
+  const message = (template, values = {}) => Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
+
   onMount(async () => {
     try {
       const L = leaflet = await import('leaflet');
-      map = L.map(mapElement, { scrollWheelZoom: false, zoomControl: true }).setView([-8.65, 116.17], 9);
+      map = L.map(mapElement, { scrollWheelZoom: false, zoomControl: false }).setView([-8.65, 116.17], 9);
+      L.control.zoom({ zoomInTitle: t.zoomIn, zoomOutTitle: t.zoomOut }).addTo(map);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
       routeLayer = L.layerGroup().addTo(map);
       gpsPreviewLayer = L.layerGroup().addTo(map);
       map.on('click', ({ latlng }) => {
         gpsPreviewLayer.clearLayers();
-        setLocation(mapTarget, { name: `Titik peta ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`, lat: latlng.lat, lng: latlng.lng, source: 'map' });
+        setLocation(mapTarget, { name: message(t.mapPoint, { lat: latlng.lat.toFixed(5), lng: latlng.lng.toFixed(5) }), lat: latlng.lat, lng: latlng.lng, source: 'map' });
       });
       mapLoading = false;
-    } catch { mapLoading = false; mapError = 'Peta belum dapat dimuat. Periksa koneksi lalu coba lagi.'; }
+    } catch { mapLoading = false; mapError = t.mapLoadError; }
   });
 
   onDestroy(() => { stopGps(); clearTimeout(searchTimer); searchController?.abort(); });
@@ -50,16 +54,16 @@
     else { destination = place; destinationQuery = place.name; }
     searchTarget = '';
     searchResults = [];
-    locationMessage = `${target === 'origin' ? 'Lokasi jemput' : 'Tujuan'} dipilih: ${place.name}`;
+    locationMessage = message(t.selected, { field: target === 'origin' ? t.pickup : t.destination, place: place.name });
   }
 
   function activateMapTarget(target) {
     mapTarget = target;
-    locationMessage = `Ketik alamat lalu tekan Enter, atau klik peta untuk memilih ${target === 'origin' ? 'lokasi jemput' : 'tujuan'}.`;
+    locationMessage = message(t.chooseOnMap, { field: target === 'origin' ? t.pickup.toLowerCase() : t.destination.toLowerCase() });
   }
 
   function choosePreset(target, id) {
-    const place = places.find((item) => item.id === id);
+    const place = availablePlaces.find((item) => item.id === id);
     if (place) setLocation(target, place);
   }
 
@@ -73,25 +77,25 @@
 
   async function searchPlaces(target, chooseFirst = false) {
     const query = (target === 'origin' ? originQuery : destinationQuery).trim();
-    if (query.length < 3) { locationMessage = 'Ketik minimal 3 karakter untuk mencari nama tempat.'; return; }
+    if (query.length < 3) { locationMessage = t.minimumCharacters; return; }
     searchController?.abort();
     searchController = new AbortController();
     searchLoading = target;
     try {
       const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}&lang=${encodeURIComponent(locale)}`, { signal: searchController.signal });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Pencarian tempat gagal.');
+      if (!response.ok) throw new Error(result.error || t.searchFailed);
       searchTarget = target;
       searchResults = result.results || [];
-      if (!searchResults.length) { locationMessage = 'Tempat tidak ditemukan di Pulau Lombok. Coba nama desa, hotel, atau objek wisata.'; return; }
-      locationMessage = `${searchResults.length} tempat ditemukan di Lombok. Pilih hasil yang paling sesuai.`;
+      if (!searchResults.length) { locationMessage = t.noPlaces; return; }
+      locationMessage = message(t.placesFound, { count: searchResults.length });
       if (chooseFirst) {
         const [place] = searchResults;
         setLocation(target, place);
         map?.setView([place.lat, place.lng], 14);
       }
     } catch (error) {
-      if (error.name !== 'AbortError') locationMessage = error.message || 'Pencarian tempat gagal.';
+      if (error.name !== 'AbortError') locationMessage = error.message || t.searchFailed;
     } finally {
       if (searchLoading === target) searchLoading = '';
     }
@@ -122,46 +126,46 @@
   }
 
   function useCurrentLocation() {
-    if (!navigator.geolocation) { locationMessage = 'Perangkat ini tidak mendukung GPS.'; return; }
+    if (!navigator.geolocation) { locationMessage = t.gpsUnsupported; return; }
     stopGps();
     gpsPreviewLayer?.clearLayers();
     gpsLoading = true;
     bestGpsFix = null;
     gpsFixes = [];
-    locationMessage = 'Mencari sinyal GPS terbaik… tetap di halaman ini hingga akurasi stabil.';
+    locationMessage = t.gpsSearching;
     const finish = () => {
-      if (!bestGpsFix) { stopGps(); locationMessage = 'Lokasi tidak dapat dibaca. Izinkan akses lokasi atau pilih titik pada peta.'; return; }
+      if (!bestGpsFix) { stopGps(); locationMessage = t.gpsUnavailable; return; }
       const { lat, lng, accuracy } = bestGpsFix;
       stopGps();
-      if (!isInsideLombok(lat, lng)) { locationMessage = 'GPS menunjukkan lokasi di luar Pulau Lombok. Gunakan pencarian atau pilih titik pada peta.'; return; }
+      if (!isInsideLombok(lat, lng)) { locationMessage = t.gpsOutside; return; }
       if (accuracy > 50) {
         showGpsPreview(bestGpsFix);
-        locationMessage = `Akurasi GPS baru ±${Math.round(accuracy)} m, belum cukup aman untuk estimasi harga. Pindah ke area terbuka lalu coba lagi, atau ketuk titik yang tepat pada peta.`;
+        locationMessage = message(t.gpsInsufficient, { accuracy: Math.round(accuracy) });
         return;
       }
-      setLocation('origin', { name: `Lokasi saya saat ini (akurasi ±${Math.round(accuracy)} m)`, lat, lng, accuracy: Math.round(accuracy), source: 'gps' });
+      setLocation('origin', { name: message(t.currentLocation, { accuracy: Math.round(accuracy) }), lat, lng, accuracy: Math.round(accuracy), source: 'gps' });
       locationMessage = accuracy <= 20
-        ? `Lokasi GPS terkunci dengan akurasi tinggi ±${Math.round(accuracy)} m.`
-        : `Lokasi GPS terkunci dengan akurasi ±${Math.round(accuracy)} m. Pastikan titik pada peta sudah sesuai sebelum memesan.`;
+        ? message(t.gpsLockedHigh, { accuracy: Math.round(accuracy) })
+        : message(t.gpsLocked, { accuracy: Math.round(accuracy) });
       map?.setView([lat, lng], accuracy <= 100 ? 17 : 15);
     };
     gpsWatch = navigator.geolocation.watchPosition(
       ({ coords, timestamp }) => {
         const fix = { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy, timestamp };
         if (!isInsideLombok(fix.lat, fix.lng)) {
-          locationMessage = 'GPS menunjukkan lokasi di luar Pulau Lombok. Gunakan pencarian atau pilih titik pada peta.';
+          locationMessage = t.gpsOutside;
           return;
         }
         if (!isUsableGpsFix(fix, { maxAccuracy: 500 })) return;
         gpsFixes = [...gpsFixes.slice(-5), fix];
         if (!bestGpsFix || fix.accuracy < bestGpsFix.accuracy) bestGpsFix = fix;
         showGpsPreview(bestGpsFix);
-        locationMessage = `Mengunci GPS… akurasi terbaik ±${Math.round(bestGpsFix.accuracy)} m. Menunggu posisi stabil.`;
+        locationMessage = message(t.gpsLocking, { accuracy: Math.round(bestGpsFix.accuracy) });
         if (bestGpsFix.accuracy <= 20 && hasStableGpsFix(gpsFixes)) finish();
       },
       (error) => {
-        if (error.code === error.PERMISSION_DENIED) { stopGps(); locationMessage = 'Akses lokasi ditolak. Izinkan lokasi pada pengaturan browser atau pilih titik pada peta.'; }
-        else if (error.code === error.POSITION_UNAVAILABLE) locationMessage = 'Sinyal GPS belum tersedia. Bergerak ke area terbuka atau pilih titik pada peta.';
+        if (error.code === error.PERMISSION_DENIED) { stopGps(); locationMessage = t.gpsDenied; }
+        else if (error.code === error.POSITION_UNAVAILABLE) locationMessage = t.gpsSignalUnavailable;
       },
       { enableHighAccuracy: true, timeout: 25_000, maximumAge: 0 }
     );
@@ -174,23 +178,23 @@
     const L = await import('leaflet');
     routeLayer.clearLayers(); distance = 0; routeError = ''; routeNotice = '';
     if (from?.accuracy) L.circle([from.lat, from.lng], { radius: from.accuracy, color: '#08778c', fillColor: '#20a9bc', fillOpacity: .1, weight: 1.5 }).addTo(routeLayer);
-    if (from) L.circleMarker([from.lat, from.lng], { radius: 7, color: '#123f35', fillColor: '#f2b84b', fillOpacity: 1, weight: 3 }).bindTooltip('Jemput: ' + from.name).addTo(routeLayer);
-    if (to) L.circleMarker([to.lat, to.lng], { radius: 7, color: '#123f35', fillColor: '#fffaf0', fillOpacity: 1, weight: 3 }).bindTooltip('Tujuan: ' + to.name).addTo(routeLayer);
+    if (from) L.circleMarker([from.lat, from.lng], { radius: 7, color: '#123f35', fillColor: '#f2b84b', fillOpacity: 1, weight: 3 }).bindTooltip(`${t.pickupMarker}: ${from.name}`).addTo(routeLayer);
+    if (to) L.circleMarker([to.lat, to.lng], { radius: 7, color: '#123f35', fillColor: '#fffaf0', fillOpacity: 1, weight: 3 }).bindTooltip(`${t.destinationMarker}: ${to.name}`).addTo(routeLayer);
     if (!routeReady) { routeLoading = false; return; }
     routeLoading = true;
     try {
-      const params = new URLSearchParams({ fromLat: from.lat, fromLng: from.lng, toLat: to.lat, toLng: to.lng });
+      const params = new URLSearchParams({ fromLat: from.lat, fromLng: from.lng, toLat: to.lat, toLng: to.lng, lang: locale });
       if (from.accuracy) params.set('fromAccuracy', from.accuracy);
       const response = await fetch(`/api/route?${params}`);
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'Layanan rute belum dapat diakses.');
-      const roadRoute = readRoadRoute(payload);
+      if (!response.ok) throw new Error(payload.error || t.routeUnavailable);
+      const roadRoute = readRoadRoute(payload, t.routeNotFound);
       if (requestId !== routeRequest) return;
       distance = roadRoute.distanceKm;
-      if (roadRoute.snapDistanceM > 80) routeNotice = `Rute memakai jalan terdekat sekitar ${Math.round(roadRoute.snapDistanceM)} m dari titik pilihan. Periksa kembali titik jemput sebelum memesan.`;
+      if (roadRoute.snapDistanceM > 80) routeNotice = message(t.routeSnapNotice, { distance: Math.round(roadRoute.snapDistanceM) });
       L.polyline(roadRoute.points, { color: '#123f35', weight: 4 }).addTo(routeLayer);
       map.fitBounds(roadRoute.points, { padding: [48, 48] });
-    } catch (error) { if (requestId === routeRequest) routeError = error.message || 'Rute jalan belum dapat dihitung.'; }
+    } catch (error) { if (requestId === routeRequest) routeError = error.message || t.roadRouteUnavailable; }
     finally { if (requestId === routeRequest) routeLoading = false; }
   }
 
@@ -201,21 +205,21 @@
 
   async function submitRequest() {
     formError = ''; submitted = false;
-    if (!routeReady) { formError = 'Pilih lokasi jemput dan tujuan yang berbeda.'; return; }
-    if (routeLoading || routeError || !distance) { formError = 'Tunggu sampai rute jalan dan biayanya berhasil dihitung.'; return; }
-    if (!customerName.trim() || !phone.trim() || !pickupDate || !pickupTime) { formError = 'Lengkapi nama, WhatsApp, tanggal, dan waktu penjemputan.'; return; }
+    if (!routeReady) { formError = t.chooseDifferent; return; }
+    if (routeLoading || routeError || !distance) { formError = t.waitForRoute; return; }
+    if (!customerName.trim() || !phone.trim() || !pickupDate || !pickupTime) { formError = t.completeBooking; return; }
     submitting = true;
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
     try {
-      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: 'Paket Travel', details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price } }) });
+      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       submitted = true;
-      const message = ['Halo Wonderful Lombok, saya ingin memesan Paket Travel.', `Kode: ${result.code}`, '', `Nama: ${customerName.trim()}`, `WhatsApp: ${phone.trim()}`, `Dari: ${origin.name}`, ...(origin.accuracy ? [`Akurasi lokasi jemput: ±${origin.accuracy} m`] : []), `Tujuan: ${destination.name}`, `Tanggal: ${pickupDate}`, `Waktu: ${pickupTime} WITA`, `Penumpang: ${passengers} orang`, `Estimasi jarak: ${distance} km`, `Estimasi biaya: ${rupiah.format(price)}`].join('\n');
-      if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(message, whatsapp);
-      else window.location.href = createWhatsAppUrl(message, whatsapp);
-    } catch (error) { whatsappWindow?.close(); formError = error.message || 'Pemesanan belum dapat disimpan.'; }
+      const whatsappMessage = [t.whatsappGreeting, `${t.codeLabel}: ${result.code}`, '', `${t.nameLabel}: ${customerName.trim()}`, `${t.whatsapp}: ${phone.trim()}`, `${t.from}: ${origin.name}`, ...(origin.accuracy ? [`${t.accuracyLabel}: ±${origin.accuracy} m`] : []), `${t.to}: ${destination.name}`, `${t.date}: ${pickupDate}`, `${t.time}: ${pickupTime} WITA`, `${t.passengers}: ${message(t.peopleValue, { count: passengers })}`, `${t.distanceLabel}: ${distance} km`, `${t.costLabel}: ${rupiah.format(price)}`].join('\n');
+      if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
+      else window.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
+    } catch (error) { whatsappWindow?.close(); formError = error.message || t.bookingSaveFailed; }
     finally { submitting = false; }
   }
 </script>
@@ -224,32 +228,32 @@
   <div class="pickup-fields">
     <div class="location-tools">
       <div class="location-field">
-        <div class="location-search"><label><span>{t.pickup}</span><input bind:value={originQuery} autocomplete="off" placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => { activateMapTarget('origin'); queuePlaceSearch('origin'); }} on:input={() => queuePlaceSearch('origin')} on:keydown={(event) => handleSearchKey(event, 'origin')} /></label>{#if searchTarget === 'origin' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label="Hasil pencarian lokasi jemput">{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>{/each}</div>{/if}</div>
+        <div class="location-search"><label><span>{t.pickup}</span><input bind:value={originQuery} autocomplete="off" placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => { activateMapTarget('origin'); queuePlaceSearch('origin'); }} on:input={() => queuePlaceSearch('origin')} on:keydown={(event) => handleSearchKey(event, 'origin')} /></label>{#if searchTarget === 'origin' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label={t.searchResultsPickup}>{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>{/each}</div>{/if}</div>
         <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
-        <select aria-label={t.pickup} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{t.popular}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <select aria-label={t.pickup} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{t.popular}</option>{#each availablePlaces as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
-      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label="Tukar lokasi jemput dan tujuan">⇅</button>
+      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}>⇅</button>
       <div class="location-field">
-        <div class="location-search"><label><span>{t.destination}</span><input bind:value={destinationQuery} autocomplete="off" placeholder={searchLoading === 'destination' ? t.searching : t.address} on:focus={() => { activateMapTarget('destination'); queuePlaceSearch('destination'); }} on:input={() => queuePlaceSearch('destination')} on:keydown={(event) => handleSearchKey(event, 'destination')} /></label>{#if searchTarget === 'destination' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label="Hasil pencarian tujuan">{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('destination', place)}>{place.name}</button>{/each}</div>{/if}</div>
-        <select aria-label={t.destination} on:change={(event) => choosePreset('destination', event.currentTarget.value)}><option value="">{t.popular}</option>{#each places as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <div class="location-search"><label><span>{t.destination}</span><input bind:value={destinationQuery} autocomplete="off" placeholder={searchLoading === 'destination' ? t.searching : t.address} on:focus={() => { activateMapTarget('destination'); queuePlaceSearch('destination'); }} on:input={() => queuePlaceSearch('destination')} on:keydown={(event) => handleSearchKey(event, 'destination')} /></label>{#if searchTarget === 'destination' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label={t.searchResultsDestination}>{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('destination', place)}>{place.name}</button>{/each}</div>{/if}</div>
+        <select aria-label={t.destination} on:change={(event) => choosePreset('destination', event.currentTarget.value)}><option value="">{t.popular}</option>{#each availablePlaces as place}<option value={place.id}>{place.name}</option>{/each}</select>
       </div>
     </div>
     <p class="helper location-guidance" aria-live="polite">{locationMessage || t.guidance}</p>
     {#if routeNotice}<p class="helper route-notice" role="status">{routeNotice}</p>{/if}
     <div class="map-wrap" class:has-route={routeReady}>
-      <div class="map" bind:this={mapElement} aria-label="Peta interaktif rute penjemputan"></div>
+      <div class="map" bind:this={mapElement} aria-label={t.interactiveMap}></div>
       {#if mapLoading}<div class="map-state" role="status"><span class="spinner"></span>{t.loadingMap}</div>{:else if mapError}<div class="map-state error" role="alert">{mapError}</div>{:else if routeLoading}<div class="map-state" role="status"><span class="spinner"></span>{t.findingRoute}</div>{:else if routeError}<div class="map-state error" role="alert">{routeError}</div>{/if}
     </div>
   </div>
 
   <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
-    <div class="quote-heading"><p>{t.estimate}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? t.calculating : price ? rupiah.format(price) : 'Rp0'}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : `${t.rate}: ${rupiah.format(rate)}`}</span></div>
+    <div class="quote-heading"><p>{t.estimate}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? t.calculating : rupiah.format(price)}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : `${t.rate}: ${rupiah.format(rate)}`}</span></div>
     <div class="route-summary" aria-live="polite"><div><span>{t.from}</span><b>{origin?.name ?? t.notSelected}</b></div><div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div></div>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>
     <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="0812 3456 7890" /></label>
     <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" /></label></div>
     <label><span>{t.passengers}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
-    {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{locale !== 'id' ? 'The travel request has opened in WhatsApp.' : 'Ringkasan Paket Travel sudah dibuka di WhatsApp.'}</p>{/if}
+    {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{t.bookingOpened}</p>{/if}
     <button class="submit" type="submit" disabled={submitting}>{submitting ? t.saving : t.bookTravel}</button>
     <small>{t.estimateNote}</small>
   </form>

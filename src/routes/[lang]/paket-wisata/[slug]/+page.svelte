@@ -3,11 +3,13 @@
   import { onMount } from 'svelte';
   import BookingDialog from '#lib/BookingDialog.svelte';
   import { getCopy, getFormCopy, languages, localePath } from '#lib/i18n.js';
+  import { getSeoCopy, jsonLdScript, plainDescription, tourSchema } from '#lib/seo.js';
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
   $: c = getCopy(data.locale);
   $: formCopy = getFormCopy(data.locale);
+  $: seo = getSeoCopy(data.locale);
   $: item = data.item;
   $: gallery = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
   $: if (!gallery.length) gallery = ['/wonderful-lombok-icon-192.png'];
@@ -16,7 +18,12 @@
   $: if (selectedIndex >= gallery.length) selectedIndex = 0;
   $: selectedImage = gallery[selectedIndex];
   $: home = localePath(data.locale);
-  $: plainDetail = item.detail.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  $: plainDetail = plainDescription(item.detail);
+  $: origin = new URL(data.canonicalUrl).origin;
+  $: homeUrl = `${origin}${localePath(data.locale)}`;
+  $: toursUrl = `${origin}${localePath(data.locale, '/paket-wisata')}`;
+  $: imageUrls = gallery.map((image) => new URL(image, origin).href);
+  $: structuredData = tourSchema({ item, canonicalUrl: data.canonicalUrl, imageUrls, description: plainDetail, homeUrl, homeLabel: c.home, toursUrl, toursLabel: seo.toursBreadcrumb });
   const showImage = (index) => selectedIndex = (index + gallery.length) % gallery.length;
   onMount(() => {
     if (gallery.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -27,12 +34,15 @@
 
 <svelte:head>
   <title>{item.name} | Wonderful Lombok</title><meta name="description" content={plainDetail} />
+  <meta name="robots" content="index,follow,max-image-preview:large" /><meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
   <link rel="canonical" href={data.canonicalUrl} />{#each languages as language}<link rel="alternate" hreflang={language.hreflang} href={data.alternateUrls[language.code]} />{/each}<link rel="alternate" hreflang="x-default" href={data.alternateUrls.id} />
-  <meta property="og:type" content="product" /><meta property="og:title" content={item.name} /><meta property="og:description" content={plainDetail} /><meta property="og:url" content={data.canonicalUrl} /><meta property="og:image" content={data.socialImageUrl} />
+  <meta property="og:type" content="website" /><meta property="og:locale" content={seo.og} /><meta property="og:site_name" content="Wonderful Lombok" /><meta property="og:title" content={item.name} /><meta property="og:description" content={plainDetail} /><meta property="og:url" content={data.canonicalUrl} /><meta property="og:image" content={data.socialImageUrl} /><meta property="og:image:alt" content={`${item.name}, ${seo.imageAlt}`} />
+  <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content={item.name} /><meta name="twitter:description" content={plainDetail} /><meta name="twitter:image" content={data.socialImageUrl} /><meta name="twitter:image:alt" content={`${item.name}, ${seo.imageAlt}`} />
+  {@html jsonLdScript(structuredData)}
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-<header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a><nav><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix={`/paket-wisata/${item.slug}`} /></nav></header>
+<header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a><nav aria-label={c.language}><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix={`/paket-wisata/${item.slug}`} /></nav></header>
 <main class="tour-detail-page">
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`/${data.locale}/paket-wisata`}>{c.tours}</a></nav>
   <section class="tour-hero">

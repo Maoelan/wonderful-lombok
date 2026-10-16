@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, coordinateDistanceMetres, hasStableGpsFix, isInsideLombok, isUsableGpsFix, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
+import { calculatePickupPrice, coordinateDistanceMetres, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
 import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
@@ -38,6 +38,16 @@ test('place search retries joined village names and keeps only Lombok results', 
     { display_name: 'Aikmual, Lombok Tengah', lat: '-8.6621668', lon: '116.2855197' },
     { display_name: 'Denpasar, Bali', lat: '-8.65', lon: '115.22' }
   ]), [{ name: 'Aikmual, Lombok Tengah', lat: -8.6621668, lng: 116.2855197 }]);
+});
+
+test('popular Lombok places follow the active interface language', () => {
+  assert.equal(localizedPlaces('en').find((place) => place.id === 'airport').name, 'Lombok International Airport');
+  assert.equal(localizedPlaces('fr').find((place) => place.id === 'bangsal').name, 'Port de Bangsal');
+  assert.equal(localizedPlaces('id').find((place) => place.id === 'airport').name, 'Bandara Internasional Lombok');
+});
+
+test('road route uses the localized not-found message', () => {
+  assert.throws(() => readRoadRoute({}, 'No road route was found.'), /No road route was found/);
 });
 
 test('WhatsApp link targets the configured business number and encodes its message', () => {

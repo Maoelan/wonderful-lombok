@@ -6,6 +6,21 @@ export const places = [
   { id: 'bangsal', name: 'Pelabuhan Bangsal', detail: 'Pemenang, Lombok Utara', lat: -8.393852, lng: 116.099492 }
 ];
 
+const placeNames = {
+  en: { airport: 'Lombok International Airport', kuta: 'Kuta Mandalika', mataram: 'Mataram City', senggigi: 'Senggigi', bangsal: 'Bangsal Harbour' },
+  'zh-cn': { airport: '龙目国际机场', kuta: '库塔曼达利卡', mataram: '马塔兰市', senggigi: '圣吉吉', bangsal: '邦萨尔港' },
+  'zh-tw': { airport: '龍目國際機場', kuta: '庫塔曼達利卡', mataram: '馬塔蘭市', senggigi: '聖吉吉', bangsal: '邦薩爾港' },
+  nl: { airport: 'Internationale luchthaven Lombok', kuta: 'Kuta Mandalika', mataram: 'Mataram', senggigi: 'Senggigi', bangsal: 'Haven van Bangsal' },
+  fr: { airport: 'Aéroport international de Lombok', kuta: 'Kuta Mandalika', mataram: 'Mataram', senggigi: 'Senggigi', bangsal: 'Port de Bangsal' },
+  de: { airport: 'Internationaler Flughafen Lombok', kuta: 'Kuta Mandalika', mataram: 'Mataram', senggigi: 'Senggigi', bangsal: 'Hafen Bangsal' },
+  ms: { airport: 'Lapangan Terbang Antarabangsa Lombok', kuta: 'Kuta Mandalika', mataram: 'Bandar Mataram', senggigi: 'Senggigi', bangsal: 'Pelabuhan Bangsal' }
+};
+
+export function localizedPlaces(locale) {
+  const names = placeNames[locale];
+  return names ? places.map((place) => ({ ...place, name: names[place.id] || place.name })) : places;
+}
+
 export const lombokBounds = { west: 115.78, south: -9.15, east: 116.82, north: -8.15 };
 const EARTH_RADIUS_METRES = 6_371_000;
 
@@ -61,10 +76,10 @@ export function hasStableGpsFix(fixes, targetAccuracy = 20) {
   return coordinateDistanceMetres(recent[0], recent[1]) <= tolerance;
 }
 
-export function readRoadRoute(payload) {
+export function readRoadRoute(payload, notFoundMessage = 'Rute jalan tidak ditemukan.') {
   const route = payload?.routes?.[0];
   if (!route?.distance || !route.geometry?.coordinates?.length) {
-    throw new Error('Rute jalan tidak ditemukan.');
+    throw new Error(notFoundMessage);
   }
   return {
     distanceKm: Math.ceil(route.distance / 1000),

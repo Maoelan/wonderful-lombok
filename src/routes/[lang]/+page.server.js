@@ -1,10 +1,11 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { getCatalog } from '#lib/server/db.js';
 import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
 import { alternateUrls, isLocale, localePath, localizeCatalog } from '#lib/i18n.js';
 
 export async function load({ params, url }) {
   if (!isLocale(params.lang)) error(404, 'Bahasa tidak tersedia.');
+  if (params.lang === 'id') redirect(308, '/');
   const catalog = await getCatalog();
   const siteOrigin = getSiteOrigin(url.origin);
   const canonicalUrl = `${siteOrigin}${localePath(params.lang)}`;

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
-import { getCopy, getFormCopy, localizeCatalog } from '../src/lib/i18n.js';
+import { getCopy, getFormCopy, localeTag, localizeCatalog, nominatimLanguage } from '../src/lib/i18n.js';
 
 test('Chinese package details contain no Indonesian or English fallback content', () => {
   const catalog = localizeCatalog(defaultCatalog, 'zh-cn');
@@ -23,6 +23,19 @@ test('each supported interface locale has detail-page copy', () => {
     assert.ok(copy.readyTitle);
     assert.ok(copy.customItinerary);
   }
+});
+
+test('map and GPS messages are complete for every supported locale', () => {
+  const required = ['mapLoadError', 'selected', 'searchFailed', 'gpsSearching', 'gpsDenied', 'routeNotFound', 'bookingOpened', 'whatsappGreeting', 'interactiveMap'];
+  for (const locale of ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
+    const copy = getFormCopy(locale);
+    required.forEach((key) => assert.ok(copy[key], `${locale}.${key}`));
+    assert.ok(localeTag(locale));
+    assert.ok(nominatimLanguage(locale));
+  }
+  assert.equal(nominatimLanguage('zh-cn'), 'zh-CN');
+  assert.equal(nominatimLanguage('zh-tw'), 'zh-TW');
+  assert.notEqual(getFormCopy('en').gpsDenied, getFormCopy('id').gpsDenied);
 });
 
 test('every non-English locale localizes dynamic public catalog content', () => {

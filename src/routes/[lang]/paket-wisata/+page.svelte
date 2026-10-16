@@ -2,26 +2,48 @@
   import { imageSrcset, imageUrl } from '../../../lib/image.js';
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
   import { getCopy, languages, localePath } from '#lib/i18n.js';
+  import { breadcrumbSchema, getSeoCopy, jsonLdScript } from '#lib/seo.js';
   import LanguageSelector from '#lib/LanguageSelector.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   export let data;
   $: c = getCopy(data.locale);
+  $: seo = getSeoCopy(data.locale);
   $: home = localePath(data.locale);
+  $: homeUrl = `${new URL(data.canonicalUrl).origin}${localePath(data.locale)}`;
+  $: catalogSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      breadcrumbSchema([{ name: c.home, url: homeUrl }, { name: seo.toursBreadcrumb, url: data.canonicalUrl }]),
+      { '@type': 'ItemList', name: seo.catalogTitle, itemListElement: data.catalog.packages.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, url: `${new URL(data.canonicalUrl).origin}/${data.locale}/paket-wisata/${item.slug}` })) }
+    ]
+  };
   $: message = data.locale === 'id'
     ? 'Halo Wonderful Lombok, saya ingin itinerary khusus di Lombok.'
     : 'Hello Wonderful Lombok, I would like a custom itinerary in Lombok.';
 </script>
 
 <svelte:head>
-  <title>{c.catalogTitle} | Wonderful Lombok</title>
-  <meta name="description" content={c.catalogIntro} />
+  <title>{seo.catalogTitle}</title>
+  <meta name="description" content={seo.catalogDescription} />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
   <link rel="canonical" href={data.canonicalUrl} />
   {#each languages as language}<link rel="alternate" hreflang={language.hreflang} href={data.alternateUrls[language.code]} />{/each}
   <link rel="alternate" hreflang="x-default" href={data.alternateUrls.id} />
-  <meta property="og:title" content={`${c.catalogTitle} | Wonderful Lombok`} />
-  <meta property="og:description" content={c.catalogIntro} />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content={seo.og} />
+  <meta property="og:site_name" content="Wonderful Lombok" />
+  <meta property="og:title" content={seo.catalogTitle} />
+  <meta property="og:description" content={seo.catalogDescription} />
   <meta property="og:image" content={data.socialImageUrl} />
+  <meta property="og:image:alt" content={seo.imageAlt} />
   <meta property="og:url" content={data.canonicalUrl} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={seo.catalogTitle} />
+  <meta name="twitter:description" content={seo.catalogDescription} />
+  <meta name="twitter:image" content={data.socialImageUrl} />
+  <meta name="twitter:image:alt" content={seo.imageAlt} />
+  {@html jsonLdScript(catalogSchema)}
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
