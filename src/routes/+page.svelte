@@ -1,10 +1,9 @@
 <script>
   import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
-  import DetailDialog from '../lib/DetailDialog.svelte';
   import { createWhatsAppUrl } from '../lib/whatsapp.js';
   import { imageSrcset, imageUrl } from '../lib/image.js';
-  import { getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
+  import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
@@ -12,8 +11,6 @@
   export let data;
   let menuOpen = false;
   let booking = null;
-  let detailItem = null;
-  let detailKind = 'destinasi';
   let tourMenu;
   let destinationMenu;
   const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
@@ -45,7 +42,6 @@
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
   }
-  function showDetail(item) { closeMenu(); detailItem = item; }
   function handlePageClick(event) {
     if (event.target instanceof Element && event.target.closest('.nav-dropdown')) return;
     if (tourMenu) tourMenu.open = false;
@@ -106,12 +102,12 @@
         {#each packages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
       </div>
     </details>
-    <a href="#paket-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
+    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
         <a class="nav-dropdown-all" href="#destinasi" on:click={closeMenu}>{c.destinationLabel}</a>
-        {#each destinations as destination}<button type="button" on:click={() => showDetail(destination)}><span>{destination.name}</span><small>{destination.note}</small></button>{/each}
+        {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
       </div>
     </details>
     <div class="nav-language"><LanguageSelector {locale} /></div>
@@ -140,7 +136,7 @@
     <div class="choice-heading"><p class="label">{c.start}</p><h2 id="choice-title">{c.choiceTitle}</h2></div>
     <div class:without-rental={!rentalEnabled} class="choice-list">
       <article><span>01</span><h3>{c.tours}</h3><p>{c.tourChoice}</p><a href="#paket">{c.viewTours}</a></article>
-      <article><span>02</span><h3>{c.travel}</h3><p>{c.travelChoice}</p><a href="#paket-travel">{c.calculate}</a></article>
+      <article><span>02</span><h3>{c.travel}</h3><p>{c.travelChoice}</p><a href={localePath(locale, '/travel-lombok')}>{c.calculate}</a></article>
       {#if rentalEnabled}<article><span>03</span><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
   </section>
@@ -160,7 +156,7 @@
     <div class="section section-heading" use:reveal><div><p class="label">{c.destinationLabel}</p><h2 id="destinations-title">{c.destinationHeading}</h2></div><p>{c.destinationIntro}</p></div>
     <div class="destination-grid section" use:reveal>
       {#each destinations as destination, index}
-        <button class:wide={index === 0} class="destination-card" type="button" on:click={() => showDetail(destination)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt="" loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></button>
+        <a class:wide={index === 0} class="destination-card" href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt={destination.name} loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></a>
       {/each}
     </div>
   </section>
@@ -200,11 +196,10 @@
 
 <footer id="kontak">
   <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
-  <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#paket-travel">{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
+  <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en}</p>
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
-<DetailDialog bind:item={detailItem} kind={detailKind} {locale} />
 <WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
 </div>

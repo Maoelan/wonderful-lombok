@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
-import { getCopy, getFormCopy, localeTag, localizeCatalog, nominatimLanguage } from '../src/lib/i18n.js';
+import { destinationSlug, getCopy, getFormCopy, localeTag, localizeCatalog, nominatimLanguage } from '../src/lib/i18n.js';
 
 test('Chinese package details contain no Indonesian or English fallback content', () => {
   const catalog = localizeCatalog(defaultCatalog, 'zh-cn');
@@ -12,6 +12,12 @@ test('Chinese package details contain no Indonesian or English fallback content'
   assert.equal(tour.priceTiers[0].note, '每辆车总价');
   assert.equal(getCopy('zh-cn').priceHeading, '按人数选择价格');
   assert.equal(getFormCopy('zh-cn').bookNow, '立即预订');
+});
+
+test('destination URLs remain stable across localized catalog copies', () => {
+  const source = { name: 'Kuta Mandalika', slug: 'kuta-mandalika' };
+  assert.equal(destinationSlug(source), 'kuta-mandalika');
+  assert.equal(destinationSlug({ name: 'Tiga Gili' }), 'tiga-gili');
 });
 
 test('each supported interface locale has detail-page copy', () => {

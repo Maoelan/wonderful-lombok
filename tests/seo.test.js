@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { breadcrumbSchema, getSeoCopy, jsonLdScript, plainDescription, tourSchema, travelAgencySchema } from '../src/lib/seo.js';
+import { breadcrumbSchema, destinationSchema, getDestinationSeo, getSeoCopy, getTravelSeo, jsonLdScript, plainDescription, tourSchema, travelAgencySchema, travelServiceSchema } from '../src/lib/seo.js';
 
 test('every supported locale has unique SEO metadata', () => {
   const locales = ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms'];
@@ -14,6 +14,21 @@ test('every supported locale has unique SEO metadata', () => {
     assert.ok(seo.catalogTitle);
     assert.ok(seo.og);
   }
+});
+
+test('travel and destination landing metadata is localized for every language', () => {
+  const locales = ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms'];
+  for (const locale of locales) {
+    const travel = getTravelSeo(locale);
+    assert.match(travel.title, /Wonderful Lombok/);
+    assert.ok(travel.description.length >= (locale.startsWith('zh-') ? 35 : 80));
+    assert.equal(travel.coverage.length, 4);
+    const destination = getDestinationSeo(locale, { name: 'Sembalun', detail: 'Mountain views in East Lombok.', note: 'Rinjani landscape' });
+    assert.match(destination.title, /Sembalun/);
+    assert.ok(destination.description);
+  }
+  assert.match(getTravelSeo('zh-CN').title, /龙目岛/);
+  assert.match(getDestinationSeo('zh-TW', { name: 'Sembalun', detail: '山景', note: '林贾尼' }).title, /龍目島/);
 });
 
 test('SEO helpers produce safe descriptions and structured data', () => {
@@ -35,4 +50,10 @@ test('SEO helpers produce safe descriptions and structured data', () => {
     imageUrls: ['https://example.com/tour.jpg'], description: 'A private tour', homeUrl: 'https://example.com/en', homeLabel: 'Home', toursUrl: 'https://example.com/en/tours', toursLabel: 'Tours'
   });
   assert.equal(tour['@graph'][1].offers.price, 1250000);
+
+  const service = travelServiceSchema({ canonicalUrl: 'https://example.com/en/travel', homeUrl: 'https://example.com/en', homeLabel: 'Home', serviceLabel: 'Lombok transfers', description: 'Private transfers', imageUrl: 'https://example.com/transfer.jpg' });
+  assert.equal(service['@graph'][1]['@type'], 'Service');
+
+  const destination = destinationSchema({ item: { name: 'Sembalun' }, canonicalUrl: 'https://example.com/en/destination/sembalun', homeUrl: 'https://example.com/en', homeLabel: 'Home', destinationsLabel: 'Sembalun', imageUrls: ['https://example.com/sembalun.jpg'], description: 'A mountain destination' });
+  assert.equal(destination['@graph'][1]['@type'], 'TouristDestination');
 });

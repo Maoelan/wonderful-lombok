@@ -114,7 +114,7 @@
   }
 
   function addDestination() {
-    catalog.destinations = [...catalog.destinations, { name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
+    catalog.destinations = [...catalog.destinations, { slug: `destinasi-${catalog.destinations.length + 1}`, name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
     catalog = { ...catalog };
     markDirty();
   }

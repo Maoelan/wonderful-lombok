@@ -6,7 +6,7 @@ Search visibility is a long-term outcome, not a guaranteed ranking position. The
 
 - Choose one permanent HTTPS hostname, either the apex domain or `www`, and redirect the other hostname to it.
 - Set `PUBLIC_SITE_URL` in production to the final canonical origin, without a trailing slash.
-- Configure a permanent redirect from the current Vercel preview hostname to the final domain after approval.
+- Redeploy after changing `PUBLIC_SITE_URL`. The application will then generate final-domain canonical URLs, `hreflang`, sitemap entries, structured data, and permanent public-page host redirects automatically.
 - Confirm that every public page returns the expected canonical URL, localized `hreflang` links, and an indexable robots directive.
 - Confirm that `/robots.txt` references the final-domain sitemap and that `/sitemap.xml` contains only canonical public URLs.
 - Keep `/admin`, `/login`, and `/api/` excluded from indexing.
@@ -14,6 +14,7 @@ Search visibility is a long-term outcome, not a guaranteed ranking position. The
 ## Search-engine accounts
 
 - Verify the final domain in Google Search Console using a DNS record owned by the client.
+- If HTML-tag verification is used, store only the token value in `GOOGLE_SITE_VERIFICATION`; use `BING_SITE_VERIFICATION` for Bing. The application renders both tags automatically.
 - Submit `https://FINAL-DOMAIN/sitemap.xml` in Google Search Console.
 - Verify the final domain in Bing Webmaster Tools and submit the same sitemap.
 - Inspect the homepage, tour catalog, and at least one package URL in Search Console after deployment.

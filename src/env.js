@@ -13,5 +13,13 @@ export const variables = defineEnvVars({
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error('PUBLIC_SITE_URL must use http or https');
       return url.origin;
     }
+  },
+  GOOGLE_SITE_VERIFICATION: {
+    description: 'Optional Google Search Console HTML-tag verification token.',
+    schema: (value) => value?.trim() || undefined
+  },
+  BING_SITE_VERIFICATION: {
+    description: 'Optional Bing Webmaster Tools HTML-tag verification token.',
+    schema: (value) => value?.trim() || undefined
   }
 });

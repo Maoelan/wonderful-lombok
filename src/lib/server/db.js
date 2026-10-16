@@ -2,7 +2,7 @@ import { PUBLIC_CONVEX_URL } from '$app/env/public';
 import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 import { defaultCatalog } from '../catalog.js';
-import { slugify } from '../i18n.js';
+import { destinationSlug, slugify } from '../i18n.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
 
 const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
@@ -32,7 +32,7 @@ export async function getCatalog() {
       excludesEn: item.excludesEn?.length ? item.excludesEn : defaultCatalog.packages[index]?.excludesEn || [],
       priceTiers: item.priceTiers?.length ? item.priceTiers : defaultCatalog.packages[index]?.priceTiers || []
     })),
-    destinations: (data.destinations || defaultCatalog.destinations).map((item, index) => ({ ...(defaultCatalog.destinations[index] || {}), images: [], ...item })),
+    destinations: (data.destinations || defaultCatalog.destinations).map((item, index) => ({ ...(defaultCatalog.destinations[index] || {}), images: [], ...item, slug: destinationSlug(item) })),
     rentals: (data.rentals || defaultCatalog.rentals).map((item, index) => ({ ...(defaultCatalog.rentals[index] || {}), ...item })),
     faqs: (data.faqs || defaultCatalog.faqs).map((item, index) => ({ ...(defaultCatalog.faqs[index] || {}), ...item }))
   });

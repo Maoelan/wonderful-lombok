@@ -1,13 +1,13 @@
 import { getSiteOrigin } from '#lib/server/site-url.js';
 import { getCatalog } from '#lib/server/db.js';
-import { languages, localePath } from '#lib/i18n.js';
+import { destinationSlug, languages, localePath } from '#lib/i18n.js';
 
 const escapeXml = (value) => value.replace(/[<>&'\"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[character]);
 
 export async function GET({ url }) {
   const origin = getSiteOrigin(url.origin);
   const catalog = await getCatalog();
-  const groups = ['', '/paket-wisata', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`)];
+  const groups = ['', '/paket-wisata', '/travel-lombok', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`), ...catalog.destinations.map((item) => `/destinasi/${destinationSlug(item)}`)];
   const entries = groups.flatMap((suffix, groupIndex) => {
     const alternates = languages.map((language) => `    <xhtml:link rel="alternate" hreflang="${escapeXml(language.hreflang)}" href="${escapeXml(`${origin}${localePath(language.code, suffix)}`)}" />`).join('\n');
     const fallback = `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(`${origin}${localePath('id', suffix)}`)}" />`;

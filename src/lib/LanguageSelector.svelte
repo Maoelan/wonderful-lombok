@@ -1,13 +1,14 @@
 <script>
-  import { languages, localePath } from './i18n.js';
+  import { getCopy, languages, localePath } from './i18n.js';
   export let locale = 'id';
   export let suffix = '';
   export let prominent = false;
   $: current = languages.find((language) => language.code === locale) || languages.find((language) => language.code === 'id');
+  $: copy = getCopy(locale);
 </script>
 
 <details class:prominent class="language-picker">
-  <summary aria-label={`Pilih bahasa. Saat ini ${current.name}`}>
+  <summary aria-label={`${copy.language}: ${current.name}`}>
     <img src={`/flags/${current.flag}.png`} alt="" />
     <span>{current.name}</span>
   </summary>

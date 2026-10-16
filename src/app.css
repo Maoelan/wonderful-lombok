@@ -503,7 +503,7 @@ h1 {
   border-radius: var(--radius-md);
 }
 
-.destination-card { border: 0; cursor: pointer; font: inherit; text-align: left; transition: filter .22s ease, transform .22s ease; }
+.destination-card { border: 0; cursor: pointer; font: inherit; text-align: left; text-decoration: none; transition: filter .22s ease, transform .22s ease; }
 .destination-card:hover, .destination-card:focus-visible { filter: brightness(1.08); transform: translateY(-3px); }
 .destination-card::after { position: absolute; z-index: 1; inset: 0; background: var(--destination-gradient); content: ''; pointer-events: none; }
 .destination-card > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -1842,15 +1842,15 @@ footer {
 .catalog-page, .tour-detail-page { width: min(1240px, calc(100% - 56px)); margin: 0 auto; padding: 74px 0 100px; }
 .catalog-intro { max-width: 760px; margin-bottom: 58px; }
 .catalog-intro h1, .tour-summary h1 { margin-bottom: 22px; font-size: clamp(48px, 7vw, 82px); line-height: 1; }
-.catalog-intro > p:last-child, .tour-summary > p { color: var(--muted); font-size: 17px; line-height: 1.75; }
+.catalog-intro > p:not(.label), .tour-summary > p { color: var(--muted); font-size: 17px; line-height: 1.75; }
 .tour-catalog { display: grid; gap: 22px; }
 .tour-listing { display: grid; grid-template-columns: minmax(300px, .9fr) 1.1fr; min-height: 390px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--paper); }
 .tour-listing-image { min-height: 390px; overflow: hidden; }
 .tour-listing-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .tour-listing-image:hover img { transform: scale(1.025); }
 .tour-listing-body { display: flex; flex-direction: column; align-items: flex-start; padding: 42px; }
-.tour-listing-body h2 { margin: 18px 0 14px; font-size: 42px; }
-.tour-listing-body h2 a { text-decoration: none; }
+.tour-listing-body h2, .tour-listing-body h3 { margin: 18px 0 14px; font-size: 42px; }
+.tour-listing-body h2 a, .tour-listing-body h3 a { text-decoration: none; }
 .tour-listing-body p { margin: 0 0 24px; color: var(--muted); line-height: 1.7; }
 .tour-listing-body > strong { margin-top: auto; font-family: var(--font-display); font-size: 25px; }
 .tour-listing-body strong small { color: var(--muted); font-family: var(--font-body); font-size: 12px; font-weight: 400; }
@@ -1899,6 +1899,12 @@ footer {
 .price-row span { color: #b9cac4; }
 .detail-cta { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding-top: 76px; }
 .detail-cta h2 { margin: 0; }
+.service-information { padding-top: 32px; }
+.service-list { margin: 34px 0 0; padding: 0; border-top: 1px solid var(--line); list-style: none; }
+.service-list li { padding: 18px 0; border-bottom: 1px solid var(--line); color: var(--muted); line-height: 1.5; }
+.service-list li::before { margin-right: 12px; color: var(--accent-strong); content: '✓'; font-weight: 800; }
+.tour-inclusions p { color: var(--muted); line-height: 1.7; }
+.destination-related { padding-top: 92px; }
 .admin-translation { padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft); }
 .admin-translation summary { min-height: 42px; cursor: pointer; color: var(--forest); font-weight: 800; line-height: 42px; }
 .admin-translation[open] summary { margin-bottom: 18px; }
@@ -1923,7 +1929,7 @@ footer {
   .tour-listing, .tour-hero, .tour-content { grid-template-columns: 1fr; }
   .tour-listing-image { min-height: 250px; }
   .tour-listing-body, .tour-summary { padding: 28px 22px; }
-  .tour-listing-body h2 { font-size: 34px; }
+  .tour-listing-body h2, .tour-listing-body h3 { font-size: 34px; }
   .catalog-help, .detail-cta { align-items: flex-start; flex-direction: column; padding: 30px 22px; }
   .tour-main-image { width: 100%; height: auto; aspect-ratio: 4 / 3; }
   .tour-thumbnails button { flex-basis: 72px; height: 54px; }

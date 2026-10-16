@@ -1,3 +1,5 @@
+import { slugify } from '../i18n.js';
+
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
 const stringList = (value, maxItems = 30) => Array.isArray(value) && value.length <= maxItems && value.every((item) => text(item, 1, 500));
@@ -39,7 +41,13 @@ export function validateCatalog(catalog) {
   });
   if (!packagesValid) return 'Data Paket Wisata tidak valid.';
 
-  const destinationsValid = catalog.destinations.every((item) => text(item?.name, 2, 100) && text(item.note, 2, 300) && text(item.detail, 2, 2000) && optionalText(item.nameEn, 100) && optionalText(item.noteEn, 300) && optionalText(item.detailEn, 2000) && validImage(item.image) && validGallery(item.images || []));
+  const destinationSlugs = new Set();
+  const destinationsValid = catalog.destinations.every((item) => {
+    const slug = item?.slug || slugify(item?.name);
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || destinationSlugs.has(slug)) return false;
+    destinationSlugs.add(slug);
+    return text(item?.name, 2, 100) && text(item.note, 2, 300) && text(item.detail, 2, 2000) && optionalText(item.nameEn, 100) && optionalText(item.noteEn, 300) && optionalText(item.detailEn, 2000) && validImage(item.image) && validGallery(item.images || []);
+  });
   if (!destinationsValid) return 'Data destinasi tidak valid.';
 
   const rentalsValid = catalog.rentals.every((item) => text(item?.symbol, 1, 10) && text(item.name, 2, 100) && text(item.detail, 2, 500) && text(item.price, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.detailEn, 500) && optionalText(item.priceEn, 100));

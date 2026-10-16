@@ -23,6 +23,8 @@ export function slugify(value) {
   return String(value || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'paket';
 }
 
+export const destinationSlug = (item) => item?.slug || slugify(item?.name).replace(/^paket$/, 'destinasi');
+
 const localized = (item, field, locale) => locale !== 'id' && item?.[`${field}En`] ? item[`${field}En`] : item?.[field];
 
 const localizedSettings = {

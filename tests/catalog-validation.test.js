@@ -33,3 +33,10 @@ test('catalog rejects oversized editable content', () => {
   catalog.settings.heroTitle = 'x'.repeat(1001);
   assert.equal(validateCatalog(catalog), 'Informasi website tidak valid.');
 });
+
+test('catalog rejects duplicate destination URLs', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.destinations[0].slug = 'same-destination';
+  catalog.destinations[1].slug = 'same-destination';
+  assert.equal(validateCatalog(catalog), 'Data destinasi tidak valid.');
+});

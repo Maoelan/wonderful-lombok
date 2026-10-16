@@ -77,6 +77,8 @@ npx convex deploy
 
 Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Then deploy the SvelteKit application to Vercel.
 
+Set `PUBLIC_SITE_URL` to the final HTTPS domain before the public launch. Canonical URLs, language alternates, the sitemap, robots file, structured data, and production host redirects will then use that domain automatically. Add the optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` values after creating the client-owned webmaster accounts; no source-code change is required.
+
 Do not commit admin credentials, environment files, deploy keys, customer records, database exports, or backups. Rotate a credential immediately if it is ever exposed.
 
 ## Security notes

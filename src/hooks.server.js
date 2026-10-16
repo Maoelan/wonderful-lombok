@@ -3,6 +3,12 @@ import { languages } from '#lib/i18n.js';
 import { PUBLIC_SITE_URL } from '$app/env/private';
 
 export async function handle({ event, resolve }) {
+  const production = process.env.NODE_ENV === 'production';
+  if (production && PUBLIC_SITE_URL && ['GET', 'HEAD'].includes(event.request.method) && !event.url.pathname.startsWith('/api/') && !event.url.pathname.startsWith('/.well-known/') && event.url.origin !== PUBLIC_SITE_URL) {
+    const canonicalUrl = new URL(`${event.url.pathname}${event.url.search}`, PUBLIC_SITE_URL);
+    return new Response(null, { status: 308, headers: { location: canonicalUrl.href } });
+  }
+
   if (!['GET', 'HEAD', 'OPTIONS'].includes(event.request.method)) {
     const origin = event.request.headers.get('origin');
     const allowedOrigins = new Set([event.url.origin]);
@@ -16,7 +22,6 @@ export async function handle({ event, resolve }) {
   let response = await resolve(event, {
     transformPageChunk: ({ html }) => html.replace('<html lang="id">', `<html lang="${pageLanguage}">`)
   });
-  const production = process.env.NODE_ENV === 'production';
   response.headers.set('x-content-type-options', 'nosniff');
   response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
   response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=(self)');
