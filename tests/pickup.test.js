@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, coordinateDistanceMetres, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
+import { calculatePickupPrice, coordinateDistanceMetres, formatPlaceSearchName, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
 import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
@@ -35,9 +35,36 @@ test('location bounds accept Lombok and reject other islands', () => {
 test('place search retries joined village names and keeps only Lombok results', () => {
   assert.deepEqual(placeSearchQueries('  Aik   Mual  '), ['Aik Mual', 'AikMual']);
   assert.deepEqual(readPlaceSearchResults([
-    { display_name: 'Aikmual, Lombok Tengah', lat: '-8.6621668', lon: '116.2855197' },
+    { display_name: 'Aikmual, Lombok Tengah', address: { village: 'Aikmual', county: 'Lombok Tengah', state: 'Nusa Tenggara Barat', country: 'Indonesia' }, lat: '-8.6621668', lon: '116.2855197' },
     { display_name: 'Denpasar, Bali', lat: '-8.65', lon: '115.22' }
-  ]), [{ name: 'Aikmual, Lombok Tengah', lat: -8.6621668, lng: 116.2855197 }]);
+  ], 'en'), [{ name: 'Aikmual, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.6621668, lng: 116.2855197 }]);
+});
+
+test('search address administrative terms follow the active language', () => {
+  const mataram = {
+    addresstype: 'city', namedetails: { name: 'Mataram', 'name:zh': '马塔兰' },
+    address: { city: 'Mataram', county: 'Kec. Selaparang', state: 'West Nusa Tenggara', country: 'Indonesia' }
+  };
+  const masMas = {
+    addresstype: 'village', namedetails: { name: 'Mas-Mas' },
+    address: { village: 'Mas-Mas', county: 'Lombok Tengah', state: 'West Nusa Tenggara', postcode: '83553', country: 'Indonesia' }
+  };
+  assert.equal(formatPlaceSearchName(mataram, 'en'), 'Mataram, Selaparang District, West Nusa Tenggara, Indonesia');
+  assert.equal(formatPlaceSearchName(mataram, 'zh-cn'), '马塔兰, Selaparang区, 西努沙登加拉省, 印度尼西亚');
+  assert.equal(formatPlaceSearchName(mataram, 'zh-tw'), 'Mataram, Selaparang區, 西努沙登加拉省, 印度尼西亞');
+  const expectedMasMas = {
+    id: 'Mas-Mas, Kabupaten Lombok Tengah, Nusa Tenggara Barat, 83553, Indonesia',
+    en: 'Mas-Mas, Central Lombok Regency, West Nusa Tenggara, 83553, Indonesia',
+    'zh-cn': 'Mas-Mas, 中龙目县, 西努沙登加拉省, 83553, 印度尼西亚',
+    'zh-tw': 'Mas-Mas, 中龍目縣, 西努沙登加拉省, 83553, 印度尼西亞',
+    nl: 'Mas-Mas, regentschap Centraal-Lombok, West-Nusa Tenggara, 83553, Indonesië',
+    fr: 'Mas-Mas, régence de Lombok central, Petites îles de la Sonde occidentales, 83553, Indonésie',
+    de: 'Mas-Mas, Regierungsbezirk Zentral-Lombok, West-Nusa Tenggara, 83553, Indonesien',
+    ms: 'Mas-Mas, Daerah Lombok Tengah, Nusa Tenggara Barat, 83553, Indonesia'
+  };
+  for (const [locale, expected] of Object.entries(expectedMasMas)) {
+    assert.equal(formatPlaceSearchName(masMas, locale), expected);
+  }
 });
 
 test('popular Lombok places follow the active interface language', () => {

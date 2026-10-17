@@ -24,6 +24,103 @@ export function localizedPlaces(locale) {
 export const lombokBounds = { west: 115.78, south: -9.15, east: 116.82, north: -8.15 };
 const EARTH_RADIUS_METRES = 6_371_000;
 
+const addressTerms = {
+  id: {
+    regions: { west: 'Kabupaten Lombok Barat', central: 'Kabupaten Lombok Tengah', east: 'Kabupaten Lombok Timur', north: 'Kabupaten Lombok Utara', mataram: 'Kota Mataram' },
+    state: 'Nusa Tenggara Barat', country: 'Indonesia', district: (name) => `Kecamatan ${name}`
+  },
+  en: {
+    regions: { west: 'West Lombok Regency', central: 'Central Lombok Regency', east: 'East Lombok Regency', north: 'North Lombok Regency', mataram: 'Mataram City' },
+    state: 'West Nusa Tenggara', country: 'Indonesia', district: (name) => `${name} District`
+  },
+  'zh-cn': {
+    regions: { west: '西龙目县', central: '中龙目县', east: '东龙目县', north: '北龙目县', mataram: '马塔兰市' },
+    state: '西努沙登加拉省', country: '印度尼西亚', district: (name) => `${name}区`
+  },
+  'zh-tw': {
+    regions: { west: '西龍目縣', central: '中龍目縣', east: '東龍目縣', north: '北龍目縣', mataram: '馬塔蘭市' },
+    state: '西努沙登加拉省', country: '印度尼西亞', district: (name) => `${name}區`
+  },
+  nl: {
+    regions: { west: 'regentschap West-Lombok', central: 'regentschap Centraal-Lombok', east: 'regentschap Oost-Lombok', north: 'regentschap Noord-Lombok', mataram: 'Mataram' },
+    state: 'West-Nusa Tenggara', country: 'Indonesië', district: (name) => `district ${name}`
+  },
+  fr: {
+    regions: { west: 'régence de Lombok occidental', central: 'régence de Lombok central', east: 'régence de Lombok oriental', north: 'régence de Lombok du Nord', mataram: 'Mataram' },
+    state: 'Petites îles de la Sonde occidentales', country: 'Indonésie', district: (name) => `district de ${name}`
+  },
+  de: {
+    regions: { west: 'Regierungsbezirk West-Lombok', central: 'Regierungsbezirk Zentral-Lombok', east: 'Regierungsbezirk Ost-Lombok', north: 'Regierungsbezirk Nord-Lombok', mataram: 'Mataram' },
+    state: 'West-Nusa Tenggara', country: 'Indonesien', district: (name) => `Distrikt ${name}`
+  },
+  ms: {
+    regions: { west: 'Daerah Lombok Barat', central: 'Daerah Lombok Tengah', east: 'Daerah Lombok Timur', north: 'Daerah Lombok Utara', mataram: 'Bandar Mataram' },
+    state: 'Nusa Tenggara Barat', country: 'Indonesia', district: (name) => `Daerah ${name}`
+  }
+};
+
+const normalizeAddressTerm = (value) => String(value || '').trim().toLocaleLowerCase('en').replace(/^kabupaten\s+/, '');
+
+function localizeAddressPart(value, locale) {
+  const text = String(value || '').trim();
+  const terms = addressTerms[locale] || addressTerms.en;
+  const normalized = normalizeAddressTerm(text);
+  const regions = {
+    'lombok barat': 'west', 'west lombok': 'west',
+    'lombok tengah': 'central', 'central lombok': 'central',
+    'lombok timur': 'east', 'east lombok': 'east',
+    'lombok utara': 'north', 'north lombok': 'north',
+    'kota mataram': 'mataram', 'mataram city': 'mataram'
+  };
+  const district = text.match(/^(?:kec\.?|kecamatan|district)\s+(.+)$/i);
+  if (district) return terms.district(district[1].trim());
+  if (regions[normalized]) return terms.regions[regions[normalized]];
+  if (['nusa tenggara barat', 'west nusa tenggara', 'west-nusa tenggara'].includes(normalized)) return terms.state;
+  if (['indonesia', 'indonesië', 'indonésie', 'indonesien', '印度尼西亚', '印度尼西亞'].includes(normalized)) return terms.country;
+  return text;
+}
+
+function placeName(item, locale) {
+  const languageKeys = locale === 'zh-cn'
+    ? ['name:zh-Hans', 'name:zh-CN', 'name:zh']
+    : locale === 'zh-tw'
+      ? ['name:zh-Hant', 'name:zh-TW']
+      : [`name:${locale}`];
+  const localized = languageKeys.map((key) => item?.namedetails?.[key]).find(Boolean);
+  if (localized) return String(localized).trim();
+  const address = item?.address || {};
+  return String(item?.namedetails?.name || address[item?.addresstype] || item?.name || item?.display_name?.split(',')[0] || '').trim();
+}
+
+export function formatPlaceSearchName(item, locale = 'id') {
+  const address = item?.address || {};
+  const addressPart = (key) => item?.addresstype === key ? '' : address[key];
+  const parts = [
+    placeName(item, locale),
+    addressPart('road'),
+    addressPart('neighbourhood'),
+    addressPart('quarter'),
+    addressPart('suburb'),
+    addressPart('hamlet'),
+    addressPart('village'),
+    addressPart('town'),
+    addressPart('city'),
+    addressPart('city_district'),
+    addressPart('municipality'),
+    addressPart('county'),
+    addressPart('state'),
+    address.postcode,
+    address.country
+  ].map((part) => localizeAddressPart(part, locale)).filter(Boolean);
+  const seen = new Set();
+  return parts.filter((part) => {
+    const key = part.toLocaleLowerCase('en');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).join(', ');
+}
+
 export function placeSearchQueries(value) {
   const query = String(value || '').trim().replace(/\s+/g, ' ');
   if (!query) return [];
@@ -31,10 +128,10 @@ export function placeSearchQueries(value) {
   return compact === query ? [query] : [query, compact];
 }
 
-export function readPlaceSearchResults(payload) {
+export function readPlaceSearchResults(payload, locale = 'id') {
   const seen = new Set();
   return (Array.isArray(payload) ? payload : []).flat().map((item) => ({
-    name: String(item?.display_name || '').trim(),
+    name: formatPlaceSearchName(item, locale),
     lat: Number(item?.lat),
     lng: Number(item?.lon)
   })).filter((item) => {

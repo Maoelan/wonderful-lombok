@@ -19,7 +19,7 @@ export async function GET({ url, getClientAddress }) {
     const params = new URLSearchParams({ format: 'jsonv2', limit: '8', countrycodes: 'id', bounded: '1', addressdetails: '1', namedetails: '1', 'accept-language': language, viewbox, q: candidate });
     const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, { headers: { accept: 'application/json', 'accept-language': language, 'user-agent': 'WonderfulLombok/1.0' } });
     if (!response.ok) continue;
-    results = readPlaceSearchResults(await response.json());
+    results = readPlaceSearchResults(await response.json(), locale);
     if (results.length) break;
   }
 
