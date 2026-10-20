@@ -3,6 +3,8 @@
   import { onDestroy, onMount } from 'svelte';
   import { calculatePickupPrice, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, readRoadRoute } from './pickup.js';
   import { createWhatsAppUrl } from './whatsapp.js';
+  import { createIdempotencyKey } from './idempotency.js';
+  import { todayInWita } from './date.js';
   import { getFormCopy, localeTag } from './i18n.js';
 
   let mapElement, map, routeLayer, gpsPreviewLayer, leaflet;
@@ -14,14 +16,14 @@
   let searchTimer = null, searchController = null;
   let gpsLoading = false, gpsWatch = null, gpsTimer = null, bestGpsFix = null, gpsFixes = [];
   let customerName = '', phone = '', pickupDate = '', pickupTime = '', passengers = 1;
-  let formError = '', submitted = false, submitting = false;
+  let formError = '', submitted = false, submitting = false, idempotencyKey = '', lastBookingFingerprint = '', website = '';
 
   export let rate = 10_000;
   export let whatsapp = '6281916550731';
   export let locale = 'id';
   $: t = getFormCopy(locale);
   $: availablePlaces = localizedPlaces(locale);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInWita();
   $: rupiah = new Intl.NumberFormat(localeTag(locale), { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
   $: price = calculatePickupPrice(distance, rate);
@@ -212,10 +214,13 @@
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
     try {
-      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
+      const fingerprint = JSON.stringify({ customerName: customerName.trim(), phone: phone.trim(), pickupDate, pickupTime, passengers: Number(passengers), origin, destination, distance, price });
+      if (fingerprint !== lastBookingFingerprint) { lastBookingFingerprint = fingerprint; idempotencyKey = createIdempotencyKey(); }
+      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': idempotencyKey }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, website, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       submitted = true;
+      website = '';
       const whatsappMessage = [t.whatsappGreeting, `${t.codeLabel}: ${result.code}`, '', `${t.nameLabel}: ${customerName.trim()}`, `${t.whatsapp}: ${phone.trim()}`, `${t.from}: ${origin.name}`, ...(origin.accuracy ? [`${t.accuracyLabel}: ±${origin.accuracy} m`] : []), `${t.to}: ${destination.name}`, `${t.date}: ${pickupDate}`, `${t.time}: ${pickupTime} WITA`, `${t.passengers}: ${message(t.peopleValue, { count: passengers })}`, `${t.distanceLabel}: ${distance} km`, `${t.costLabel}: ${rupiah.format(price)}`].join('\n');
       if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
       else window.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
@@ -229,8 +234,8 @@
     <div class="location-tools">
       <div class="location-field">
         <div class="location-search"><label><span>{t.pickup}</span><input bind:value={originQuery} autocomplete="off" placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => { activateMapTarget('origin'); queuePlaceSearch('origin'); }} on:input={() => queuePlaceSearch('origin')} on:keydown={(event) => handleSearchKey(event, 'origin')} /></label>{#if searchTarget === 'origin' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label={t.searchResultsPickup}>{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>{/each}</div>{/if}</div>
-        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
         <select aria-label={t.pickup} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{t.popular}</option>{#each availablePlaces as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
       </div>
       <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}>⇅</button>
       <div class="location-field">
@@ -247,6 +252,7 @@
   </div>
 
   <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
+    <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
     <div class="quote-heading"><p>{t.estimate}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? t.calculating : rupiah.format(price)}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : `${t.rate}: ${rupiah.format(rate)}`}</span></div>
     <div class="route-summary" aria-live="polite"><div><span>{t.from}</span><b>{origin?.name ?? t.notSelected}</b></div><div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div></div>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>

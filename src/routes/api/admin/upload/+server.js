@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { rateLimit } from '#lib/server/rate-limit.js';
+import { consumeRateLimit } from '#lib/server/rate-limit.js';
+import { tooManyRequests } from '#lib/server/http.js';
 import { convexMutation } from '#lib/server/db.js';
 
 const formats = [
@@ -10,7 +11,8 @@ const formats = [
 
 export async function POST({ locals, request }) {
   if (!locals.user) return json({ error: 'Sesi admin tidak valid.' }, { status: 401 });
-  if (!rateLimit(`upload:${locals.user.id}`, 30, 60 * 60_000)) return json({ error: 'Batas upload tercapai. Coba lagi nanti.' }, { status: 429 });
+  const limit = consumeRateLimit(`upload:${locals.user.id}`, 30, 60 * 60_000);
+  if (!limit.allowed) return tooManyRequests('Batas upload tercapai. Coba lagi nanti.', limit);
   const contentLength = Number(request.headers.get('content-length') || 0);
   if (contentLength > 5_500_000) return json({ error: 'Ukuran gambar maksimal 5 MB.' }, { status: 413 });
 

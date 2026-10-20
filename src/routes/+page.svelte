@@ -1,7 +1,7 @@
 <script>
   import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
-  import { createWhatsAppUrl } from '../lib/whatsapp.js';
+  import { createWhatsAppUrl, formatWhatsAppNumber } from '../lib/whatsapp.js';
   import { imageSrcset, imageUrl } from '../lib/image.js';
   import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
@@ -19,7 +19,7 @@
   $: formCopy = getFormCopy(locale);
   $: localeHome = localePath(locale);
   $: packages = data.catalog.packages;
-  $: transport = data.catalog.rentals;
+  $: transport = data.catalog.rentals || [];
   $: travelRate = data.catalog.travelRate;
   $: settings = data.catalog.settings;
   $: rentalEnabled = data.rentalEnabled === true;
@@ -147,7 +147,7 @@
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt={item.name} loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div></div></article>
+        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div></div></article>
       {/each}
     </div>
   </section>
@@ -156,7 +156,7 @@
     <div class="section section-heading" use:reveal><div><p class="label">{c.destinationLabel}</p><h2 id="destinations-title">{c.destinationHeading}</h2></div><p>{c.destinationIntro}</p></div>
     <div class="destination-grid section" use:reveal>
       {#each destinations as destination, index}
-        <a class:wide={index === 0} class="destination-card" href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt={destination.name} loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></a>
+        <a class:wide={index === 0} class="destination-card" href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt="" loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></a>
       {/each}
     </div>
   </section>
@@ -168,7 +168,7 @@
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap"><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} /></div>
+      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} /></div>
     </div>
   </section>
 
@@ -194,10 +194,10 @@
   </section>
 </main>
 
-<footer id="kontak">
+<footer id="kontak" data-whatsapp-float-avoid>
   <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
-  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {settings.whatsapp}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
+  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en}</p>
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />

@@ -1,14 +1,13 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { requireServerSecret, serverSecret } from './serverAuth';
+import { createIdempotentBooking } from './bookingStore';
 
 export const create = mutation({
-  args: { ...serverSecret, data: v.any() },
-  handler: async (ctx, { serverSecret, data }) => {
+  args: { ...serverSecret, idempotencyKey: v.string(), data: v.any() },
+  handler: async (ctx, { serverSecret, idempotencyKey, data }) => {
     requireServerSecret(serverSecret);
-    const code = `WL-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
-    await ctx.db.insert('bookings', { ...data, code, status: 'baru', createdAt: Date.now(), updatedAt: Date.now() });
-    return code;
+    return await createIdempotentBooking(ctx, { idempotencyKey, data });
   }
 });
 

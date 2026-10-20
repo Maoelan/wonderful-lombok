@@ -173,6 +173,15 @@ export function hasStableGpsFix(fixes, targetAccuracy = 20) {
   return coordinateDistanceMetres(recent[0], recent[1]) <= tolerance;
 }
 
+export function roadRouteUrl({ from, to, fromAccuracy }) {
+  const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+  const reportedAccuracy = Number.isFinite(fromAccuracy) && fromAccuracy > 0 ? fromAccuracy : 50;
+  const originRadius = clamp(Math.max(Math.ceil(reportedAccuracy * 3), 150), 150, 600);
+  const coordinates = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+  const params = new URLSearchParams({ overview: 'simplified', geometries: 'geojson', radiuses: `${originRadius};600` });
+  return `https://router.project-osrm.org/route/v1/driving/${coordinates}?${params}`;
+}
+
 export function readRoadRoute(payload, notFoundMessage = 'Rute jalan tidak ditemukan.') {
   const route = payload?.routes?.[0];
   if (!route?.distance || !route.geometry?.coordinates?.length) {

@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 import { defaultCatalog } from '../catalog.js';
 import { destinationSlug, slugify } from '../i18n.js';
+import { publicCatalog } from './public-catalog.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
 
 const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
@@ -38,12 +39,16 @@ export async function getCatalog() {
   });
 }
 
+export async function getPublicCatalog() {
+  return publicCatalog(await getCatalog(), process.env.PUBLIC_RENTAL_ENABLED === 'true');
+}
+
 export async function updateCatalog(data) {
   await convexMutation('catalog:save', { data });
 }
 
 export async function createBooking(data) {
-  return convexMutation('bookings:create', { data: { serviceType: data.serviceType, serviceName: data.serviceName, travelDate: data.travelDate, people: data.people, customerName: data.name, whatsapp: data.whatsapp, details: data.details } });
+  return convexMutation('bookings:create', { idempotencyKey: data.idempotencyKey, data: { serviceType: data.serviceType, serviceName: data.serviceName, travelDate: data.travelDate, people: data.people, customerName: data.name, whatsapp: data.whatsapp, details: data.details } });
 }
 
 export async function getBookings() {

@@ -56,7 +56,7 @@
   <section class="tour-catalog" aria-label={c.catalogTitle}>
     {#each data.catalog.packages as item, index}
       <article class="tour-listing">
-        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`}><img src={imageUrl(item.image || '/wonderful-lombok-icon-192.png', 720)} srcset={imageSrcset(item.image || '/wonderful-lombok-icon-192.png', [480, 720, 960])} sizes="(max-width: 760px) 92vw, 44vw" alt={item.name} loading={index === 0 ? 'eager' : 'lazy'} fetchpriority={index === 0 ? 'high' : 'auto'} decoding="async" width="720" height="520" /></a>
+        <a class="tour-listing-image" href={`/${data.locale}/paket-wisata/${item.slug}`} aria-hidden="true" tabindex="-1"><img src={imageUrl(item.image || '/wonderful-lombok-icon-192.png', 720)} srcset={imageSrcset(item.image || '/wonderful-lombok-icon-192.png', [480, 720, 960])} sizes="(max-width: 760px) 92vw, 44vw" alt="" loading={index === 0 ? 'eager' : 'lazy'} fetchpriority={index === 0 ? 'high' : 'auto'} decoding="async" width="720" height="520" /></a>
         <div class="tour-listing-body">
           <div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div>
           <h2><a href={`/${data.locale}/paket-wisata/${item.slug}`}>{item.name}</a></h2>
@@ -67,7 +67,7 @@
       </article>
     {/each}
   </section>
-  <aside class="catalog-help"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
+  <aside class="catalog-help" data-whatsapp-float-avoid><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
 <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

@@ -1,9 +1,9 @@
-import { getCatalog } from '#lib/server/db.js';
+import { getPublicCatalog } from '#lib/server/db.js';
 import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
 import { alternateUrls, localizeCatalog } from '#lib/i18n.js';
 
 export async function load({ url }) {
-  const catalog = await getCatalog();
+  const catalog = await getPublicCatalog();
   const siteOrigin = getSiteOrigin(url.origin);
   return {
     catalog: localizeCatalog(catalog, 'id'),

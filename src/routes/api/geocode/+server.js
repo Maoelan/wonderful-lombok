@@ -1,13 +1,16 @@
 import { json } from '@sveltejs/kit';
 import { lombokBounds, placeSearchQueries, readPlaceSearchResults } from '#lib/pickup.js';
 import { getFormCopy, isLocale, nominatimLanguage } from '#lib/i18n.js';
-import { rateLimit } from '#lib/server/rate-limit.js';
+import { clientAddressKey } from '#lib/server/client-address.js';
+import { consumeRateLimit } from '#lib/server/rate-limit.js';
+import { tooManyRequests } from '#lib/server/http.js';
 
 export async function GET({ url, getClientAddress }) {
   const requestedLocale = url.searchParams.get('lang');
   const locale = isLocale(requestedLocale) ? requestedLocale : 'en';
   const t = getFormCopy(locale);
-  if (!rateLimit(`geocode:${getClientAddress()}`, 60, 60 * 60_000)) return json({ error: t.tooManySearches }, { status: 429 });
+  const limit = consumeRateLimit(`geocode:${clientAddressKey(getClientAddress())}`, 60, 60 * 60_000);
+  if (!limit.allowed) return tooManyRequests(t.tooManySearches, limit);
   const query = url.searchParams.get('q')?.trim() || '';
   if (query.length < 3 || query.length > 120) return json({ error: t.placeQueryLength }, { status: 400 });
 

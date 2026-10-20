@@ -1,4 +1,5 @@
 import { getSessionUser } from '#lib/server/auth.js';
+import { checkRequestOrigin } from '#lib/server/request-security.js';
 import { languages } from '#lib/i18n.js';
 import { PUBLIC_SITE_URL } from '$app/env/private';
 
@@ -9,12 +10,15 @@ export async function handle({ event, resolve }) {
     return new Response(null, { status: 308, headers: { location: canonicalUrl.href } });
   }
 
-  if (!['GET', 'HEAD', 'OPTIONS'].includes(event.request.method)) {
-    const origin = event.request.headers.get('origin');
-    const allowedOrigins = new Set([event.url.origin]);
-    if (PUBLIC_SITE_URL) allowedOrigins.add(PUBLIC_SITE_URL);
-    if (origin && !allowedOrigins.has(origin)) return new Response('Origin tidak diizinkan.', { status: 403 });
-  }
+  const originCheck = checkRequestOrigin({
+    method: event.request.method,
+    pathname: event.url.pathname,
+    origin: event.request.headers.get('origin'),
+    requestOrigin: event.url.origin,
+    publicSiteUrl: PUBLIC_SITE_URL,
+    production
+  });
+  if (!originCheck.ok) return new Response('Origin tidak diizinkan.', { status: 403 });
 
   event.locals.user = await getSessionUser(event.cookies);
   const routeLocale = event.url.pathname.split('/')[1] || 'id';
@@ -29,7 +33,7 @@ export async function handle({ event, resolve }) {
   response.headers.set('x-permitted-cross-domain-policies', 'none');
   response.headers.set('x-frame-options', 'DENY');
   response.headers.set('origin-agent-cluster', '?1');
-  if (event.url.pathname.startsWith('/admin') || event.url.pathname === '/login' || event.url.pathname.startsWith('/api/')) {
+  if (event.url.pathname.startsWith('/admin') || event.url.pathname === '/login' || event.url.pathname === '/logout' || event.url.pathname.startsWith('/api/')) {
     response.headers.set('cache-control', 'no-store');
     response.headers.set('x-robots-tag', 'noindex, nofollow');
   }

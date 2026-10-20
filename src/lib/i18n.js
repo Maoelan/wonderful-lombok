@@ -296,7 +296,7 @@ export function localizeCatalog(catalog, locale) {
   const translation = catalogTranslations[locale];
   const settings = { ...catalog.settings };
   for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedSettings[locale]?.[field] || localized(settings, field, locale);
-  return {
+  const localizedCatalog = {
     ...catalog,
     settings,
     packages: catalog.packages.map((item, index) => ({
@@ -312,9 +312,12 @@ export function localizeCatalog(catalog, locale) {
       ...(packageDetailTranslations[locale]?.[index] || {})
     })),
     destinations: catalog.destinations.map((item, index) => ({ ...item, name: localized(item, 'name', locale), note: localized(item, 'note', locale), detail: localized(item, 'detail', locale), ...(translation?.destinations[index] || {}) })),
-    rentals: catalog.rentals.map((item, index) => ({ ...item, name: localized(item, 'name', locale), detail: localized(item, 'detail', locale), price: localized(item, 'price', locale), ...(translation?.rentals[index] || {}) })),
     faqs: catalog.faqs.map((item, index) => ({ ...item, question: localized(item, 'question', locale), answer: localized(item, 'answer', locale), ...(translation?.faqs[index] || {}) }))
   };
+  if (catalog.rentals) {
+    localizedCatalog.rentals = catalog.rentals.map((item, index) => ({ ...item, name: localized(item, 'name', locale), detail: localized(item, 'detail', locale), price: localized(item, 'price', locale), ...(translation?.rentals[index] || {}) }));
+  }
+  return localizedCatalog;
 }
 
 const id = {
