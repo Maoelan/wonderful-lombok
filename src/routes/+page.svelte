@@ -111,7 +111,6 @@
       </div>
     </details>
     <div class="nav-language"><LanguageSelector {locale} /></div>
-    <a class="nav-action" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a>
   </nav>
 </header>
 
