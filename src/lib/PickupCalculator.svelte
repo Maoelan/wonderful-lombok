@@ -3,6 +3,8 @@
   import { onDestroy, onMount } from 'svelte';
   import { calculatePickupPrice, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, readRoadRoute } from './pickup.js';
   import { createWhatsAppUrl } from './whatsapp.js';
+  import { createIdempotencyKey } from './idempotency.js';
+  import { todayInWita } from './date.js';
   import { getFormCopy, localeTag } from './i18n.js';
 
   let mapElement, map, routeLayer, gpsPreviewLayer, leaflet;
@@ -14,14 +16,14 @@
   let searchTimer = null, searchController = null;
   let gpsLoading = false, gpsWatch = null, gpsTimer = null, bestGpsFix = null, gpsFixes = [];
   let customerName = '', phone = '', pickupDate = '', pickupTime = '', passengers = 1;
-  let formError = '', submitted = false, submitting = false;
+  let formError = '', submitted = false, submitting = false, idempotencyKey = '', lastBookingFingerprint = '';
 
   export let rate = 10_000;
   export let whatsapp = '6281916550731';
   export let locale = 'id';
   $: t = getFormCopy(locale);
   $: availablePlaces = localizedPlaces(locale);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInWita();
   $: rupiah = new Intl.NumberFormat(localeTag(locale), { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
   $: price = calculatePickupPrice(distance, rate);
@@ -212,7 +214,9 @@
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
     try {
-      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
+      const fingerprint = JSON.stringify({ customerName: customerName.trim(), phone: phone.trim(), pickupDate, pickupTime, passengers: Number(passengers), origin, destination, distance, price });
+      if (fingerprint !== lastBookingFingerprint) { lastBookingFingerprint = fingerprint; idempotencyKey = createIdempotencyKey(); }
+      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': idempotencyKey }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       submitted = true;

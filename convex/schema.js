@@ -6,7 +6,8 @@ export default defineSchema({
   admins: defineTable({ username: v.string(), passwordHash: v.string(), updatedAt: v.number() }).index('by_username', ['username']),
   sessions: defineTable({ tokenHash: v.string(), adminId: v.id('admins'), expiresAt: v.number() }).index('by_token', ['tokenHash']),
   bookings: defineTable({
-    code: v.string(), serviceType: v.string(), serviceName: v.string(), travelDate: v.string(), people: v.number(),
+    code: v.string(), idempotencyKey: v.optional(v.string()), serviceType: v.string(), serviceName: v.string(), travelDate: v.string(), people: v.number(),
     customerName: v.string(), whatsapp: v.string(), details: v.any(), status: v.string(), createdAt: v.number(), updatedAt: v.number()
-  }).index('by_created_at', ['createdAt'])
+  }).index('by_created_at', ['createdAt']),
+  bookingRequests: defineTable({ key: v.string(), code: v.string() }).index('by_key', ['key'])
 });

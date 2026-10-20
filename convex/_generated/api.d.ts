@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as bookingStore from "../bookingStore.js";
 import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
 import type * as files from "../files.js";
@@ -22,6 +23,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  bookingStore: typeof bookingStore;
   bookings: typeof bookings;
   catalog: typeof catalog;
   files: typeof files;
