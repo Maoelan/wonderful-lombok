@@ -19,7 +19,7 @@
   $: formCopy = getFormCopy(locale);
   $: localeHome = localePath(locale);
   $: packages = data.catalog.packages;
-  $: transport = data.catalog.rentals;
+  $: transport = data.catalog.rentals || [];
   $: travelRate = data.catalog.travelRate;
   $: settings = data.catalog.settings;
   $: rentalEnabled = data.rentalEnabled === true;
