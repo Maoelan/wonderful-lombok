@@ -1925,6 +1925,15 @@ footer {
 .admin-translation[open] summary { margin-bottom: 18px; }
 .admin-subsection { display: grid; gap: 12px; margin: 0; padding: 18px; border: 1px solid var(--line); }
 .admin-subsection legend { padding: 0 8px; font-weight: 800; }
+.admin-destination-picker > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.admin-checkbox-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.admin-checkbox-list > label { min-width: 0; min-height: 60px; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); background: var(--surface-control); cursor: pointer; }
+.admin-checkbox-list > label.selected { border-color: var(--forest); background: var(--surface-soft); }
+.admin-checkbox-list input { width: 18px; height: 18px; accent-color: var(--forest); }
+.admin-checkbox-list span { display: grid; min-width: 0; gap: 3px; }
+.admin-checkbox-list strong, .admin-checkbox-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-checkbox-list strong { color: var(--ink); font-size: 13px; }
+.admin-checkbox-list small, .admin-inline-empty { color: var(--muted); font-size: 11px; }
 .admin-price-tier { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
 .admin-price-tier button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #932f25; cursor: pointer; font-weight: 800; }
 .admin-secondary.compact { width: fit-content; min-height: 42px; margin-top: 6px; padding: 8px 14px; }
@@ -1957,6 +1966,7 @@ footer {
   .price-row { grid-template-columns: 1fr auto; }
   .price-row span { grid-column: 1 / -1; }
   .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .admin-checkbox-list { grid-template-columns: 1fr; }
   .whatsapp-float { right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); width: 50px; min-height: 50px; justify-content: center; padding: 0; border: 0; border-radius: 50%; }
   .whatsapp-float span { display: none; }
   .whatsapp-float img { width: 30px; height: 30px; flex-basis: 30px; }

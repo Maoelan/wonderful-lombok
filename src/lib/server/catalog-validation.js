@@ -32,12 +32,17 @@ export function validateCatalog(catalog) {
   if (!Array.isArray(catalog.packages) || !Array.isArray(catalog.destinations) || !Array.isArray(catalog.rentals) || !Array.isArray(catalog.faqs)) return 'Data katalog tidak lengkap.';
   if (catalog.packages.length > 30 || catalog.destinations.length > 50 || catalog.rentals.length > 30 || catalog.faqs.length > 30) return 'Jumlah item katalog terlalu banyak.';
 
+  const destinationKeys = catalog.destinations.map((item) => item?.slug || slugify(item?.name));
+  if (new Set(destinationKeys).size !== destinationKeys.length || destinationKeys.some((slug) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))) return 'Data destinasi tidak valid.';
+  const knownDestinationSlugs = new Set(destinationKeys);
   const slugs = new Set();
   const packagesValid = catalog.packages.every((item) => {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item?.slug || '') || slugs.has(item.slug)) return false;
     slugs.add(item.slug);
     const tiersValid = Array.isArray(item.priceTiers) && item.priceTiers.length <= 30 && item.priceTiers.every((tier) => text(tier?.guests, 1, 100) && text(tier.price, 1, 50) && text(tier.note, 1, 100) && optionalText(tier.guestsEn, 100) && optionalText(tier.noteEn, 100));
-    return text(item.name, 2, 100) && text(item.route, 2, 500) && text(item.detail, 2, 2000) && text(item.price, 2, 50) && text(item.unit, 2, 50) && text(item.category, 2, 100) && text(item.duration, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.routeEn, 500) && optionalText(item.detailEn, 2000) && optionalText(item.unitEn, 50) && optionalText(item.categoryEn, 100) && optionalText(item.durationEn, 100) && validItinerary(item.itinerary || []) && validItinerary(item.itineraryEn || []) && stringList(item.includes || []) && stringList(item.includesEn || []) && stringList(item.excludes || []) && stringList(item.excludesEn || []) && tiersValid && validImage(item.image) && validGallery(item.images || []);
+    const related = item.destinationSlugs;
+    const relationsValid = Array.isArray(related) && related.length <= 50 && new Set(related).size === related.length && related.every((slug) => typeof slug === 'string' && knownDestinationSlugs.has(slug));
+    return text(item.name, 2, 100) && text(item.route, 2, 500) && text(item.detail, 2, 2000) && text(item.price, 2, 50) && text(item.unit, 2, 50) && text(item.category, 2, 100) && text(item.duration, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.routeEn, 500) && optionalText(item.detailEn, 2000) && optionalText(item.unitEn, 50) && optionalText(item.categoryEn, 100) && optionalText(item.durationEn, 100) && validItinerary(item.itinerary || []) && validItinerary(item.itineraryEn || []) && stringList(item.includes || []) && stringList(item.includesEn || []) && stringList(item.excludes || []) && stringList(item.excludesEn || []) && tiersValid && relationsValid && validImage(item.image) && validGallery(item.images || []);
   });
   if (!packagesValid) return 'Data Paket Wisata tidak valid.';
 
