@@ -1,8 +1,14 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { convexMutation, convexQuery } from './db.js';
+import {
+  SESSION_TTL_SECONDS,
+  sessionCookieClearOptions,
+  sessionCookieName,
+  sessionCookieOptions
+} from './session-cookie.js';
 
 const production = process.env.NODE_ENV === 'production';
-const sessionCookie = production ? '__Host-wl_admin_session' : 'wl_admin_session';
+const sessionCookie = sessionCookieName(production);
 const dummyHash = `scrypt:${'0'.repeat(32)}:${scryptSync('invalid-password', '0'.repeat(32), 64).toString('hex')}`;
 
 export async function authenticate(username, password) {
@@ -20,11 +26,17 @@ export async function authenticate(username, password) {
 }
 
 export async function createSession(userId, cookies) {
+  // Rotate the token on every login so a pre-set cookie cannot survive authentication.
+  if (cookies.get(sessionCookie)) await destroySession(cookies);
+
   const token = randomBytes(32).toString('base64url');
   const tokenHash = createHash('sha256').update(token).digest('hex');
-  const maxAge = 60 * 60 * 8;
-  await convexMutation('admin:createSession', { tokenHash, adminId: userId, expiresAt: Date.now() + maxAge * 1000 });
-  cookies.set(sessionCookie, token, { path: '/', httpOnly: true, sameSite: 'strict', secure: production, priority: 'high', maxAge });
+  await convexMutation('admin:createSession', {
+    tokenHash,
+    adminId: userId,
+    expiresAt: Date.now() + SESSION_TTL_SECONDS * 1000
+  });
+  cookies.set(sessionCookie, token, sessionCookieOptions(production));
 }
 
 export async function getSessionUser(cookies) {
@@ -37,5 +49,5 @@ export async function getSessionUser(cookies) {
 export async function destroySession(cookies) {
   const token = cookies.get(sessionCookie);
   if (token) await convexMutation('admin:destroySession', { tokenHash: createHash('sha256').update(token).digest('hex') });
-  cookies.delete(sessionCookie, { path: '/', secure: production, sameSite: 'strict' });
+  cookies.delete(sessionCookie, sessionCookieClearOptions(production));
 }

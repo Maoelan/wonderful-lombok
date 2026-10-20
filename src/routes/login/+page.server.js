@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { authenticate, createSession } from '#lib/server/auth.js';
-import { rateLimit } from '#lib/server/rate-limit.js';
+import { clientAddressKey } from '#lib/server/client-address.js';
+import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { getPublicCatalog } from '#lib/server/db.js';
 
 export async function load({ locals }) {
@@ -10,8 +11,12 @@ export async function load({ locals }) {
 }
 
 export const actions = {
-  default: async ({ request, cookies, getClientAddress }) => {
-    if (!rateLimit(`login:${getClientAddress()}`, 10, 15 * 60_000)) return fail(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' });
+  default: async ({ request, cookies, getClientAddress, setHeaders }) => {
+    const limit = consumeRateLimit(`login:${clientAddressKey(getClientAddress())}`, 10, 15 * 60_000);
+    if (!limit.allowed) {
+      setHeaders({ 'retry-after': String(limit.retryAfterSeconds) });
+      return fail(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' });
+    }
     const data = await request.formData();
     const username = String(data.get('username') || '').trim();
     const password = String(data.get('password') || '');

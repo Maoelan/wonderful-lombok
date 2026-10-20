@@ -1,12 +1,15 @@
 import { json } from '@sveltejs/kit';
 import { createBooking, getCatalog } from '#lib/server/db.js';
 import { createBookingRequest } from '#lib/server/booking-request.js';
-import { rateLimit } from '#lib/server/rate-limit.js';
+import { clientAddressKey } from '#lib/server/client-address.js';
+import { consumeRateLimit } from '#lib/server/rate-limit.js';
+import { tooManyRequests } from '#lib/server/http.js';
 
 const failure = (message, status = 400) => json({ error: message }, { status });
 
 export async function POST({ request, getClientAddress, fetch }) {
-  if (!rateLimit(`booking:${getClientAddress()}`, 8, 60 * 60_000)) return failure('Terlalu banyak permintaan. Coba lagi nanti.', 429);
+  const limit = consumeRateLimit(`booking:${clientAddressKey(getClientAddress())}`, 8, 60 * 60_000);
+  if (!limit.allowed) return tooManyRequests('Terlalu banyak permintaan. Coba lagi nanti.', limit);
   if (Number(request.headers.get('content-length') || 0) > 20_000) return failure('Data pemesanan terlalu besar.', 413);
 
   let raw;

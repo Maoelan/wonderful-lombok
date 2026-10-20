@@ -25,6 +25,7 @@ export async function createBookingRequest({
   now = Date.now()
 }) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return failure('Data pemesanan tidak valid.');
+  if (body.website !== undefined && body.website !== null && String(body.website).trim()) return failure('Data pemesanan tidak valid.');
   if (!isValidIdempotencyKey(idempotencyKey)) return failure('Permintaan pemesanan tidak valid.');
 
   let whatsapp;

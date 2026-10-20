@@ -16,7 +16,7 @@
   let searchTimer = null, searchController = null;
   let gpsLoading = false, gpsWatch = null, gpsTimer = null, bestGpsFix = null, gpsFixes = [];
   let customerName = '', phone = '', pickupDate = '', pickupTime = '', passengers = 1;
-  let formError = '', submitted = false, submitting = false, idempotencyKey = '', lastBookingFingerprint = '';
+  let formError = '', submitted = false, submitting = false, idempotencyKey = '', lastBookingFingerprint = '', website = '';
 
   export let rate = 10_000;
   export let whatsapp = '6281916550731';
@@ -216,10 +216,11 @@
     try {
       const fingerprint = JSON.stringify({ customerName: customerName.trim(), phone: phone.trim(), pickupDate, pickupTime, passengers: Number(passengers), origin, destination, distance, price });
       if (fingerprint !== lastBookingFingerprint) { lastBookingFingerprint = fingerprint; idempotencyKey = createIdempotencyKey(); }
-      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': idempotencyKey }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
+      const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': idempotencyKey }, body: JSON.stringify({ name: customerName, whatsapp: phone, travelDate: pickupDate, people: Number(passengers), serviceType: 'travel', serviceName: t.bookingService, website, details: { origin: origin.name, destination: destination.name, originCoordinates: [origin.lat, origin.lng], originAccuracyM: origin.accuracy || null, originSource: origin.source || 'search', destinationCoordinates: [destination.lat, destination.lng], pickupTime, distanceKm: distance, estimatedPrice: price, locale } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       submitted = true;
+      website = '';
       const whatsappMessage = [t.whatsappGreeting, `${t.codeLabel}: ${result.code}`, '', `${t.nameLabel}: ${customerName.trim()}`, `${t.whatsapp}: ${phone.trim()}`, `${t.from}: ${origin.name}`, ...(origin.accuracy ? [`${t.accuracyLabel}: ±${origin.accuracy} m`] : []), `${t.to}: ${destination.name}`, `${t.date}: ${pickupDate}`, `${t.time}: ${pickupTime} WITA`, `${t.passengers}: ${message(t.peopleValue, { count: passengers })}`, `${t.distanceLabel}: ${distance} km`, `${t.costLabel}: ${rupiah.format(price)}`].join('\n');
       if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
       else window.location.href = createWhatsAppUrl(whatsappMessage, whatsapp);
@@ -251,6 +252,7 @@
   </div>
 
   <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
+    <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
     <div class="quote-heading"><p>{t.estimate}</p>{#key price}<strong class:calculating={routeLoading}>{routeLoading ? t.calculating : rupiah.format(price)}</strong>{/key}<span>{distance ? `${distance} km × ${rupiah.format(rate)}` : `${t.rate}: ${rupiah.format(rate)}`}</span></div>
     <div class="route-summary" aria-live="polite"><div><span>{t.from}</span><b>{origin?.name ?? t.notSelected}</b></div><div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div></div>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>

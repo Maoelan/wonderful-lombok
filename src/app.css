@@ -1062,6 +1062,14 @@ select:hover {
   row-gap: 16px;
 }
 
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .form-message {
   margin: 0;
   padding: 12px;

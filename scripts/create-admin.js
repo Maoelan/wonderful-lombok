@@ -22,5 +22,6 @@ if (password.length < 12 || password.length > 256) throw new Error('Password adm
 const salt = randomBytes(16).toString('hex');
 const passwordHash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
 const client = new ConvexHttpClient(process.env.PUBLIC_CONVEX_URL);
-await client.mutation(makeFunctionReference('admin:upsert', 'mutation'), { serverSecret: process.env.CONVEX_SERVER_SECRET, username, passwordHash });
+const result = await client.mutation(makeFunctionReference('admin:upsert', 'mutation'), { serverSecret: process.env.CONVEX_SERVER_SECRET, username, passwordHash });
 console.log(`Admin ${username} tersimpan di Convex.`);
+if (result?.created === false) console.log(`Sesi lama admin ${username} dicabut: ${result.invalidatedSessions}.`);

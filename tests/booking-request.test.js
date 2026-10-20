@@ -153,6 +153,21 @@ test('booking request enforces the WITA date and rental flag', async () => {
   assert.deepEqual(enabled, { status: 201, body: { code: 'WL-TEST-8' } });
 });
 
+test('booking request rejects honeypot submissions without saving', async () => {
+  const saved = [];
+  const result = await createBookingRequest({
+    body: { ...travelBody(), website: 'https://spam.example' },
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174008',
+    now,
+    fetchImpl: quoteFetch(),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async (booking) => { saved.push(booking); return 'WL-TEST-HONEY'; }
+  });
+
+  assert.equal(result.status, 400);
+  assert.equal(saved.length, 0);
+});
+
 test('booking request returns a retryable 503 when persistence fails', async () => {
   const result = await createBookingRequest({
     body: travelBody(),
