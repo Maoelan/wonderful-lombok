@@ -1,11 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { authenticate, createSession } from '#lib/server/auth.js';
 import { rateLimit } from '#lib/server/rate-limit.js';
-import { getCatalog } from '#lib/server/db.js';
+import { getPublicCatalog } from '#lib/server/db.js';
 
 export async function load({ locals }) {
   if (locals.user) redirect(303, '/admin');
-  const catalog = await getCatalog();
+  const catalog = await getPublicCatalog();
   return { colorTheme: catalog.settings.colorTheme };
 }
 
