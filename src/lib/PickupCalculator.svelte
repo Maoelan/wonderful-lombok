@@ -233,8 +233,8 @@
     <div class="location-tools">
       <div class="location-field">
         <div class="location-search"><label><span>{t.pickup}</span><input bind:value={originQuery} autocomplete="off" placeholder={searchLoading === 'origin' ? t.searching : t.address} on:focus={() => { activateMapTarget('origin'); queuePlaceSearch('origin'); }} on:input={() => queuePlaceSearch('origin')} on:keydown={(event) => handleSearchKey(event, 'origin')} /></label>{#if searchTarget === 'origin' && searchResults.length}<div class="place-suggestions" role="listbox" aria-label={t.searchResultsPickup}>{#each searchResults as place}<button type="button" role="option" aria-selected="false" on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>{/each}</div>{/if}</div>
-        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
         <select aria-label={t.pickup} on:change={(event) => choosePreset('origin', event.currentTarget.value)}><option value="">{t.popular}</option>{#each availablePlaces as place}<option value={place.id}>{place.name}</option>{/each}</select>
+        <button class="gps-action" type="button" on:click={useCurrentLocation} disabled={gpsLoading}>{gpsLoading ? t.locating : t.useLocation}</button>
       </div>
       <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}>⇅</button>
       <div class="location-field">

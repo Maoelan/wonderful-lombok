@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculatePickupPrice, coordinateDistanceMetres, formatPlaceSearchName, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
-import { createWhatsAppUrl } from '../src/lib/whatsapp.js';
+import { createWhatsAppUrl, formatWhatsAppNumber } from '../src/lib/whatsapp.js';
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
   assert.equal(calculatePickupPrice(8.2), 90_000);
@@ -82,4 +82,11 @@ test('WhatsApp link targets the configured business number and encodes its messa
   assert.match(url, /^https:\/\/wa\.me\/6281916550731\?text=/);
   assert.ok(url.includes('%26'));
   assert.match(createWhatsAppUrl('Halo', '62 812-3456-7890'), /^https:\/\/wa\.me\/6281234567890\?text=Halo$/);
+});
+
+test('WhatsApp display numbers use readable international grouping', () => {
+  assert.equal(formatWhatsAppNumber('6287873026445'), '+62 878-7302-6445');
+  assert.equal(formatWhatsAppNumber('+62 812-3456-7890'), '+62 812-3456-7890');
+  assert.equal(formatWhatsAppNumber('0812 3456 7890'), '+62 812-3456-7890');
+  assert.equal(formatWhatsAppNumber(''), '');
 });

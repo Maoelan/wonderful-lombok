@@ -54,7 +54,7 @@
     <aside class="tour-inclusions"><div><h2>{c.includes}</h2><ul>{#each item.includes as line}<li>{line}</li>{/each}</ul></div><div><h2>{c.excludes}</h2><ul>{#each item.excludes as line}<li>{line}</li>{/each}</ul></div></aside>
   </div>
   {#if item.priceTiers?.length}<section class="price-section"><p class="label">{c.prices}</p><h2>{c.priceHeading}</h2><div class="price-table" role="table">{#each item.priceTiers as tier}<div class="price-row" role="row"><strong>{tier.guests}</strong><b>{tier.price}</b><span>{tier.note}</span></div>{/each}</div></section>{/if}
-  <section class="detail-cta"><div><p class="label">Wonderful Lombok</p><h2>{c.readyTitle}</h2></div><button class="button primary" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookWhatsapp}</button></section>
+  <section class="detail-cta" data-whatsapp-float-avoid><div><p class="label">Wonderful Lombok</p><h2>{c.readyTitle}</h2></div><button class="button primary" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookWhatsapp}</button></section>
 </main>
 <BookingDialog bind:booking whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
