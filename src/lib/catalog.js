@@ -26,6 +26,7 @@ export const defaultCatalog = {
     {
       slug: 'lombok-selatan-budaya-sasak', category: 'Budaya & Pantai', categoryEn: 'Culture & Beaches', duration: '1 hari', durationEn: '1 day',
       name: 'Lombok Selatan & Budaya Sasak', nameEn: 'South Lombok & Sasak Culture', route: 'Desa Sade, Kuta Mandalika, Tanjung Aan, Bukit Merese', routeEn: 'Sade Village, Kuta Mandalika, Tanjung Aan, Merese Hill',
+      destinationSlugs: ['kuta-mandalika', 'tanjung-aan'],
       detail: 'Tur privat sehari yang menggabungkan kehidupan masyarakat Sasak dengan pantai dan perbukitan Lombok Tengah. Urutan kunjungan menyesuaikan lokasi penjemputan dan kondisi lapangan.',
       detailEn: 'A private day tour combining Sasak village life with the beaches and hills of Central Lombok. The visiting order adapts to your pick-up point and local conditions.',
       price: 'Rp1.250.000', unit: 'per kendaraan', unitEn: 'per vehicle', image: p.aan2, images: [p.sade, p.seger],
@@ -38,6 +39,7 @@ export const defaultCatalog = {
     {
       slug: 'gili-snorkeling-escape', category: 'Laut & Snorkeling', categoryEn: 'Sea & Snorkeling', duration: '1 hari', durationEn: '1 day',
       name: 'Gili Snorkeling Escape', nameEn: 'Gili Snorkeling Escape', route: 'Gili Trawangan, Gili Meno, Gili Air', routeEn: 'Gili Trawangan, Gili Meno, Gili Air',
+      destinationSlugs: ['tiga-gili'],
       detail: 'Perjalanan privat menuju tiga Gili dengan perahu dan perlengkapan snorkeling. Waktu berenang dan singgah di pulau disusun bersama sebelum keberangkatan.', detailEn: 'A private trip to the three Gilis with a boat and snorkeling equipment. Swimming time and island stops are arranged before departure.',
       price: 'Rp1.450.000', unit: 'per paket', unitEn: 'per package', image: p.trawangan, images: [p.water, p.meno, p.giliSunset],
       itinerary: [{ day: 'Pagi', title: 'Menuju pelabuhan', items: ['Penjemputan di hotel', 'Perjalanan menuju pelabuhan', 'Briefing dan persiapan perlengkapan'] }, { day: 'Siang', title: 'Snorkeling dan island hopping', items: ['Snorkeling sesuai kondisi laut', 'Singgah di Gili Meno dan Gili Air', 'Waktu bebas untuk makan siang'] }, { day: 'Sore', title: 'Gili Trawangan dan kembali', items: ['Waktu santai di Gili Trawangan', 'Perahu kembali ke Lombok', 'Pengantaran ke hotel'] }],
@@ -49,6 +51,7 @@ export const defaultCatalog = {
     {
       slug: 'romantic-lombok-2h1m', category: 'Perjalanan Pasangan', categoryEn: 'Couples Journey', duration: '2 hari 1 malam', durationEn: '2 days 1 night',
       name: 'Romantic Lombok 2H1M', nameEn: 'Romantic Lombok 2D1N', route: 'Senggigi, Malimbu, Gili, makan malam tepi pantai', routeEn: 'Senggigi, Malimbu, the Gilis, beachfront dinner',
+      destinationSlugs: ['tiga-gili', 'senggigi'],
       detail: 'Paket dua hari untuk pasangan dengan perjalanan pesisir, satu malam menginap, dan waktu menikmati matahari terbenam tanpa rute yang terburu-buru.', detailEn: 'A two-day couple package with a coastal journey, one overnight stay, and time to enjoy the sunset without a rushed itinerary.',
       price: 'Rp3.900.000', unit: 'per pasangan', unitEn: 'per couple', image: p.senggigiSunset, images: [p.agung, p.giliSunset, p.meno],
       itinerary: [{ day: 'Hari 1', title: 'Pesisir barat dan matahari terbenam', items: ['Penjemputan privat', 'Singgah di titik pandang Malimbu', 'Check-in hotel area Senggigi', 'Makan malam pasangan di area tepi pantai'] }, { day: 'Hari 2', title: 'Pilihan Gili atau pagi santai', items: ['Sarapan di hotel', 'Pilihan perjalanan singkat ke Gili atau waktu bebas', 'Check-out dan pengantaran'] }],

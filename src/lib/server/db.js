@@ -2,6 +2,7 @@ import { PUBLIC_CONVEX_URL } from '$app/env/public';
 import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 import { defaultCatalog } from '../catalog.js';
+import { normalizeDestinationSlugs } from '../catalog-relations.js';
 import { destinationSlug, slugify } from '../i18n.js';
 import { publicCatalog } from './public-catalog.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
@@ -18,22 +19,26 @@ export const convexMutation = (name, args = {}) => client.mutation(ref(name, 'mu
 
 export async function getCatalog() {
   const data = await convexQuery('catalog:get') || defaultCatalog;
+  const destinations = (data.destinations || defaultCatalog.destinations).map((item, index) => ({ ...(defaultCatalog.destinations[index] || {}), images: [], ...item, slug: destinationSlug(item) }));
   return sanitizeCatalogRichText({
     ...defaultCatalog,
     ...data,
     settings: { ...defaultCatalog.settings, ...data.settings },
-    packages: (data.packages || defaultCatalog.packages).map((item, index) => ({
-      ...(defaultCatalog.packages[index] || {}), slug: item.slug || slugify(item.name), category: item.category || defaultCatalog.packages[index]?.category || 'Private tour', categoryEn: item.categoryEn || defaultCatalog.packages[index]?.categoryEn || 'Private tour', duration: item.duration || defaultCatalog.packages[index]?.duration || '1 hari', durationEn: item.durationEn || defaultCatalog.packages[index]?.durationEn || '1 day', nameEn: item.nameEn || defaultCatalog.packages[index]?.nameEn || item.name, routeEn: item.routeEn || defaultCatalog.packages[index]?.routeEn || item.route, detail: '', detailEn: item.detailEn || defaultCatalog.packages[index]?.detailEn || item.detail || '', unitEn: item.unitEn || defaultCatalog.packages[index]?.unitEn || item.unit || '', images: [],
-      images: item.images || [], ...item,
-      itinerary: item.itinerary?.length ? item.itinerary : defaultCatalog.packages[index]?.itinerary || [],
-      itineraryEn: item.itineraryEn?.length ? item.itineraryEn : defaultCatalog.packages[index]?.itineraryEn || [],
-      includes: item.includes?.length ? item.includes : defaultCatalog.packages[index]?.includes || [],
-      includesEn: item.includesEn?.length ? item.includesEn : defaultCatalog.packages[index]?.includesEn || [],
-      excludes: item.excludes?.length ? item.excludes : defaultCatalog.packages[index]?.excludes || [],
-      excludesEn: item.excludesEn?.length ? item.excludesEn : defaultCatalog.packages[index]?.excludesEn || [],
-      priceTiers: item.priceTiers?.length ? item.priceTiers : defaultCatalog.packages[index]?.priceTiers || []
-    })),
-    destinations: (data.destinations || defaultCatalog.destinations).map((item, index) => ({ ...(defaultCatalog.destinations[index] || {}), images: [], ...item, slug: destinationSlug(item) })),
+    packages: (data.packages || defaultCatalog.packages).map((item, index) => {
+      const packageItem = {
+        ...(defaultCatalog.packages[index] || {}), slug: item.slug || slugify(item.name), category: item.category || defaultCatalog.packages[index]?.category || 'Private tour', categoryEn: item.categoryEn || defaultCatalog.packages[index]?.categoryEn || 'Private tour', duration: item.duration || defaultCatalog.packages[index]?.duration || '1 hari', durationEn: item.durationEn || defaultCatalog.packages[index]?.durationEn || '1 day', nameEn: item.nameEn || defaultCatalog.packages[index]?.nameEn || item.name, routeEn: item.routeEn || defaultCatalog.packages[index]?.routeEn || item.route, detail: '', detailEn: item.detailEn || defaultCatalog.packages[index]?.detailEn || item.detail || '', unitEn: item.unitEn || defaultCatalog.packages[index]?.unitEn || item.unit || '', images: [],
+        images: item.images || [], ...item,
+        itinerary: item.itinerary?.length ? item.itinerary : defaultCatalog.packages[index]?.itinerary || [],
+        itineraryEn: item.itineraryEn?.length ? item.itineraryEn : defaultCatalog.packages[index]?.itineraryEn || [],
+        includes: item.includes?.length ? item.includes : defaultCatalog.packages[index]?.includes || [],
+        includesEn: item.includesEn?.length ? item.includesEn : defaultCatalog.packages[index]?.includesEn || [],
+        excludes: item.excludes?.length ? item.excludes : defaultCatalog.packages[index]?.excludes || [],
+        excludesEn: item.excludesEn?.length ? item.excludesEn : defaultCatalog.packages[index]?.excludesEn || [],
+        priceTiers: item.priceTiers?.length ? item.priceTiers : defaultCatalog.packages[index]?.priceTiers || []
+      };
+      return { ...packageItem, destinationSlugs: normalizeDestinationSlugs(item, destinations) };
+    }),
+    destinations,
     rentals: (data.rentals || defaultCatalog.rentals).map((item, index) => ({ ...(defaultCatalog.rentals[index] || {}), ...item })),
     faqs: (data.faqs || defaultCatalog.faqs).map((item, index) => ({ ...(defaultCatalog.faqs[index] || {}), ...item }))
   });

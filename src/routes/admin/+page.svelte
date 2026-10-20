@@ -91,7 +91,7 @@
 
   function addPackage() {
     const name = 'Paket baru';
-    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
+    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], destinationSlugs: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
     catalog = { ...catalog };
     markDirty();
   }
@@ -113,6 +113,12 @@
     catalog = { ...catalog };
   }
 
+  function setPackageDestination(packageIndex, slug, selected) {
+    const current = catalog.packages[packageIndex].destinationSlugs || [];
+    updatePackage(packageIndex, 'destinationSlugs', selected ? [...new Set([...current, slug])] : current.filter((item) => item !== slug));
+    markDirty();
+  }
+
   function addDestination() {
     catalog.destinations = [...catalog.destinations, { slug: `destinasi-${catalog.destinations.length + 1}`, name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
     catalog = { ...catalog };
@@ -121,7 +127,9 @@
 
   function removeDestination(index) {
     if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}?`)) return;
+    const slug = catalog.destinations[index].slug;
     catalog.destinations = catalog.destinations.filter((_, itemIndex) => itemIndex !== index);
+    catalog.packages = catalog.packages.map((item) => ({ ...item, destinationSlugs: (item.destinationSlugs || []).filter((value) => value !== slug) }));
     catalog = { ...catalog };
     markDirty();
   }
@@ -250,6 +258,7 @@
                 <div class="admin-field-row"><label><span>Durasi</span><input value={item.duration} on:input={(event) => updatePackage(index, 'duration', event.currentTarget.value)} placeholder="Contoh: 2 hari 1 malam" /></label><label><span>Kategori</span><input value={item.category} on:input={(event) => updatePackage(index, 'category', event.currentTarget.value)} placeholder="Contoh: Private tour" /></label></div>
                 <label><span>Nama paket</span><input value={item.name} on:input={(event) => updatePackage(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Destinasi dan aktivitas</span><textarea rows="2" value={item.route} on:input={(event) => updatePackage(index, 'route', event.currentTarget.value)}></textarea></label>
+                <fieldset class="admin-subsection admin-destination-picker"><legend>Destinasi dalam paket</legend><p>Pilih destinasi yang benar-benar dikunjungi. Paket ini akan otomatis tampil pada halaman destinasi yang dipilih.</p>{#if catalog.destinations.length}<div class="admin-checkbox-list">{#each catalog.destinations as destination}<label class:selected={(item.destinationSlugs || []).includes(destination.slug)}><input type="checkbox" checked={(item.destinationSlugs || []).includes(destination.slug)} on:change={(event) => setPackageDestination(index, destination.slug, event.currentTarget.checked)} /><span><strong>{destination.name}</strong><small>{destination.note}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada destinasi. Tambahkan destinasi terlebih dahulu.</p>{/if}</fieldset>
                 <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
                 <div class="admin-field-row"><label><span>Harga</span><input value={item.price} on:input={(event) => updatePackage(index, 'price', event.currentTarget.value)} /></label><label><span>Satuan</span><input value={item.unit} on:input={(event) => updatePackage(index, 'unit', event.currentTarget.value)} /></label></div>
                 <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
@@ -276,6 +285,7 @@
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Keterangan singkat</span><input value={item.note} on:input={(event) => updateDestination(index, 'note', event.currentTarget.value)} /></label>
                 <RichTextEditor label="Deskripsi destinasi" bind:value={item.detail} />
+                <fieldset class="admin-subsection admin-destination-picker"><legend>Paket untuk destinasi ini</legend><p>Centang paket yang ingin ditampilkan pada halaman {item.name}.</p>{#if catalog.packages.length}<div class="admin-checkbox-list">{#each catalog.packages as packageItem, packageIndex}<label class:selected={(packageItem.destinationSlugs || []).includes(item.slug)}><input type="checkbox" checked={(packageItem.destinationSlugs || []).includes(item.slug)} on:change={(event) => setPackageDestination(packageIndex, item.slug, event.currentTarget.checked)} /><span><strong>{packageItem.name}</strong><small>{packageItem.duration} · {packageItem.price}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada paket wisata.</p>{/if}</fieldset>
 
                 {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><span><strong>Gambar utama saat ini</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage(`gambar utama ${item.name}`, (value) => updateDestination(index, 'image', value))} aria-label="Hapus gambar utama {item.name}"><TrashIcon /></button></div>{/if}
                 <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
