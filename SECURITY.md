@@ -53,6 +53,8 @@ Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared
 
 This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
 
+When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save.
+
 ## Secret handling
 
 Environment variables are documented in `.env.example` (without values). Their purpose, visibility, owner, and rotation cadence are recorded in [ENVIRONMENT.md](ENVIRONMENT.md). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles.
