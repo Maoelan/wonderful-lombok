@@ -34,7 +34,7 @@ Run the automated smoke test from a trusted machine:
 SMOKE_BASE_URL=https://final-domain.example npm run smoke:prod
 ```
 
-It sends GET requests only. It checks the homepage, a localized homepage, security headers, canonical and `hreflang` links, `robots.txt`, `sitemap.xml`, the disabled rental section, the admin redirect/API boundary, and the login page.
+It sends GET requests only. It checks the homepage, a localized homepage, security headers, canonical and `hreflang` links, the health and readiness endpoints, `robots.txt`, `sitemap.xml`, the disabled rental section, the admin redirect/API boundary, and the login page. The readiness check reads the catalog through Convex; it does not mutate data.
 
 Then verify manually, still read-only:
 
@@ -42,10 +42,14 @@ Then verify manually, still read-only:
 - [ ] Canonical URLs and `hreflang` links use the final domain; `x-default` is present.
 - [ ] `robots.txt` references the final-domain sitemap; `sitemap.xml` contains only public canonical URLs.
 - [ ] The rental section and rental sitemap entries are absent while `PUBLIC_RENTAL_ENABLED=false`.
+- [ ] `/api/health` returns `200` with `{"status":"ok"}`.
+- [ ] `/api/ready` returns `200` with `{"status":"ready"}`. A `503` means required configuration is missing or Convex is unreachable; do not expose internal error details.
+- [ ] Both health endpoints return `Cache-Control: no-store` and are marked `noindex`.
 - [ ] `/admin` redirects to `/login` without a session; `/api/admin/bookings` returns `401` or `403`.
 - [ ] `/admin`, `/login`, and `/api/` responses are not indexable.
 - [ ] Security headers are present, including HSTS on HTTPS.
 - [ ] An unknown route returns `404`.
+- [ ] Configure the hosting uptime monitor to poll `/api/health` and alert on a non-`200` response; alert on `/api/ready` returning `503`.
 - [ ] Do **not** create a booking, upload a file, change catalog data, or run destructive authentication tests on production.
 
 Attach the smoke output, commit SHA, deployment URL, and any residual risks to the release record or Issue #6.

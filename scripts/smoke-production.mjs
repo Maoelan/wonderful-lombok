@@ -81,6 +81,28 @@ export async function runSmoke({
     check('localized homepage has the expected canonical URL', canonical(body).startsWith(`${origin}/en`));
   });
 
+  await run('health endpoint responds', async () => {
+    const { response, body } = await request('/api/health');
+    check('health endpoint responds', response.status === 200, `status ${response.status}`);
+    check('health endpoint is JSON', header(response, 'content-type').includes('application/json'));
+    check('health endpoint is not cached', header(response, 'cache-control').includes('no-store'));
+    check('health endpoint is not indexable', header(response, 'x-robots-tag').includes('noindex'));
+    let payload = {};
+    try { payload = JSON.parse(body); } catch {}
+    check('health endpoint reports ok', payload.status === 'ok');
+  });
+
+  await run('readiness endpoint responds', async () => {
+    const { response, body } = await request('/api/ready');
+    check('readiness endpoint responds', response.status === 200, `status ${response.status}`);
+    check('readiness endpoint is JSON', header(response, 'content-type').includes('application/json'));
+    check('readiness endpoint is not cached', header(response, 'cache-control').includes('no-store'));
+    check('readiness endpoint is not indexable', header(response, 'x-robots-tag').includes('noindex'));
+    let payload = {};
+    try { payload = JSON.parse(body); } catch {}
+    check('readiness endpoint reports ready', payload.status === 'ready');
+  });
+
   await run('robots.txt responds', async () => {
     const { response, body } = await request('/robots.txt');
     check('robots.txt responds', response.status === 200, `status ${response.status}`);

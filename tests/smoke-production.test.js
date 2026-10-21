@@ -10,7 +10,7 @@ function page(base, pathname = '/') {
   return `<!doctype html><html><head><link rel="canonical" href="${base}${pathname}" />${alternates}<link rel="alternate" hreflang="x-default" href="${base}${pathname}" /></head><body>Wonderful Lombok</body></html>`;
 }
 
-function startServer({ adminStatus = 401, rental = false } = {}) {
+function startServer({ adminStatus = 401, rental = false, readyStatus = 200 } = {}) {
   const server = http.createServer((request, response) => {
     const base = `http://${request.headers.host}`;
     const send = (status, body, headers = {}) => {
@@ -27,6 +27,8 @@ function startServer({ adminStatus = 401, rental = false } = {}) {
 
     if (request.url === '/') return send(200, page(base).replace('</body>', `${rental ? '<section id="rental"></section>' : ''}</body>`));
     if (request.url === '/en') return send(200, page(base, '/en'));
+    if (request.url === '/api/health') return send(200, JSON.stringify({ status: 'ok' }), { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' });
+    if (request.url === '/api/ready') return send(readyStatus, JSON.stringify({ status: readyStatus === 200 ? 'ready' : 'not_ready' }), { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' });
     if (request.url === '/robots.txt') return send(200, `User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`, { 'content-type': 'text/plain; charset=utf-8' });
     if (request.url === '/sitemap.xml') return send(200, `<?xml version="1.0"?><urlset><url><loc>${base}/</loc></url><url><loc>${base}/en</loc></url></urlset>`, { 'content-type': 'application/xml; charset=utf-8' });
     if (request.url === '/admin') return send(303, '', { location: '/login', 'x-robots-tag': 'noindex, nofollow' });
@@ -72,6 +74,17 @@ test('production smoke fails when disabled rental content is public', async () =
     const result = await runSmoke({ baseUrl });
     assert.equal(result.ok, false);
     assert.equal(result.results.find((item) => item.name === 'rental section is not public')?.passed, false);
+  } finally {
+    await close(server);
+  }
+});
+
+test('production smoke fails when readiness returns 503', async () => {
+  const { server, baseUrl } = await startServer({ readyStatus: 503 });
+  try {
+    const result = await runSmoke({ baseUrl });
+    assert.equal(result.ok, false);
+    assert.equal(result.results.find((item) => item.name === 'readiness endpoint responds')?.passed, false);
   } finally {
     await close(server);
   }
