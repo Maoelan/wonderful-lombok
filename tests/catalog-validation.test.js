@@ -40,3 +40,15 @@ test('catalog rejects duplicate destination URLs', () => {
   catalog.destinations[1].slug = 'same-destination';
   assert.equal(validateCatalog(catalog), 'Data destinasi tidak valid.');
 });
+
+test('catalog rejects package links to missing destinations', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.packages[0].destinationSlugs = ['tidak-ada'];
+  assert.equal(validateCatalog(catalog), 'Data Paket Wisata tidak valid.');
+});
+
+test('catalog allows a package without a related destination', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.packages[0].destinationSlugs = [];
+  assert.equal(validateCatalog(catalog), null);
+});

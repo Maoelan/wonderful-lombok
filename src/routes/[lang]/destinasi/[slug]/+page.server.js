@@ -11,12 +11,7 @@ export async function load({ params, url }) {
   if (index < 0) error(404, 'Destination not found');
   const catalog = localizeCatalog(sourceCatalog, params.lang);
   const item = catalog.destinations[index];
-  const tokens = sourceCatalog.destinations[index].name.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
-  let relatedPackages = catalog.packages.filter((_, packageIndex) => {
-    const source = `${sourceCatalog.packages[packageIndex]?.name || ''} ${sourceCatalog.packages[packageIndex]?.route || ''}`.toLowerCase();
-    return tokens.some((token) => source.includes(token));
-  });
-  if (!relatedPackages.length) relatedPackages = catalog.packages.slice(0, 3);
+  const relatedPackages = catalog.packages.filter((packageItem) => packageItem.destinationSlugs?.includes(params.slug));
   const origin = getSiteOrigin(url.origin);
   const suffix = `/destinasi/${params.slug}`;
   return {
