@@ -6,7 +6,19 @@ const escapeXml = (value) => value.replace(/[<>&'\"]/g, (character) => ({ '<': '
 
 export async function GET({ url }) {
   const origin = getSiteOrigin(url.origin);
-  const catalog = await getPublicCatalog();
+  let catalog;
+  try {
+    catalog = await getPublicCatalog();
+  } catch {
+    return new Response('Sitemap sementara tidak tersedia.', {
+      status: 503,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+        'cache-control': 'no-store',
+        'retry-after': '60'
+      }
+    });
+  }
   const groups = ['', '/paket-wisata', '/travel-lombok', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`), ...catalog.destinations.map((item) => `/destinasi/${destinationSlug(item)}`)];
   const entries = groups.flatMap((suffix, groupIndex) => {
     const alternates = languages.map((language) => `    <xhtml:link rel="alternate" hreflang="${escapeXml(language.hreflang)}" href="${escapeXml(`${origin}${localePath(language.code, suffix)}`)}" />`).join('\n');

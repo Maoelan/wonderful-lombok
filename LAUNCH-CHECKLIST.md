@@ -75,6 +75,7 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 
 ## Known residual risks
 
+- If Convex is unavailable, public catalog pages return a localized `503` maintenance page and the sitemap returns `503`. Login remains available, but catalog and booking operations require Convex.
 - Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
