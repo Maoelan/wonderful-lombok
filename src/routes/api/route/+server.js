@@ -4,6 +4,7 @@ import { isInsideLombok, roadRouteUrl } from '#lib/pickup.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { fetchWithRetry } from '#lib/server/upstream.js';
 
 const number = (url, key) => Number(url.searchParams.get(key));
 
@@ -19,7 +20,12 @@ export async function GET({ url, getClientAddress, fetch }) {
   if (!isInsideLombok(from.lat, from.lng) || !isInsideLombok(to.lat, to.lng)) return json({ error: t.routeOutsideLombok }, { status: 400 });
 
   try {
-    const response = await fetch(roadRouteUrl({ from, to, fromAccuracy: number(url, 'fromAccuracy') }), { signal: AbortSignal.timeout(10_000) });
+    const response = await fetchWithRetry(roadRouteUrl({ from, to, fromAccuracy: number(url, 'fromAccuracy') }), {}, {
+      fetchImpl: fetch,
+      timeoutMs: 10_000,
+      retries: 1
+    });
+    if (response.status === 429 || response.status >= 500) return json({ error: t.routeServiceDown }, { status: 502 });
     const payload = await response.json();
     if (!response.ok || payload.code !== 'Ok') return json({ error: t.routeNotFound }, { status: 422 });
     return json(payload, { headers: { 'cache-control': 'private, no-store' } });

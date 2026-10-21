@@ -6,8 +6,12 @@ import { normalizeDestinationSlugs } from '../catalog-relations.js';
 import { destinationSlug, slugify } from '../i18n.js';
 import { publicCatalog } from './public-catalog.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
+import { fetchWithRetry } from './upstream.js';
 
-const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
+// Convex mutations are not idempotent, so time out each call without retrying it.
+const client = new ConvexHttpClient(PUBLIC_CONVEX_URL, {
+  fetch: (input, init) => fetchWithRetry(input, init, { timeoutMs: 10_000, retries: 0 })
+});
 const ref = (name, type) => makeFunctionReference(name, type);
 const authorized = (args) => {
   const serverSecret = process.env.CONVEX_SERVER_SECRET;

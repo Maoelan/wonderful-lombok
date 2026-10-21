@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { fetchWithRetry } from '#lib/server/upstream.js';
 import { convexMutation } from '#lib/server/db.js';
 
 const formats = [
@@ -23,10 +24,33 @@ export async function POST({ locals, request }) {
   const format = formats.find((item) => item.type === file.type && item.signature.every((byte, index) => bytes[index] === byte) && (!item.suffix || item.suffix.every((byte, index) => bytes[index + 8] === byte)));
   if (!format) return json({ error: 'Format gambar harus JPG, PNG, atau WebP yang valid.' }, { status: 400 });
 
-  const uploadUrl = await convexMutation('files:generateUploadUrl');
-  const uploadResponse = await fetch(uploadUrl, { method: 'POST', headers: { 'content-type': format.type }, body: bytes });
+  let uploadUrl;
+  try {
+    uploadUrl = await convexMutation('files:generateUploadUrl');
+  } catch {
+    return json({ error: 'Gambar gagal disimpan.' }, { status: 503 });
+  }
+
+  let uploadResponse;
+  try {
+    uploadResponse = await fetchWithRetry(uploadUrl, { method: 'POST', headers: { 'content-type': format.type }, body: bytes }, { timeoutMs: 20_000, retries: 0 });
+  } catch {
+    return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
+  }
   if (!uploadResponse.ok) return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
-  const { storageId } = await uploadResponse.json();
-  const url = await convexMutation('files:getUrl', { storageId });
+  let storageId;
+  try {
+    ({ storageId } = await uploadResponse.json());
+  } catch {
+    return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
+  }
+  if (!storageId) return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
+
+  let url;
+  try {
+    url = await convexMutation('files:getUrl', { storageId });
+  } catch {
+    return json({ error: 'Gambar gagal disimpan.' }, { status: 503 });
+  }
   return json({ url }, { status: 201 });
 }
