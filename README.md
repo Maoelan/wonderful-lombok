@@ -79,6 +79,14 @@ Configure the variables listed in `.env.example` through the hosting provider's 
 
 Set `PUBLIC_SITE_URL` to the final HTTPS domain before the public launch. Canonical URLs, language alternates, the sitemap, robots file, structured data, and production host redirects will then use that domain automatically. Add the optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` values after creating the client-owned webmaster accounts; no source-code change is required.
 
+Follow [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md) before and after each release. The post-deploy check is read-only:
+
+```bash
+SMOKE_BASE_URL=https://final-domain.example npm run smoke:prod
+```
+
+`smoke:prod` only sends GET requests. Do not run booking, upload, or catalog-mutation tests against production.
+
 Do not commit admin credentials, environment files, deploy keys, customer records, database exports, or backups. Rotate a credential immediately if it is ever exposed.
 
 ## Security notes
