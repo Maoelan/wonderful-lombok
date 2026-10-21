@@ -80,6 +80,8 @@ The catalog uses a revision-aware save. Deploying the app before Convex makes ad
 
 Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Follow the ownership, visibility, and rotation rules in [ENVIRONMENT.md](ENVIRONMENT.md). Then deploy the SvelteKit application to Vercel.
 
+Booking data, location fields, the retention target, and the admin export/deletion process are documented in [PRIVACY.md](PRIVACY.md). The retention period and public consent wording still need owner and legal approval.
+
 Set `PUBLIC_SITE_URL` to the final HTTPS domain before the public launch. Canonical URLs, language alternates, the sitemap, robots file, structured data, and production host redirects will then use that domain automatically. Add the optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` values after creating the client-owned webmaster accounts; no source-code change is required.
 
 Follow [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md) before and after each release. The post-deploy check is read-only:

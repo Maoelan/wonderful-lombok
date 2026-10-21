@@ -17,6 +17,7 @@
   let saveError = '';
   let uploading = '';
   let bookingsLoading = false;
+  let deletingBookingId = '';
 
   const leaveGuard = createUnsavedChangesGuard({
     isDirty: () => dirty,
@@ -48,6 +49,7 @@
   });
 
   async function refreshBookings(silent = false) {
+    if (deletingBookingId) return;
     if (!silent) bookingsLoading = true;
     try {
       const response = await fetch('/api/admin/bookings');
@@ -223,6 +225,26 @@
     if (!response.ok) { saveError = 'Status pemesanan gagal diperbarui.'; return; }
     item.status = status; bookings = [...bookings];
   }
+
+  async function deleteBookingRecord(item) {
+    if (deletingBookingId) return;
+    if (!confirm(`Hapus pemesanan ${item.code}? Data pelanggan akan dihapus permanen.`)) return;
+    deletingBookingId = item.id;
+    saveError = '';
+    try {
+      const response = await fetch(`/api/admin/bookings/${item.id}`, { method: 'DELETE' });
+      if (response.status === 204) {
+        bookings = bookings.filter((booking) => booking.id !== item.id);
+        return;
+      }
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || 'Pemesanan gagal dihapus.');
+    } catch (error) {
+      saveError = error.message;
+    } finally {
+      deletingBookingId = '';
+    }
+  }
 </script>
 
 <svelte:head><title>Admin | Wonderful Lombok</title><meta name="robots" content="noindex,nofollow" /></svelte:head>
@@ -272,12 +294,12 @@
       </section>
     {:else if active === 'bookings'}
       <section class="admin-section" aria-labelledby="admin-bookings-title">
-        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div>
+        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><div class="admin-heading-actions"><a class="admin-secondary" href="/api/admin/bookings/export">Unduh CSV</a><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div></div>
         {#if bookings.length}
           <div class="booking-admin-list">{#each bookings as item}<article>
             <div class="booking-code"><b>{item.code}</b><span>{new Date(item.created_at).toLocaleString('id-ID')}</span></div>
             <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span></p></div>
-            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label></div>
+            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label><button class="booking-delete" type="button" on:click={() => deleteBookingRecord(item)} disabled={deletingBookingId === item.id} aria-label="Hapus pemesanan {item.code}">{deletingBookingId === item.id ? 'Menghapus…' : 'Hapus'}</button></div>
           </article>{/each}</div>
         {:else}<div class="admin-empty"><strong>Belum ada pemesanan</strong><p>Pesanan yang dibuat pelanggan akan muncul otomatis di halaman ini.</p></div>{/if}
       </section>

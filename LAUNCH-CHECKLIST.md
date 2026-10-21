@@ -1,6 +1,6 @@
 # Wonderful Lombok Launch Checklist
 
-Use this checklist for every production release. It complements [SECURITY.md](SECURITY.md) and [SEO-LAUNCH-CHECKLIST.md](SEO-LAUNCH-CHECKLIST.md). Never place secret values, customer data, or production exports in this repository.
+Use this checklist for every production release. It complements [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), and [SEO-LAUNCH-CHECKLIST.md](SEO-LAUNCH-CHECKLIST.md). Never place secret values, customer data, or production exports in this repository.
 
 ## 1. Before deployment
 
@@ -80,4 +80,4 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
 - The CI secret scan is a high-confidence tracked-file check, not full-history scanning. GitHub-native push protection and full-history scanning still need repository-owner setup.
-- Media/privacy lifecycle, catalog translation persistence, and backup/restore testing remain open Issue #6 items.
+- Privacy notice/consent, automated retention expiry, catalog translation persistence, and backup/restore testing remain open Issue #6 items. The booking export/deletion procedure is documented in [PRIVACY.md](PRIVACY.md).

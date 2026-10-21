@@ -46,6 +46,14 @@ export async function getBookings() {
   return convexQuery('bookings:list');
 }
 
+export async function getBookingsForExport() {
+  return convexQuery('bookings:exportList');
+}
+
 export async function updateBookingStatus(id, status) {
   return convexMutation('bookings:setStatus', { id, status });
+}
+
+export async function deleteBooking(id) {
+  return convexMutation('bookings:remove', { id });
 }

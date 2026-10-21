@@ -33,7 +33,9 @@ Rate limits are enforced in process memory with these rules:
 - routing: 120 requests per hour per client address;
 - uploads: 30 requests per hour per admin;
 - catalog saves: 120 requests per hour per admin;
-- booking status changes: 240 requests per hour per admin.
+- booking status changes: 240 requests per hour per admin;
+- booking exports: 20 requests per hour per admin;
+- booking deletions: 60 requests per hour per admin.
 
 A limited response includes `Retry-After` in seconds.
 
@@ -54,6 +56,10 @@ Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared
 This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
 
 When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save.
+
+## Booking data access
+
+Booking records contain customer name, WhatsApp number, travel details, and travel coordinates. They are available only to authenticated admins. The CSV export route sends `Cache-Control: no-store` and is rate-limited. Deleting a booking requires an authenticated admin, a trusted `Origin`, and an explicit confirmation in the admin UI; the mutation removes the booking and its idempotency record. The full data inventory, retention target, and export/deletion procedure are in [PRIVACY.md](PRIVACY.md).
 
 ## Secret handling
 
