@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { deleteBooking, updateBookingStatus } from '#lib/server/db.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { logServerError } from '#lib/server/diagnostics.js';
 
 export async function PATCH({ locals, params, request }) {
   if (!locals.user) return json({ error: 'Sesi admin tidak valid.' }, { status: 401 });
@@ -23,7 +24,8 @@ export async function DELETE({ locals, params }) {
   let deleted;
   try {
     deleted = await deleteBooking(params.id);
-  } catch {
+  } catch (cause) {
+    logServerError('booking_delete_failed', cause, { operation: 'admin_booking_delete' });
     return json({ error: 'Pemesanan gagal dihapus.' }, { status: 503 });
   }
   if (!deleted) return json({ error: 'Pemesanan tidak ditemukan.' }, { status: 404 });

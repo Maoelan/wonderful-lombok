@@ -88,6 +88,43 @@ test('reordered rentals and FAQs are matched by their stable content', () => {
   assert.notEqual(merged.faqs[0].questionEn, firstFaq.questionEn);
 });
 
+test('reordered package price tiers keep their stable keys and defaults', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.priceTiers = [packageItem.priceTiers[1], packageItem.priceTiers[0]];
+
+  const merged = mergeCatalogData({ ...defaultCatalog, packages: [packageItem] });
+
+  assert.deepEqual(merged.packages[0].priceTiers.map((tier) => tier.key), ['6-10-orang', '1-5-orang']);
+  assert.equal(merged.packages[0].priceTiers[0].guestsEn, '6-10 people');
+  assert.equal(merged.packages[0].priceTiers[1].guestsEn, '1-5 people');
+});
+
+test('renamed rentals and FAQs keep their stable slug and bundled defaults', () => {
+  const rental = defaultCatalog.rentals[0];
+  const faq = defaultCatalog.faqs[0];
+  const merged = mergeCatalogData({
+    ...defaultCatalog,
+    rentals: [{ ...rental, name: 'Nama rental baru' }],
+    faqs: [{ ...faq, question: 'Pertanyaan baru?' }]
+  });
+
+  assert.equal(merged.rentals[0].slug, rental.slug);
+  assert.equal(merged.rentals[0].nameEn, rental.nameEn);
+  assert.equal(merged.faqs[0].slug, faq.slug);
+  assert.equal(merged.faqs[0].questionEn, faq.questionEn);
+});
+
+test('new rentals and FAQs receive stable slugs for later renames', () => {
+  const merged = mergeCatalogData({
+    ...defaultCatalog,
+    rentals: [{ symbol: 'x', name: 'Rental Baru', detail: 'Detail', price: 'Rp1' }],
+    faqs: [{ question: 'Pertanyaan baru?', answer: 'Jawaban baru.' }]
+  });
+
+  assert.equal(merged.rentals[0].slug, 'rental-baru');
+  assert.equal(merged.faqs[0].slug, 'pertanyaan-baru');
+});
+
 test('missing catalog data falls back to the bundled catalog', () => {
   const merged = mergeCatalogData(undefined);
 

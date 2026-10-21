@@ -1,4 +1,5 @@
-import { slugify } from '../i18n.js';
+import { defaultCatalog } from '../catalog.js';
+import { destinationSlug, localeTag, slugify } from '../i18n.js';
 
 const hasText = (value) => typeof value === 'string' ? value.trim().length > 0 : value !== undefined && value !== null;
 const hasItems = (value) => Array.isArray(value) && value.length > 0;
@@ -293,8 +294,67 @@ Object.assign(packageDetailTranslations, {
   ]
 });
 
+const keyedTranslations = (keys, records) => new Map(keys.map((key, index) => [key, records?.[index] || {}]));
+const defaultKeys = {
+  packages: defaultCatalog.packages.map((item) => item.slug),
+  destinations: defaultCatalog.destinations.map((item) => destinationSlug(item)),
+  rentals: defaultCatalog.rentals.map((item) => item.slug || slugify(item.name)),
+  faqs: defaultCatalog.faqs.map((item) => item.slug || slugify(item.question))
+};
+const translationsByLocale = Object.fromEntries(Object.entries(catalogTranslations).map(([code, translation]) => [code, {
+  packages: keyedTranslations(defaultKeys.packages, translation.packages),
+  destinations: keyedTranslations(defaultKeys.destinations, translation.destinations),
+  rentals: keyedTranslations(defaultKeys.rentals, translation.rentals),
+  faqs: keyedTranslations(defaultKeys.faqs, translation.faqs)
+}]));
+const detailsByLocale = Object.fromEntries(Object.entries(packageDetailTranslations).map(([code, records]) => [
+  code,
+  keyedTranslations(defaultKeys.packages, records)
+]));
+const tierTranslationsByLocale = Object.fromEntries(Object.entries(packageDetailTranslations).map(([code, records]) => {
+  const byPackage = new Map();
+  defaultCatalog.packages.forEach((item, index) => {
+    const detail = records?.[index] || {};
+    byPackage.set(item.slug, new Map((item.priceTiers || []).map((tier, tierIndex) => [
+      tier.key || slugify(tier.guests),
+      detail.priceTiers?.[tierIndex] || {}
+    ])));
+  });
+  return [code, byPackage];
+}));
+const defaultsBySlug = (items) => new Map(items.map((item) => [item.slug || slugify(item.name || item.question), item]));
+const defaultRentals = defaultsBySlug(defaultCatalog.rentals);
+const defaultFaqs = defaultsBySlug(defaultCatalog.faqs);
+const itemKey = (item, field = 'name') => item?.slug || slugify(item?.[field]);
+
+function localizedRentalPrice(item, locale, fallback, defaultItem) {
+  const edited = !defaultItem || item.price !== defaultItem.price;
+  if (locale === 'id') return item.price;
+  if (locale === 'en') return edited ? item.price : hasText(item.priceEn) ? item.priceEn : item.price;
+  if (edited) return item.price;
+  return hasText(fallback.price) ? fallback.price : item.price;
+}
+
+function replaceTravelRate(value, rate, locale) {
+  const formatted = new Intl.NumberFormat(localeTag(locale), { maximumFractionDigits: 0 }).format(rate);
+  return String(value || '').replace(/\b10(?:[.,\s\u00a0]000)\b/g, formatted);
+}
+
+function localizedFaqField(item, field, locale, fallback, defaultItem, travelRate) {
+  const english = item?.[`${field}En`];
+  let value;
+  if (locale === 'id') value = item?.[field];
+  else if (defaultItem && item?.[field] !== defaultItem[field]) value = item?.[field];
+  else if (locale === 'en') value = hasText(english) ? english : item?.[field];
+  else value = hasText(fallback[field]) ? fallback[field] : hasText(english) ? english : item?.[field];
+
+  if (field === 'answer' && defaultItem && item.answer === defaultItem.answer && Number(travelRate) !== Number(defaultCatalog.travelRate)) {
+    value = replaceTravelRate(value, travelRate, locale);
+  }
+  return value;
+}
+
 export function localizeCatalog(catalog, locale) {
-  const translation = catalogTranslations[locale];
   const settings = { ...(catalog.settings || {}) };
   const settingsFallback = localizedSettings[locale] || {};
   for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedField(settings, field, locale, settingsFallback[field]);
@@ -302,9 +362,10 @@ export function localizeCatalog(catalog, locale) {
   const localizedCatalog = {
     ...catalog,
     settings,
-    packages: (catalog.packages || []).map((item, index) => {
-      const packageFallback = translation?.packages?.[index] || {};
-      const detailFallback = packageDetailTranslations[locale]?.[index] || {};
+    packages: (catalog.packages || []).map((item) => {
+      const packageFallback = translationsByLocale[locale]?.packages?.get(itemKey(item)) || {};
+      const detailFallback = detailsByLocale[locale]?.get(itemKey(item)) || {};
+      const tierFallbacks = tierTranslationsByLocale[locale]?.get(itemKey(item));
       return {
         ...item,
         slug: item.slug || slugify(item.name),
@@ -317,11 +378,11 @@ export function localizeCatalog(catalog, locale) {
         itinerary: localizedList(item, 'itinerary', locale, detailFallback.itinerary),
         includes: localizedList(item, 'includes', locale, detailFallback.includes),
         excludes: localizedList(item, 'excludes', locale, detailFallback.excludes),
-        priceTiers: (item.priceTiers || []).map((tier, tierIndex) => localizedTier(tier, locale, detailFallback.priceTiers?.[tierIndex]))
+        priceTiers: (item.priceTiers || []).map((tier, tierIndex) => localizedTier(tier, locale, tierFallbacks?.get(tier.key || slugify(tier.guests)) || detailFallback.priceTiers?.[tierIndex]))
       };
     }),
-    destinations: (catalog.destinations || []).map((item, index) => {
-      const fallback = translation?.destinations?.[index] || {};
+    destinations: (catalog.destinations || []).map((item) => {
+      const fallback = translationsByLocale[locale]?.destinations?.get(destinationSlug(item)) || {};
       return {
         ...item,
         name: localizedField(item, 'name', locale, fallback.name),
@@ -329,23 +390,26 @@ export function localizeCatalog(catalog, locale) {
         detail: localizedField(item, 'detail', locale, fallback.detail)
       };
     }),
-    faqs: (catalog.faqs || []).map((item, index) => {
-      const fallback = translation?.faqs?.[index] || {};
+    faqs: (catalog.faqs || []).map((item) => {
+      const key = itemKey(item, 'question');
+      const fallback = translationsByLocale[locale]?.faqs?.get(key) || {};
+      const defaultItem = defaultFaqs.get(key);
       return {
         ...item,
         question: localizedField(item, 'question', locale, fallback.question),
-        answer: localizedField(item, 'answer', locale, fallback.answer)
+        answer: localizedFaqField(item, 'answer', locale, fallback, defaultItem, catalog.travelRate)
       };
     })
   };
   if (catalog.rentals) {
-    localizedCatalog.rentals = catalog.rentals.map((item, index) => {
-      const fallback = translation?.rentals?.[index] || {};
+    localizedCatalog.rentals = catalog.rentals.map((item) => {
+      const key = itemKey(item);
+      const fallback = translationsByLocale[locale]?.rentals?.get(key) || {};
       return {
         ...item,
         name: localizedField(item, 'name', locale, fallback.name),
         detail: localizedField(item, 'detail', locale, fallback.detail),
-        price: localizedField(item, 'price', locale, fallback.price)
+        price: localizedRentalPrice(item, locale, fallback, defaultRentals.get(key))
       };
     });
   }

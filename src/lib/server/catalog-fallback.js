@@ -1,4 +1,5 @@
 import { error } from '@sveltejs/kit';
+import { logServerError } from './diagnostics.js';
 
 export const maintenanceMessages = Object.freeze({
   id: 'Katalog sedang tidak dapat dimuat. Silakan coba lagi beberapa saat lagi.',
@@ -18,7 +19,8 @@ export function maintenanceMessage(locale = 'id') {
 export async function loadCatalogOrMaintenance(loadCatalog, locale = 'id') {
   try {
     return await loadCatalog();
-  } catch {
+  } catch (cause) {
+    logServerError('catalog_load_failed', cause, { locale });
     error(503, maintenanceMessage(locale));
   }
 }

@@ -39,7 +39,7 @@ Coordinates are kept with the booking because operations need the pickup point f
 The current operating target is:
 
 - booking records: delete 12 months after the travel date, or earlier when the customer requests deletion and there is no open operational or legal need to keep them;
-- removed catalog media: delete on the next successful catalog save, as implemented in `catalog:save`;
+- removed catalog media: delete permanently on the next successful catalog save, as implemented in `catalog:save`; the admin confirmation warns that there is no undo, so keep an approved backup before removing media that may be needed again;
 - orphaned uploads that were never saved: review monthly and delete;
 - application logs: the application does not write booking payloads or secrets to logs. Hosting and database logs follow the provider's retention settings.
 

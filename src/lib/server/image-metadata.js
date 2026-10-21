@@ -56,7 +56,7 @@ function readExifOrientation(payload) {
     const entry = ifdOffset + 2 + index * 12;
     if (entry + 12 > tiff.length) break;
     if (read16(tiff, entry) !== 0x0112) continue;
-    if (read16(tiff, entry + 2) !== 3 || read16(tiff, entry + 4) < 1) return null;
+    if (read16(tiff, entry + 2) !== 3 || read32(tiff, entry + 4) !== 1) return null;
     const orientation = read16(tiff, entry + 8);
     return orientation >= 1 && orientation <= 8 ? orientation : null;
   }

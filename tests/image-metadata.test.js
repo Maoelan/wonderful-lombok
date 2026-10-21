@@ -17,6 +17,7 @@ const concat = (parts) => {
   }
   return result;
 };
+const u16be = (value) => new Uint8Array([(value >>> 8) & 0xff, value & 0xff]);
 const u32be = (value) => new Uint8Array([(value >>> 24) & 0xff, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff]);
 const u32le = (value) => new Uint8Array([value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff]);
 const readU32le = (value, offset) => value[offset] | (value[offset + 1] << 8) | (value[offset + 2] << 16) | (value[offset + 3] << 24);
@@ -49,6 +50,17 @@ function jpegExif(orientation, canary = 'GPS-CANARY') {
   return concat([new Uint8Array([0xff, 0xe1, (length >>> 8) & 0xff, length & 0xff]), payload]);
 }
 
+function jpegExifBigEndian(orientation, canary = 'GPS-CANARY') {
+  const tiff = concat([
+    ascii('MM'), u16be(42), u32be(8), u16be(1),
+    u16be(0x0112), u16be(3), u32be(1), u16be(orientation), u16be(0),
+    u32be(0), ascii(canary)
+  ]);
+  const payload = concat([ascii('Exif\u0000\u0000'), tiff]);
+  const length = payload.length + 2;
+  return concat([new Uint8Array([0xff, 0xe1, (length >>> 8) & 0xff, length & 0xff]), payload]);
+}
+
 test('strips JPEG EXIF/GPS but preserves orientation and image data', () => {
   const original = bytes(JPEG);
   const withMetadata = concat([original.subarray(0, 2), jpegExif(6), original.subarray(2)]);
@@ -64,6 +76,15 @@ test('strips JPEG EXIF/GPS but preserves orientation and image data', () => {
   const resultScan = findSequence(result, new Uint8Array([0xff, 0xda]));
   assert.ok(originalScan > 0 && resultScan > 0);
   assert.deepEqual(result.subarray(resultScan), original.subarray(originalScan));
+});
+
+test('preserves orientation from big-endian EXIF', () => {
+  const original = bytes(JPEG);
+  const withMetadata = concat([original.subarray(0, 2), jpegExifBigEndian(8), original.subarray(2)]);
+  const result = stripImageMetadata(withMetadata, 'image/jpeg');
+
+  assert.equal(includesAscii(result, 'GPS-CANARY'), false);
+  assert.notEqual(findSequence(result, new Uint8Array([0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 8, 0x00])), -1);
 });
 
 test('leaves a clean JPEG unchanged and drops orientation 1 metadata', () => {

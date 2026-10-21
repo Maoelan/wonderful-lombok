@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { defaultCatalog } from '../src/lib/catalog.js';
 
 const publicI18nUrl = new URL('../src/lib/i18n.js', import.meta.url);
 const serverCatalogI18nUrl = new URL('../src/lib/server/catalog-i18n.js', import.meta.url);
@@ -19,10 +20,7 @@ test('server catalog localization keeps rental translations when rentals are pre
     packages: [],
     destinations: [],
     faqs: [],
-    rentals: [
-      { name: 'Private Car', detail: 'Car detail', price: 'Mulai Rp450.000' },
-      { name: 'Rental Motor', detail: 'Detail rental', price: 'Mulai Rp75.000' }
-    ]
+    rentals: structuredClone(defaultCatalog.rentals)
   };
   const localized = localizeCatalog(catalog, 'zh-cn');
   assert.equal(localized.rentals[0].name, '私人汽车与司机');

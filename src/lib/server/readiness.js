@@ -1,3 +1,5 @@
+import { logServerError } from './diagnostics.js';
+
 const BASE_REQUIRED_ENV = ['PUBLIC_CONVEX_URL', 'CONVEX_SERVER_SECRET'];
 const PRODUCTION_REQUIRED_ENV = [...BASE_REQUIRED_ENV, 'PUBLIC_SITE_URL'];
 
@@ -23,7 +25,8 @@ export async function readinessReport({ env = process.env, checkDependency } = {
   try {
     await checkDependency();
     return { ready: true, checks: { config: true, dependency: true }, missing: [] };
-  } catch {
+  } catch (cause) {
+    logServerError('readiness_dependency_failed', cause, { operation: 'readiness_check' });
     return { ready: false, checks: { config: true, dependency: false }, missing: [] };
   }
 }

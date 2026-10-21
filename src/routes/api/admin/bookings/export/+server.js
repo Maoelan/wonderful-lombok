@@ -3,6 +3,7 @@ import { getBookingsForExport } from '#lib/server/db.js';
 import { bookingsToCsv } from '#lib/server/bookings-csv.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { logServerError } from '#lib/server/diagnostics.js';
 
 export async function GET({ locals }) {
   if (!locals.user) return json({ error: 'Sesi admin tidak valid.' }, { status: 401 });
@@ -12,7 +13,8 @@ export async function GET({ locals }) {
   let bookings;
   try {
     bookings = await getBookingsForExport();
-  } catch {
+  } catch (cause) {
+    logServerError('booking_export_failed', cause, { operation: 'admin_booking_export' });
     return json({ error: 'Data pemesanan gagal dimuat.' }, { status: 503 });
   }
 

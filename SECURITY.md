@@ -55,7 +55,7 @@ Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared
 
 This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
 
-When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save.
+When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including links or URLs inside rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save. Deletion is permanent and cannot be undone; admin confirmations call this out, and `PRIVACY.md` records the operational procedure.
 
 ## Booking data access
 

@@ -1,15 +1,20 @@
 const STORAGE_URL = /^https:\/\/[^/]+\/api\/storage\/([A-Za-z0-9_-]+)(?:[?#].*)?$/;
+const STORAGE_URL_IN_TEXT = /https:\/\/[^/\s"'<>]+\/api\/storage\/([A-Za-z0-9_-]+)(?:[?#][^\s"'<>]*)?(?=$|[\s"'<>])/g;
 
 export function storageIdFromUrl(value) {
   if (typeof value !== 'string') return null;
   return value.match(STORAGE_URL)?.[1] ?? null;
 }
 
+export function storageIdsInText(value) {
+  if (typeof value !== 'string') return [];
+  return [...value.matchAll(STORAGE_URL_IN_TEXT)].map((match) => match[1]);
+}
+
 export function collectStorageIds(value, ids = new Set(), depth = 0) {
   if (depth > 20) return ids;
   if (typeof value === 'string') {
-    const storageId = storageIdFromUrl(value);
-    if (storageId) ids.add(storageId);
+    for (const storageId of storageIdsInText(value)) ids.add(storageId);
     return ids;
   }
   if (Array.isArray(value)) {

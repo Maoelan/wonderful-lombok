@@ -1,5 +1,6 @@
 import { getSiteOrigin } from '#lib/server/site-url.js';
 import { getPublicCatalog } from '#lib/server/db.js';
+import { logServerError } from '#lib/server/diagnostics.js';
 import { destinationSlug, languages, localePath } from '#lib/i18n.js';
 
 const escapeXml = (value) => value.replace(/[<>&'\"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[character]);
@@ -9,7 +10,8 @@ export async function GET({ url }) {
   let catalog;
   try {
     catalog = await getPublicCatalog();
-  } catch {
+  } catch (cause) {
+    logServerError('sitemap_catalog_load_failed', cause, { operation: 'sitemap' });
     return new Response('Sitemap sementara tidak tersedia.', {
       status: 503,
       headers: {

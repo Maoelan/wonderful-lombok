@@ -99,7 +99,7 @@ Do not commit admin credentials, environment files, deploy keys, customer record
 - Administrative access is authenticated and server-side mutations require an active session.
 - Session cookies use production-safe browser attributes and mutation requests are origin-checked.
 - Uploaded images are checked for format, signature, and size, then stripped of EXIF/GPS and other metadata before storage; catalog content is validated before saving.
-- Convex-hosted images removed from the catalog are deleted after a successful save if no catalog field still references them.
+- Convex-hosted images removed from the catalog are deleted after a successful save if no catalog field still references them, including URLs inside rich text. This deletion is permanent; the admin confirmation warns before saving.
 - Security headers are applied by the application.
 - Environment files, local Vercel metadata, private keys, dumps, and backups are excluded through `.gitignore`.
 - The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment.

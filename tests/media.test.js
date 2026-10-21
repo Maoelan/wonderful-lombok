@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collectStorageIds, deleteRemovedMedia, removedStorageIds, storageIdFromUrl } from '../convex/media.js';
+import { collectStorageIds, deleteRemovedMedia, removedStorageIds, storageIdFromUrl, storageIdsInText } from '../convex/media.js';
 
 const storage = (id) => `https://example.convex.cloud/api/storage/${id}`;
 
@@ -14,16 +14,20 @@ test('extracts Convex storage IDs from storage URLs', () => {
   assert.equal(storageIdFromUrl(null), null);
 });
 
-test('collects unique storage IDs from nested catalog strings', () => {
+test('collects storage IDs from exact URLs and rich text', () => {
+  assert.deepEqual(storageIdsInText(`<p><a href="${storage('inline')}">Open</a></p>`), ['inline']);
+  assert.deepEqual(storageIdsInText(`<p>${storage('one')} and ${storage('two')}?download=1</p>`), ['one', 'two']);
+  assert.deepEqual(storageIdsInText(`<a href="${storage('abc')}/extra">Invalid</a>`), []);
+
   const catalog = {
     packages: [
       { image: storage('one'), images: [storage('two'), storage('one')] },
       { image: 'https://commons.wikimedia.org/wiki/File:Example.jpg', images: [] }
     ],
-    settings: { heroImage: storage('three'), about: '<p>No image here</p>' }
+    settings: { heroImage: storage('three'), about: `<p><a href="${storage('four')}">Open</a></p>` }
   };
 
-  assert.deepEqual([...collectStorageIds(catalog)].sort(), ['one', 'three', 'two']);
+  assert.deepEqual([...collectStorageIds(catalog)].sort(), ['four', 'one', 'three', 'two']);
 });
 
 test('returns only storage IDs removed from the saved catalog', () => {
@@ -47,11 +51,13 @@ test('returns only storage IDs removed from the saved catalog', () => {
   assert.deepEqual(removedStorageIds(previous, previous), []);
 });
 
-test('keeps a storage ID that still appears in rich text', () => {
-  const previous = { settings: { about: `<p><img src="${storage('inline')}"></p>` } };
-  const next = { settings: { about: `<p>Kept: ${storage('inline')}</p>` } };
+test('keeps a storage ID that still appears in rich text and deletes one that was removed', () => {
+  const previous = { settings: { about: `<p><a href="${storage('inline')}">Inline file</a></p>` } };
+  const kept = { settings: { about: `<p><a href="${storage('inline')}">Inline file</a></p>` } };
+  const removed = { settings: { about: '<p>Link removed</p>' } };
 
-  assert.deepEqual(removedStorageIds(previous, next), []);
+  assert.deepEqual(removedStorageIds(previous, kept), []);
+  assert.deepEqual(removedStorageIds(previous, removed), ['inline']);
 });
 
 test('deletes removed media and tolerates a storage deletion failure', async () => {

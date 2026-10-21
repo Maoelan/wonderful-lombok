@@ -4,6 +4,7 @@ import { validateCatalog } from '#lib/server/catalog-validation.js';
 import { sanitizeCatalogRichText } from '#lib/server/rich-text.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { logServerError } from '#lib/server/diagnostics.js';
 
 const conflictMessage = 'Katalog telah diubah oleh sesi admin lain. Muat ulang halaman admin sebelum menyimpan lagi.';
 
@@ -27,7 +28,8 @@ export async function PUT({ locals, request }) {
   let result;
   try {
     result = await updateCatalog(catalog, expectedRevision);
-  } catch {
+  } catch (cause) {
+    logServerError('catalog_save_failed', cause, { operation: 'admin_catalog_update' });
     return json({ error: 'Katalog belum dapat disimpan. Coba lagi beberapa saat lagi.' }, { status: 503 });
   }
   if (result?.conflict) {

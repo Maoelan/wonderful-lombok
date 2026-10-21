@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { defaultCatalog } from '../src/lib/catalog.js';
 import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 
 const adminCatalog = {
@@ -15,7 +16,7 @@ const adminCatalog = {
     whatsapp: '+620000000000'
   },
   packages: [{
-    slug: 'admin-package',
+    slug: defaultCatalog.packages[0].slug,
     category: 'Kategori admin',
     categoryEn: 'Admin category',
     duration: '3 hari',
@@ -102,6 +103,65 @@ test('Chinese keeps its bundled translation and does not restore a hardcoded pri
   assert.equal(catalog.packages[0].price, 'Rp9.999.999');
 });
 
+test('reordered packages, rentals, and FAQs keep their own translations', () => {
+  const [firstPackage, secondPackage] = defaultCatalog.packages;
+  const [firstRental, secondRental] = defaultCatalog.rentals;
+  const [firstFaq, secondFaq] = defaultCatalog.faqs;
+  const catalog = localizeCatalog({
+    ...defaultCatalog,
+    packages: [secondPackage, firstPackage],
+    rentals: [secondRental, firstRental],
+    faqs: [secondFaq, firstFaq]
+  }, 'nl');
+
+  assert.equal(catalog.packages[0].slug, secondPackage.slug);
+  assert.equal(catalog.packages[0].name, 'Snorkeltocht langs de Gili-eilanden');
+  assert.equal(catalog.packages[1].name, 'Zuid-Lombok & Sasakcultuur');
+  assert.equal(catalog.rentals[0].slug, secondRental.slug);
+  assert.equal(catalog.rentals[0].name, 'Scooterverhuur');
+  assert.equal(catalog.rentals[1].name, 'Privéauto met chauffeur');
+  assert.equal(catalog.faqs[0].slug, secondFaq.slug);
+  assert.equal(catalog.faqs[0].question, 'Zijn alle reizen privé?');
+  assert.equal(catalog.faqs[1].question, 'Kan ik de route van een pakket aanpassen?');
+});
+
+test('reordered package price tiers keep their own translations', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.priceTiers = [packageItem.priceTiers[1], packageItem.priceTiers[0]];
+
+  const catalog = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'nl');
+
+  assert.equal(catalog.packages[0].priceTiers[0].guests, '6-10 personen');
+  assert.equal(catalog.packages[0].priceTiers[1].guests, '1-5 personen');
+});
+
+test('admin rental prices and FAQ edits are not overwritten by bundled copy', () => {
+  const rentals = structuredClone(defaultCatalog.rentals);
+  rentals[0].price = 'Mulai Rp999.000 per 10 jam';
+  const faqs = structuredClone(defaultCatalog.faqs);
+  const travelFaq = faqs.find((item) => item.slug === 'estimasi-paket-travel');
+  travelFaq.answer = 'Tarif sekarang Rp12.000 per kilometer.';
+
+  const catalog = localizeCatalog({ ...defaultCatalog, rentals, faqs }, 'nl');
+  const english = localizeCatalog({ ...defaultCatalog, rentals, faqs }, 'en');
+  const localizedTravelFaq = catalog.faqs.find((item) => item.slug === 'estimasi-paket-travel');
+  const englishTravelFaq = english.faqs.find((item) => item.slug === 'estimasi-paket-travel');
+
+  assert.equal(catalog.rentals[0].price, 'Mulai Rp999.000 per 10 jam');
+  assert.equal(catalog.rentals[1].price, 'Vanaf IDR 75.000 per 24 uur');
+  assert.equal(english.rentals[0].price, 'Mulai Rp999.000 per 10 jam');
+  assert.equal(localizedTravelFaq.answer, 'Tarif sekarang Rp12.000 per kilometer.');
+  assert.equal(englishTravelFaq.answer, 'Tarif sekarang Rp12.000 per kilometer.');
+});
+
+test('the FAQ travel-rate number follows the editable catalog rate', () => {
+  const catalog = localizeCatalog({ ...defaultCatalog, travelRate: 12_500 }, 'nl');
+  const travelFaq = catalog.faqs.find((item) => item.slug === 'estimasi-paket-travel');
+
+  assert.match(travelFaq.answer, /12\.500/);
+  assert.doesNotMatch(travelFaq.answer, /10\.000/);
+});
+
 test('Indonesian uses admin base content without the bundled fallback', () => {
   const catalog = localizeCatalog(adminCatalog, 'id');
 
@@ -110,6 +170,16 @@ test('Indonesian uses admin base content without the bundled fallback', () => {
   assert.equal(catalog.packages[0].priceTiers[0].guests, '1 orang');
   assert.equal(catalog.settings.heroTitle, 'Judul admin');
   assert.equal(catalog.rentals[0].price, 'Mulai Rp9.999.999');
+});
+
+test('an admin-only package slug falls back to the admin English field', () => {
+  const catalog = localizeCatalog({
+    ...adminCatalog,
+    packages: [{ ...adminCatalog.packages[0], slug: 'admin-only-package' }]
+  }, 'nl');
+
+  assert.equal(catalog.packages[0].name, 'Admin package');
+  assert.equal(catalog.packages[0].itinerary[0].title, 'Admin itinerary');
 });
 
 test('a locale without bundled copy falls back to the admin English field', () => {

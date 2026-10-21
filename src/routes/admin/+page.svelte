@@ -121,6 +121,17 @@
     editVersion += 1;
   }
 
+  function nextSlug(prefix, items, field = 'slug') {
+    const used = new Set((items || []).map((item) => item[field]).filter(Boolean));
+    let index = (items || []).length + 1;
+    let slug = `${prefix}-${index}`;
+    while (used.has(slug)) {
+      index += 1;
+      slug = `${prefix}-${index}`;
+    }
+    return slug;
+  }
+
   function updateRental(index, field, value) {
     catalog.rentals[index][field] = value;
     catalog = { ...catalog };
@@ -128,7 +139,7 @@
 
   function addPackage() {
     const name = 'Paket baru';
-    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], destinationSlugs: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
+    catalog.packages = [...catalog.packages, { slug: nextSlug(slugify(name), catalog.packages), category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], destinationSlugs: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ key: 'tier-1', guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
     catalog = { ...catalog };
     markDirty();
   }
@@ -141,7 +152,7 @@
     }).filter((day) => day.title));
   }
   function itineraryText(days) { return (days || []).map((day) => [day.title, ...(day.items || [])].join('\n')).join('\n\n'); }
-  function addPriceTier(index) { updatePackage(index, 'priceTiers', [...(catalog.packages[index].priceTiers || []), { guests: '1 orang', guestsEn: '1 guest', price: 'Rp0', note: 'per orang', noteEn: 'per person' }]); markDirty(); }
+  function addPriceTier(index) { const tiers = catalog.packages[index].priceTiers || []; updatePackage(index, 'priceTiers', [...tiers, { key: nextSlug('tier', tiers, 'key'), guests: '1 orang', guestsEn: '1 guest', price: 'Rp0', note: 'per orang', noteEn: 'per person' }]); markDirty(); }
   function updatePriceTier(packageIndex, tierIndex, field, value) { catalog.packages[packageIndex].priceTiers[tierIndex][field] = value; catalog = { ...catalog }; }
   function removePriceTier(packageIndex, tierIndex) { updatePackage(packageIndex, 'priceTiers', catalog.packages[packageIndex].priceTiers.filter((_, index) => index !== tierIndex)); markDirty(); }
 
@@ -157,13 +168,13 @@
   }
 
   function addDestination() {
-    catalog.destinations = [...catalog.destinations, { slug: `destinasi-${catalog.destinations.length + 1}`, name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
+    catalog.destinations = [...catalog.destinations, { slug: nextSlug('destinasi', catalog.destinations), name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
     catalog = { ...catalog };
     markDirty();
   }
 
   function removeDestination(index) {
-    if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}?`)) return;
+    if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}? Gambar yang hanya dipakai destinasi ini akan dihapus permanen setelah katalog disimpan.`)) return;
     const slug = catalog.destinations[index].slug;
     catalog.destinations = catalog.destinations.filter((_, itemIndex) => itemIndex !== index);
     catalog.packages = catalog.packages.map((item) => ({ ...item, destinationSlugs: (item.destinationSlugs || []).filter((value) => value !== slug) }));
@@ -177,7 +188,7 @@
   }
 
   function addFaq() {
-    catalog.faqs = [...catalog.faqs, { question: 'Pertanyaan baru', answer: 'Tulis jawaban yang membantu pelanggan.' }];
+    catalog.faqs = [...catalog.faqs, { slug: nextSlug('faq', catalog.faqs), question: 'Pertanyaan baru', answer: 'Tulis jawaban yang membantu pelanggan.' }];
     catalog = { ...catalog };
     markDirty();
   }
@@ -206,15 +217,15 @@
   }
 
   function clearImage(label, apply) {
-    if (confirm(`Hapus ${label}?`)) { apply(''); markDirty(); }
+    if (confirm(`Hapus ${label}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(''); markDirty(); }
   }
 
   function removeGalleryImage(images, imageIndex, apply) {
-    if (confirm(`Hapus gambar galeri nomor ${imageIndex + 1}?`)) { apply(images.filter((_, index) => index !== imageIndex)); markDirty(); }
+    if (confirm(`Hapus gambar galeri nomor ${imageIndex + 1}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(images.filter((_, index) => index !== imageIndex)); markDirty(); }
   }
 
   function removePackage(index) {
-    if (!confirm(`Hapus paket ${catalog.packages[index].name}?`)) return;
+    if (!confirm(`Hapus paket ${catalog.packages[index].name}? Gambar yang hanya dipakai paket ini akan dihapus permanen setelah katalog disimpan.`)) return;
     catalog.packages = catalog.packages.filter((_, itemIndex) => itemIndex !== index);
     catalog = { ...catalog };
     markDirty();
