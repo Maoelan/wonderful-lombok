@@ -1,7 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
+import { CATALOG_SCHEMA_VERSION } from '../src/lib/catalog-schema.js';
 import { mergeCatalogData } from '../src/lib/server/catalog-merge.js';
+
+test('legacy catalog data is normalized to the current schema version', () => {
+  const legacy = structuredClone(defaultCatalog);
+  delete legacy.schemaVersion;
+
+  assert.equal(mergeCatalogData(legacy).schemaVersion, CATALOG_SCHEMA_VERSION);
+});
+
+test('an unsupported catalog schema version is preserved for save-time rejection', () => {
+  const future = { ...structuredClone(defaultCatalog), schemaVersion: CATALOG_SCHEMA_VERSION + 1 };
+
+  assert.equal(mergeCatalogData(future).schemaVersion, CATALOG_SCHEMA_VERSION + 1);
+});
 
 test('reordered packages keep their own defaults', () => {
   const [first, second] = defaultCatalog.packages;

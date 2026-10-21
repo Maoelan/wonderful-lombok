@@ -27,7 +27,7 @@ This repository currently powers a showcase deployment. Production hosting and t
 - Lombok destination directory with image galleries and details.
 - Transfer calculator with geolocation, road routing, maps, and distance-based estimates.
 - Booking records stored in Convex before continuing through WhatsApp.
-- Custom admin CMS for catalog content, translations, rich text, images, settings, and bookings, with revision checks that reject stale concurrent saves.
+- Custom admin CMS for catalog content, translations, rich text, images, settings, and bookings, with versioned payload validation and revision checks that reject stale concurrent saves.
 - SEO essentials including metadata, canonical URLs, `hreflang`, `robots.txt`, and a sitemap.
 - Mobile-first responsive interface.
 - Rental functionality retained behind a disabled feature flag until the service is available.
@@ -76,7 +76,7 @@ Deploy the Convex functions and schema before the SvelteKit application:
 npx convex deploy
 ```
 
-The catalog uses a revision-aware save. Deploying the app before Convex makes admin saves fail closed with `503` instead of overwriting data.
+The catalog uses a revision-aware save. Deploying the app before Convex makes admin saves fail closed with `503` instead of overwriting data. Catalog payloads carry `schemaVersion: 1`; legacy data is normalized on read, and an unsupported version is rejected on save instead of being silently downgraded.
 
 Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Then deploy the SvelteKit application to Vercel.
 

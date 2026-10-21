@@ -1,4 +1,5 @@
 import { slugify } from '../i18n.js';
+import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
 
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
@@ -29,6 +30,7 @@ function validGallery(images) {
 
 export function validateCatalog(catalog) {
   if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog)) return 'Data katalog tidak valid.';
+  if (catalog.schemaVersion !== CATALOG_SCHEMA_VERSION) return 'Versi skema katalog tidak didukung.';
   if (!Array.isArray(catalog.packages) || !Array.isArray(catalog.destinations) || !Array.isArray(catalog.rentals) || !Array.isArray(catalog.faqs)) return 'Data katalog tidak lengkap.';
   if (catalog.packages.length > 30 || catalog.destinations.length > 50 || catalog.rentals.length > 30 || catalog.faqs.length > 30) return 'Jumlah item katalog terlalu banyak.';
 

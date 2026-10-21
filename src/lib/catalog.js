@@ -1,3 +1,5 @@
+import { CATALOG_SCHEMA_VERSION } from './catalog-schema.js';
+
 const commons = (file) => `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file).replace(/'/g, '%27')}?width=1600`;
 const p = {
   aan: commons('Tanjung Aan, Lombok.jpg'), aan2: commons('PANTAI TANJUNG AAN.jpg'), seger: commons('PANTAI SEGER.jpg'),
@@ -11,6 +13,7 @@ const p = {
 };
 
 export const defaultCatalog = {
+  schemaVersion: CATALOG_SCHEMA_VERSION,
   travelRate: 10_000,
   settings: {
     whatsapp: '6281916550731', email: 'hello@wonderfullombok.com', location: 'Lombok, Nusa Tenggara Barat', instagram: '', tiktok: '', facebook: '',
