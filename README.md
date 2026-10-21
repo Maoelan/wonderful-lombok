@@ -53,7 +53,7 @@ npm run admin:create
 npm run dev
 ```
 
-Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. Never commit real credentials or deployment secrets.
+Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. See [ENVIRONMENT.md](ENVIRONMENT.md) for variable purpose, visibility, ownership, and rotation cadence. Never commit real credentials or deployment secrets.
 
 Open `http://127.0.0.1:5173` after the development server starts.
 
@@ -78,7 +78,7 @@ npx convex deploy
 
 The catalog uses a revision-aware save. Deploying the app before Convex makes admin saves fail closed with `503` instead of overwriting data. Catalog payloads carry `schemaVersion: 1`; legacy data is normalized on read, and an unsupported version is rejected on save instead of being silently downgraded.
 
-Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Then deploy the SvelteKit application to Vercel.
+Configure the variables listed in `.env.example` through the hosting provider's protected environment settings, using production URLs and newly generated secrets. Follow the ownership, visibility, and rotation rules in [ENVIRONMENT.md](ENVIRONMENT.md). Then deploy the SvelteKit application to Vercel.
 
 Set `PUBLIC_SITE_URL` to the final HTTPS domain before the public launch. Canonical URLs, language alternates, the sitemap, robots file, structured data, and production host redirects will then use that domain automatically. Add the optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` values after creating the client-owned webmaster accounts; no source-code change is required.
 

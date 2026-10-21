@@ -49,4 +49,4 @@ Both booking forms include an off-screen `website` field that people do not see.
 
 ## Secret handling
 
-Environment variables are documented in `.env.example` (without values). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles. See Issue #6 and the deployment checklist for rotation ownership and cadence.
+Environment variables are documented in `.env.example` (without values). Their purpose, visibility, owner, and rotation cadence are recorded in [ENVIRONMENT.md](ENVIRONMENT.md). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles.
