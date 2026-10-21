@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
+  import { beforeNavigate } from '$app/navigation';
   import { slugify } from '#lib/i18n.js';
+  import { createUnsavedChangesGuard } from '#lib/unsaved-changes.js';
   import RichTextEditor from '#lib/RichTextEditor.svelte';
   import TrashIcon from '#lib/TrashIcon.svelte';
   export let data;
@@ -15,6 +17,12 @@
   let saveError = '';
   let uploading = '';
   let bookingsLoading = false;
+
+  const leaveGuard = createUnsavedChangesGuard({
+    isDirty: () => dirty,
+    confirmLeave: () => window.confirm('Ada perubahan yang belum disimpan. Tinggalkan halaman admin?')
+  });
+  beforeNavigate(leaveGuard.beforeNavigate);
 
   $: newBookings = bookings.filter((item) => item.status === 'baru');
   $: pageInfo = ({
@@ -31,7 +39,12 @@
     const timer = window.setInterval(() => { if (!document.hidden) refreshBookings(true); }, 15_000);
     const refreshVisible = () => { if (!document.hidden) refreshBookings(true); };
     document.addEventListener('visibilitychange', refreshVisible);
-    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refreshVisible); };
+    window.addEventListener('beforeunload', leaveGuard.beforeUnload);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refreshVisible);
+      window.removeEventListener('beforeunload', leaveGuard.beforeUnload);
+    };
   });
 
   async function refreshBookings(silent = false) {
