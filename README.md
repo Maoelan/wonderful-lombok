@@ -64,6 +64,7 @@ Open `http://127.0.0.1:5173` after the development server starts.
 
 ```bash
 npm test
+npm run scan:secrets
 npm run build
 ```
 

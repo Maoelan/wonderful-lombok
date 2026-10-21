@@ -10,7 +10,7 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Run `npm audit --audit-level=high`; record accepted residual findings.
 - [ ] Run the production build on Linux CI (`npm run build`). A local Windows build can stop at the Vercel adapter symlink step; that is an environment limitation, not a reason to skip CI.
 - [ ] Confirm CI and CodeQL are green for the release commit, or attach an explanation for any skipped job.
-- [ ] Complete the approved secret scan. Automated secret scanning in CI is still an open Issue #6 item.
+- [ ] Run `npm run scan:secrets`; CI runs the same high-confidence tracked-file scan. Keep repository secret scanning and push protection enabled where available.
 - [ ] Set `PUBLIC_SITE_URL` to the final HTTPS origin, without a trailing slash.
 - [ ] Confirm `PUBLIC_RENTAL_ENABLED=false` unless the owner has explicitly approved rentals for this release.
 - [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT` are configured in the hosting provider, not in the repository.
@@ -74,4 +74,5 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 - Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
-- Secret scanning, media/privacy lifecycle, catalog translation persistence, and backup/restore testing remain open Issue #6 items.
+- The CI secret scan is a high-confidence tracked-file check, not full-history scanning. GitHub-native push protection and full-history scanning still need repository-owner setup.
+- Media/privacy lifecycle, catalog translation persistence, and backup/restore testing remain open Issue #6 items.
