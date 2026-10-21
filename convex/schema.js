@@ -2,7 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
-  catalog: defineTable({ key: v.string(), data: v.any(), updatedAt: v.number() }).index('by_key', ['key']),
+  catalog: defineTable({ key: v.string(), data: v.any(), updatedAt: v.number(), revision: v.optional(v.number()) }).index('by_key', ['key']),
   admins: defineTable({ username: v.string(), passwordHash: v.string(), updatedAt: v.number() }).index('by_username', ['username']),
   sessions: defineTable({ tokenHash: v.string(), adminId: v.id('admins'), expiresAt: v.number() }).index('by_token', ['tokenHash']).index('by_admin', ['adminId']),
   bookings: defineTable({

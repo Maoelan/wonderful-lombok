@@ -22,12 +22,20 @@ export async function getCatalog() {
   return mergeCatalogData(await convexQuery('catalog:get'));
 }
 
+export async function getCatalogState() {
+  const state = await convexQuery('catalog:getWithRevision');
+  return {
+    catalog: mergeCatalogData(state?.data ?? null),
+    revision: state?.revision ?? 0
+  };
+}
+
 export async function getPublicCatalog() {
   return publicCatalog(await getCatalog(), process.env.PUBLIC_RENTAL_ENABLED === 'true');
 }
 
-export async function updateCatalog(data) {
-  await convexMutation('catalog:save', { data });
+export async function updateCatalog(data, expectedRevision) {
+  return convexMutation('catalog:save', { data, expectedRevision });
 }
 
 export async function createBooking(data) {

@@ -21,7 +21,7 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 
 ## 2. Deploy
 
-- [ ] Deploy the Convex functions: `npx convex deploy`.
+- [ ] Deploy the Convex functions and schema before the application: `npx convex deploy`. The admin save path requires `catalog:getWithRevision` and revision-aware `catalog:save`; an older deployment fails closed with `503` rather than overwriting the catalog.
 - [ ] Deploy the SvelteKit application from the approved commit.
 - [ ] Record the deployment URL, commit SHA, deployment time, and operator.
 - [ ] Do not run `showcase:seed` against production data.

@@ -5,10 +5,13 @@
   import TrashIcon from '#lib/TrashIcon.svelte';
   export let data;
   let catalog = structuredClone(data.catalog);
+  let catalogRevision = data.catalogRevision ?? 0;
   let bookings = data.bookings;
   let active = 'overview';
   let saved = false;
   let dirty = false;
+  let saving = false;
+  let editVersion = 0;
   let saveError = '';
   let uploading = '';
   let bookingsLoading = false;
@@ -46,6 +49,7 @@
   }
 
   async function persist() {
+    if (saving) return;
     saveError = '';
     if (!/^62\d{8,13}$/.test(catalog.settings.whatsapp.replace(/\D/g, ''))) {
       saveError = 'Nomor WhatsApp harus memakai format internasional, misalnya 628123456789.';
@@ -57,19 +61,36 @@
       active = 'settings';
       return;
     }
+    saving = true;
+    const editVersionAtSave = editVersion;
     try {
       const response = await fetch('/api/admin/catalog', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(catalog)
+        body: JSON.stringify({ catalog, expectedRevision: catalogRevision })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 409) {
+        dirty = true;
+        saved = false;
+        saveError = result.error || 'Katalog telah diubah oleh sesi admin lain. Muat ulang halaman admin sebelum menyimpan lagi.';
+        return;
+      }
       if (!response.ok) throw new Error(result.error || 'Perubahan gagal disimpan.');
-      dirty = false;
-      saved = true;
-      setTimeout(() => saved = false, 2400);
+      if (!Number.isInteger(result.revision)) throw new Error('Respons penyimpanan tidak valid. Muat ulang halaman admin.');
+      catalogRevision = result.revision;
+      if (editVersion === editVersionAtSave) {
+        dirty = false;
+        saved = true;
+        setTimeout(() => saved = false, 2400);
+      } else {
+        dirty = true;
+        saved = false;
+      }
     } catch (error) {
       saveError = error.message;
+    } finally {
+      saving = false;
     }
   }
 
@@ -82,6 +103,7 @@
     if (event?.target?.closest('.booking-admin-list')) return;
     dirty = true;
     saved = false;
+    editVersion += 1;
   }
 
   function updateRental(index, field, value) {
@@ -215,7 +237,7 @@
   <main class="admin-main" on:input={markDirty} on:change={markDirty}>
     <header class="admin-header">
       <div><p class="admin-kicker">Wonderful Lombok</p><h2>{pageInfo[0]}</h2><p>{pageInfo[1]}</p></div>
-      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty}>Simpan perubahan</button></div>
+      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving} aria-busy={saving}>{saving ? 'Menyimpan...' : 'Simpan perubahan'}</button></div>
     </header>
 
     {#if saveError}<p class="admin-error" role="alert">{saveError}</p>{/if}
