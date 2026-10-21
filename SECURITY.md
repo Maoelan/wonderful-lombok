@@ -47,6 +47,12 @@ The in-memory table is bounded. When it is full, new keys are rejected instead o
 
 Both booking forms include an off-screen `website` field that people do not see. The server rejects requests where that field is non-empty before any quote or persistence work happens.
 
+## Uploaded image metadata
+
+Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared MIME type and magic bytes, and capped at 5 MB per file and 5.5 MB per multipart request. Before the bytes are sent to Convex storage, JPEG EXIF/XMP/IPTC/comment segments, PNG `eXIf` and text chunks, and WebP `EXIF`/`XMP` chunks are removed. A JPEG orientation value is preserved with a minimal EXIF segment so phone photos are not rotated unexpectedly. Malformed images are rejected instead of being stored with their metadata.
+
+This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
+
 ## Secret handling
 
 Environment variables are documented in `.env.example` (without values). Their purpose, visibility, owner, and rotation cadence are recorded in [ENVIRONMENT.md](ENVIRONMENT.md). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles.

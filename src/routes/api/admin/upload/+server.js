@@ -3,6 +3,7 @@ import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
 import { fetchWithRetry } from '#lib/server/upstream.js';
 import { convexMutation } from '#lib/server/db.js';
+import { stripImageMetadata } from '#lib/server/image-metadata.js';
 import { validateUploadContent, validateUploadRequestSize, validateUploadSize } from '#lib/server/upload-validation.js';
 
 export async function POST({ locals, request }) {
@@ -22,6 +23,13 @@ export async function POST({ locals, request }) {
   if (!content.ok) return json({ error: content.error }, { status: content.status });
   const format = content.format;
 
+  let sanitized;
+  try {
+    sanitized = stripImageMetadata(bytes, format.type);
+  } catch {
+    return json({ error: 'Gambar tidak dapat diproses.' }, { status: 400 });
+  }
+
   let uploadUrl;
   try {
     uploadUrl = await convexMutation('files:generateUploadUrl');
@@ -31,7 +39,7 @@ export async function POST({ locals, request }) {
 
   let uploadResponse;
   try {
-    uploadResponse = await fetchWithRetry(uploadUrl, { method: 'POST', headers: { 'content-type': format.type }, body: bytes }, { timeoutMs: 20_000, retries: 0 });
+    uploadResponse = await fetchWithRetry(uploadUrl, { method: 'POST', headers: { 'content-type': format.type }, body: sanitized }, { timeoutMs: 20_000, retries: 0 });
   } catch {
     return json({ error: 'Gambar gagal disimpan.' }, { status: 502 });
   }
