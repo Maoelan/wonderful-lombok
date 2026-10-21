@@ -75,7 +75,13 @@ test('upstream aborts each attempt and keeps the retry bounded', async () => {
     fetchWithRetry('https://upstream.test/slow', {}, {
       fetchImpl: (_url, { signal }) => new Promise((resolve, reject) => {
         calls += 1;
-        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        const keepAlive = setTimeout(() => {}, 1_000);
+        const abort = () => {
+          clearTimeout(keepAlive);
+          reject(signal.reason);
+        };
+        if (signal.aborted) abort();
+        else signal.addEventListener('abort', abort, { once: true });
       }),
       timeoutMs: 5,
       retries: 1,
