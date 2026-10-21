@@ -1,6 +1,32 @@
 import { slugify } from '../i18n.js';
 
-const localized = (item, field, locale) => locale !== 'id' && item?.[`${field}En`] ? item[`${field}En`] : item?.[field];
+const hasText = (value) => typeof value === 'string' ? value.trim().length > 0 : value !== undefined && value !== null;
+const hasItems = (value) => Array.isArray(value) && value.length > 0;
+
+// English is the only locale with stored field-level catalog translations.
+// Other locales use the bundled locale copy for display fields, but that copy
+// must not replace admin-owned values such as package or price-tier amounts.
+const localizedField = (item, field, locale, fallback) => {
+  if (locale === 'id') return item?.[field];
+  const english = item?.[`${field}En`];
+  if (locale === 'en') return hasText(english) ? english : item?.[field];
+  if (hasText(fallback)) return fallback;
+  return hasText(english) ? english : item?.[field];
+};
+
+const localizedList = (item, field, locale, fallback) => {
+  if (locale === 'id') return item?.[field] || [];
+  const english = item?.[`${field}En`];
+  if (locale === 'en') return hasItems(english) ? english : item?.[field] || [];
+  if (hasItems(fallback)) return fallback;
+  return hasItems(english) ? english : item?.[field] || [];
+};
+
+const localizedTier = (tier, locale, fallback = {}) => ({
+  ...tier,
+  guests: localizedField(tier, 'guests', locale, fallback.guests),
+  note: localizedField(tier, 'note', locale, fallback.note)
+});
 
 const localizedSettings = {
   'zh-cn': { heroTitle: '按你的旅行方式，规划龙目岛。', heroDescription: '选择私人旅游、点对点接送或带司机的车辆。我们会根据你的时间安排合理路线。', aboutTitle: '一个联系人，安排你的龙目岛旅程。', aboutDescription: '从机场接机、海滩之间的接送到多日旅游，所有细节都会在出发前通过 WhatsApp 确认。' },
@@ -269,28 +295,59 @@ Object.assign(packageDetailTranslations, {
 
 export function localizeCatalog(catalog, locale) {
   const translation = catalogTranslations[locale];
-  const settings = { ...catalog.settings };
-  for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedSettings[locale]?.[field] || localized(settings, field, locale);
+  const settings = { ...(catalog.settings || {}) };
+  const settingsFallback = localizedSettings[locale] || {};
+  for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedField(settings, field, locale, settingsFallback[field]);
+
   const localizedCatalog = {
     ...catalog,
     settings,
-    packages: catalog.packages.map((item, index) => ({
-      ...item,
-      slug: item.slug || slugify(item.name),
-      name: localized(item, 'name', locale), route: localized(item, 'route', locale), detail: localized(item, 'detail', locale),
-      category: localized(item, 'category', locale), duration: localized(item, 'duration', locale), unit: localized(item, 'unit', locale),
-      itinerary: locale !== 'id' && item.itineraryEn?.length ? item.itineraryEn : item.itinerary || [],
-      includes: locale !== 'id' && item.includesEn?.length ? item.includesEn : item.includes || [],
-      excludes: locale !== 'id' && item.excludesEn?.length ? item.excludesEn : item.excludes || [],
-      priceTiers: (item.priceTiers || []).map((tier) => ({ ...tier, guests: localized(tier, 'guests', locale), note: localized(tier, 'note', locale) })),
-      ...(translation?.packages[index] || {}),
-      ...(packageDetailTranslations[locale]?.[index] || {})
-    })),
-    destinations: catalog.destinations.map((item, index) => ({ ...item, name: localized(item, 'name', locale), note: localized(item, 'note', locale), detail: localized(item, 'detail', locale), ...(translation?.destinations[index] || {}) })),
-    faqs: catalog.faqs.map((item, index) => ({ ...item, question: localized(item, 'question', locale), answer: localized(item, 'answer', locale), ...(translation?.faqs[index] || {}) }))
+    packages: (catalog.packages || []).map((item, index) => {
+      const packageFallback = translation?.packages?.[index] || {};
+      const detailFallback = packageDetailTranslations[locale]?.[index] || {};
+      return {
+        ...item,
+        slug: item.slug || slugify(item.name),
+        name: localizedField(item, 'name', locale, packageFallback.name),
+        route: localizedField(item, 'route', locale, packageFallback.route),
+        detail: localizedField(item, 'detail', locale, packageFallback.detail),
+        category: localizedField(item, 'category', locale, packageFallback.category),
+        duration: localizedField(item, 'duration', locale, packageFallback.duration),
+        unit: localizedField(item, 'unit', locale, packageFallback.unit),
+        itinerary: localizedList(item, 'itinerary', locale, detailFallback.itinerary),
+        includes: localizedList(item, 'includes', locale, detailFallback.includes),
+        excludes: localizedList(item, 'excludes', locale, detailFallback.excludes),
+        priceTiers: (item.priceTiers || []).map((tier, tierIndex) => localizedTier(tier, locale, detailFallback.priceTiers?.[tierIndex]))
+      };
+    }),
+    destinations: (catalog.destinations || []).map((item, index) => {
+      const fallback = translation?.destinations?.[index] || {};
+      return {
+        ...item,
+        name: localizedField(item, 'name', locale, fallback.name),
+        note: localizedField(item, 'note', locale, fallback.note),
+        detail: localizedField(item, 'detail', locale, fallback.detail)
+      };
+    }),
+    faqs: (catalog.faqs || []).map((item, index) => {
+      const fallback = translation?.faqs?.[index] || {};
+      return {
+        ...item,
+        question: localizedField(item, 'question', locale, fallback.question),
+        answer: localizedField(item, 'answer', locale, fallback.answer)
+      };
+    })
   };
   if (catalog.rentals) {
-    localizedCatalog.rentals = catalog.rentals.map((item, index) => ({ ...item, name: localized(item, 'name', locale), detail: localized(item, 'detail', locale), price: localized(item, 'price', locale), ...(translation?.rentals[index] || {}) }));
+    localizedCatalog.rentals = catalog.rentals.map((item, index) => {
+      const fallback = translation?.rentals?.[index] || {};
+      return {
+        ...item,
+        name: localizedField(item, 'name', locale, fallback.name),
+        detail: localizedField(item, 'detail', locale, fallback.detail),
+        price: localizedField(item, 'price', locale, fallback.price)
+      };
+    });
   }
   return localizedCatalog;
 }
