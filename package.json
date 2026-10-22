@@ -30,7 +30,7 @@
   "dependencies": {
     "@sveltejs/adapter-vercel": "^7.0.0",
     "convex": "^1.46.0",
-    "leaflet": "1.9.4",
+    "mapbox-gl": "^3.33.0",
     "xss": "^1.0.15"
   }
 }

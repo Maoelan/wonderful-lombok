@@ -19,8 +19,10 @@ export async function createBookingRequest({
   body,
   idempotencyKey,
   fetchImpl = globalThis.fetch,
+  googleMapsApiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY,
   loadCatalog,
   saveBooking,
+  consumeTravelQuote = async () => ({ allowed: true }),
   rentalEnabled = false,
   now = Date.now()
 }) {
@@ -49,13 +51,21 @@ export async function createBookingRequest({
   if (body.serviceType === 'travel') {
     let quote;
     try {
+      const usage = await consumeTravelQuote();
+      if (!usage.allowed) return failure('Terlalu banyak perhitungan rute. Coba lagi nanti.', 429);
       const catalog = await loadCatalog();
-      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl });
+      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl, apiKey: googleMapsApiKey, retries: 0 });
       verifyTravelQuote(details, quote);
     } catch (error) {
       return bookingFailure(error);
     }
-    details = { ...details, distanceKm: quote.distanceKm, estimatedPrice: quote.estimatedPrice, travelRate: quote.travelRate };
+    details = {
+      ...details,
+      distanceKm: quote.distanceKm,
+      durationMinutes: quote.durationMinutes,
+      estimatedPrice: quote.estimatedPrice,
+      travelRate: quote.travelRate
+    };
   }
 
   try {
