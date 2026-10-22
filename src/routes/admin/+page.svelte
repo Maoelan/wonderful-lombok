@@ -237,6 +237,23 @@
     item.status = status; bookings = [...bookings];
   }
 
+  function bookingItinerary(item) {
+    const details = item.details || {};
+    if (Array.isArray(details.stops) && details.stops.length) {
+      return details.stops.map((stop, index) => ({
+        label: index === 0 ? 'Jemput' : index === details.stops.length - 1 ? 'Tujuan' : `Perhentian ${index}`,
+        name: stop.name
+      }));
+    }
+    if (details.origin || details.destination) {
+      return [
+        ...(details.origin ? [{ label: 'Jemput', name: details.origin }] : []),
+        ...(details.destination ? [{ label: 'Tujuan', name: details.destination }] : [])
+      ];
+    }
+    return [];
+  }
+
   async function deleteBookingRecord(item) {
     if (deletingBookingId) return;
     if (!confirm(`Hapus pemesanan ${item.code}? Data pelanggan akan dihapus permanen.`)) return;
@@ -307,9 +324,9 @@
       <section class="admin-section" aria-labelledby="admin-bookings-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><div class="admin-heading-actions"><a class="admin-secondary" href="/api/admin/bookings/export">Unduh CSV</a><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div></div>
         {#if bookings.length}
-          <div class="booking-admin-list">{#each bookings as item}<article>
+          <div class="booking-admin-list">{#each bookings as item}{@const itinerary = bookingItinerary(item)}<article>
             <div class="booking-code"><b>{item.code}</b><span>{new Date(item.created_at).toLocaleString('id-ID')}</span></div>
-            <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span></p></div>
+            <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span>{#if item.details?.pickupTime}<span>Jam jemput: {item.details.pickupTime} WITA</span>{/if}</p>{#if itinerary.length}<ol class="booking-itinerary" aria-label="Rute perjalanan">{#each itinerary as stop}<li><span>{stop.label}</span><b>{stop.name}</b></li>{/each}</ol>{/if}{#if item.details?.distanceKm}<span class="booking-route-meta">{item.details.distanceKm} km{#if item.details.durationMinutes} · {item.details.durationMinutes} menit{/if} · {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.details.estimatedPrice || 0)}</span>{/if}</div>
             <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label><button class="booking-delete" type="button" on:click={() => deleteBookingRecord(item)} disabled={deletingBookingId === item.id} aria-label="Hapus pemesanan {item.code}">{deletingBookingId === item.id ? 'Menghapus…' : 'Hapus'}</button></div>
           </article>{/each}</div>
         {:else}<div class="admin-empty"><strong>Belum ada pemesanan</strong><p>Pesanan yang dibuat pelanggan akan muncul otomatis di halaman ini.</p></div>{/if}

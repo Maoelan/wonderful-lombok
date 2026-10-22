@@ -13,7 +13,7 @@ export const localePath = (locale, suffix = '') => locale === 'id' && !suffix ? 
 export const alternateUrls = (origin, suffix = '') => Object.fromEntries(languages.map(({ code }) => [code, `${origin}${localePath(code, suffix)}`]));
 export const localeTags = { id: 'id-ID', en: 'en-US', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW', nl: 'nl-NL', fr: 'fr-FR', de: 'de-DE', ms: 'ms-MY' };
 export const localeTag = (locale) => localeTags[locale] || localeTags.en;
-export const nominatimLanguage = (locale) => ({ ...localeTags, id: 'id', en: 'en', nl: 'nl', fr: 'fr', de: 'de', ms: 'ms' })[locale] || 'en';
+
 
 export function isLocale(value) {
   return supportedLocales.includes(value);
@@ -101,7 +101,7 @@ const mapCopy = {
     chooseDifferent: 'Pilih lokasi jemput dan tujuan yang berbeda.', waitForRoute: 'Tunggu sampai rute jalan dan biayanya berhasil dihitung.', completeBooking: 'Lengkapi nama, WhatsApp, tanggal, dan waktu penjemputan.', bookingSaveFailed: 'Pemesanan belum dapat disimpan.', bookingOpened: 'Ringkasan Paket Travel sudah dibuka di WhatsApp.',
     searchResultsPickup: 'Hasil pencarian lokasi jemput', searchResultsDestination: 'Hasil pencarian tujuan', swapLocations: 'Tukar lokasi jemput dan tujuan', interactiveMap: 'Peta interaktif rute penjemputan', zoomIn: 'Perbesar peta', zoomOut: 'Perkecil peta',
     bookingService: 'Paket Travel', whatsappGreeting: 'Halo Wonderful Lombok, saya ingin memesan Paket Travel.', codeLabel: 'Kode', nameLabel: 'Nama', accuracyLabel: 'Akurasi lokasi jemput', distanceLabel: 'Estimasi jarak', costLabel: 'Estimasi biaya', peopleValue: '{count} orang',
-    tooManySearches: 'Terlalu banyak pencarian. Coba lagi nanti.', placeQueryLength: 'Nama tempat harus berisi 3–120 karakter.', tooManyRoutes: 'Terlalu banyak permintaan rute. Coba lagi nanti.', routeOutsideLombok: 'Titik rute harus berada di Pulau Lombok.', routeNotFound: 'Rute jalan tidak ditemukan. Periksa kembali titik pada peta.', routeServiceDown: 'Layanan rute sedang tidak dapat dijangkau. Coba lagi sebentar.'
+    tooManySearches: 'Terlalu banyak pencarian. Coba lagi nanti.', placeQueryLength: 'Nama tempat harus berisi 3–120 karakter.', tooManyRoutes: 'Terlalu banyak permintaan rute. Coba lagi nanti.', routeOutsideLombok: 'Titik rute harus berada di daratan Pulau Lombok.', routeNotFound: 'Rute jalan tidak ditemukan. Periksa kembali titik pada peta.', routeNoRoadAccess: 'Rute ini tidak memiliki akses jalan darat. Pilih titik lain di dekat jalan.', routeServiceDown: 'Layanan rute sedang tidak dapat dijangkau. Coba lagi sebentar.'
   },
   en: {
     mapPoint: 'Map point {lat}, {lng}', mapLoadError: 'The map could not be loaded. Check your connection and try again.',
@@ -115,7 +115,7 @@ const mapCopy = {
     chooseDifferent: 'Choose different pick-up and destination points.', waitForRoute: 'Wait until the road route and price have been calculated.', completeBooking: 'Complete your name, WhatsApp number, date, and pick-up time.', bookingSaveFailed: 'The booking could not be saved.', bookingOpened: 'The travel request has opened in WhatsApp.',
     searchResultsPickup: 'Pick-up location search results', searchResultsDestination: 'Destination search results', swapLocations: 'Swap pick-up and destination', interactiveMap: 'Interactive pick-up route map', zoomIn: 'Zoom in', zoomOut: 'Zoom out',
     bookingService: 'Travel Service', whatsappGreeting: 'Hello Wonderful Lombok, I would like to book a travel service.', codeLabel: 'Code', nameLabel: 'Name', accuracyLabel: 'Pick-up location accuracy', distanceLabel: 'Estimated distance', costLabel: 'Estimated cost', peopleValue: '{count} people',
-    tooManySearches: 'Too many searches. Please try again later.', placeQueryLength: 'The place name must contain 3–120 characters.', tooManyRoutes: 'Too many route requests. Please try again later.', routeOutsideLombok: 'Both route points must be located in Lombok.', routeNotFound: 'No road route was found. Check the selected points on the map.', routeServiceDown: 'The routing service cannot be reached right now. Please try again shortly.'
+    tooManySearches: 'Too many searches. Please try again later.', placeQueryLength: 'The place name must contain 3–120 characters.', tooManyRoutes: 'Too many route requests. Please try again later.', routeOutsideLombok: 'Both route points must be on land in Lombok.', routeNotFound: 'No road route was found. Check the selected points on the map.', routeNoRoadAccess: 'This route has no road access. Choose another point near a road.', routeServiceDown: 'The routing service cannot be reached right now. Please try again shortly.'
   },
   'zh-cn': {
     mapPoint: '地图位置 {lat}, {lng}', mapLoadError: '地图暂时无法加载，请检查网络连接后重试。',
@@ -129,7 +129,7 @@ const mapCopy = {
     chooseDifferent: '请选择不同的接送地点和目的地。', waitForRoute: '请等待公路路线和价格计算完成。', completeBooking: '请填写姓名、WhatsApp 号码、日期和接送时间。', bookingSaveFailed: '无法保存预订。', bookingOpened: '接送预订摘要已在 WhatsApp 中打开。',
     searchResultsPickup: '接送地点搜索结果', searchResultsDestination: '目的地搜索结果', swapLocations: '交换接送地点和目的地', interactiveMap: '互动接送路线地图', zoomIn: '放大地图', zoomOut: '缩小地图',
     bookingService: '接送服务', whatsappGreeting: '您好 Wonderful Lombok，我想预订接送服务。', codeLabel: '编号', nameLabel: '姓名', accuracyLabel: '接送地点精度', distanceLabel: '预计距离', costLabel: '预计费用', peopleValue: '{count} 人',
-    tooManySearches: '搜索次数过多，请稍后再试。', placeQueryLength: '地点名称必须包含 3–120 个字符。', tooManyRoutes: '路线请求过多，请稍后再试。', routeOutsideLombok: '路线的两个地点都必须位于龙目岛。', routeNotFound: '未找到公路路线，请检查地图上的所选位置。', routeServiceDown: '目前无法连接路线服务，请稍后重试。'
+    tooManySearches: '搜索次数过多，请稍后再试。', placeQueryLength: '地点名称必须包含 3–120 个字符。', tooManyRoutes: '路线请求过多，请稍后再试。', routeOutsideLombok: '路线的两个地点都必须位于龙目岛陆地上。', routeNotFound: '未找到公路路线，请检查地图上的所选位置。', routeNoRoadAccess: '该路线没有公路通达，请选择靠近道路的其他地点。', routeServiceDown: '目前无法连接路线服务，请稍后重试。'
   },
   'zh-tw': {
     mapPoint: '地圖位置 {lat}, {lng}', mapLoadError: '地圖暫時無法載入，請檢查網路連線後重試。',
@@ -143,7 +143,7 @@ const mapCopy = {
     chooseDifferent: '請選擇不同的接送地點和目的地。', waitForRoute: '請等待公路路線和價格計算完成。', completeBooking: '請填寫姓名、WhatsApp 號碼、日期和接送時間。', bookingSaveFailed: '無法儲存預訂。', bookingOpened: '接送預訂摘要已在 WhatsApp 中開啟。',
     searchResultsPickup: '接送地點搜尋結果', searchResultsDestination: '目的地搜尋結果', swapLocations: '交換接送地點和目的地', interactiveMap: '互動接送路線地圖', zoomIn: '放大地圖', zoomOut: '縮小地圖',
     bookingService: '接送服務', whatsappGreeting: '您好 Wonderful Lombok，我想預訂接送服務。', codeLabel: '編號', nameLabel: '姓名', accuracyLabel: '接送地點精度', distanceLabel: '預估距離', costLabel: '預估費用', peopleValue: '{count} 人',
-    tooManySearches: '搜尋次數過多，請稍後再試。', placeQueryLength: '地點名稱必須包含 3–120 個字元。', tooManyRoutes: '路線要求過多，請稍後再試。', routeOutsideLombok: '路線的兩個地點都必須位於龍目島。', routeNotFound: '找不到公路路線，請檢查地圖上的所選位置。', routeServiceDown: '目前無法連接路線服務，請稍後重試。'
+    tooManySearches: '搜尋次數過多，請稍後再試。', placeQueryLength: '地點名稱必須包含 3–120 個字元。', tooManyRoutes: '路線要求過多，請稍後再試。', routeOutsideLombok: '路線的兩個地點都必須位於龍目島陸地上。', routeNotFound: '找不到公路路線，請檢查地圖上的所選位置。', routeNoRoadAccess: '此路線沒有公路通達，請選擇靠近道路的其他地點。', routeServiceDown: '目前無法連接路線服務，請稍後重試。'
   },
   nl: {
     mapPoint: 'Kaartpunt {lat}, {lng}', mapLoadError: 'De kaart kon niet worden geladen. Controleer je verbinding en probeer opnieuw.',
@@ -157,7 +157,7 @@ const mapCopy = {
     chooseDifferent: 'Kies verschillende ophaal- en bestemmingspunten.', waitForRoute: 'Wacht tot de wegroute en prijs zijn berekend.', completeBooking: 'Vul naam, WhatsApp-nummer, datum en ophaaltijd in.', bookingSaveFailed: 'De boeking kon niet worden opgeslagen.', bookingOpened: 'De transferaanvraag is geopend in WhatsApp.',
     searchResultsPickup: 'Zoekresultaten voor ophaallocatie', searchResultsDestination: 'Zoekresultaten voor bestemming', swapLocations: 'Ophaallocatie en bestemming omwisselen', interactiveMap: 'Interactieve kaart van de ophaalroute', zoomIn: 'Inzoomen', zoomOut: 'Uitzoomen',
     bookingService: 'Transferservice', whatsappGreeting: 'Hallo Wonderful Lombok, ik wil graag een transfer boeken.', codeLabel: 'Code', nameLabel: 'Naam', accuracyLabel: 'Nauwkeurigheid ophaallocatie', distanceLabel: 'Geschatte afstand', costLabel: 'Geschatte kosten', peopleValue: '{count} personen',
-    tooManySearches: 'Te veel zoekopdrachten. Probeer het later opnieuw.', placeQueryLength: 'De plaatsnaam moet 3–120 tekens bevatten.', tooManyRoutes: 'Te veel routeaanvragen. Probeer het later opnieuw.', routeOutsideLombok: 'Beide routepunten moeten op Lombok liggen.', routeNotFound: 'Geen wegroute gevonden. Controleer de gekozen punten op de kaart.', routeServiceDown: 'De routeservice is nu niet bereikbaar. Probeer het zo opnieuw.'
+    tooManySearches: 'Te veel zoekopdrachten. Probeer het later opnieuw.', placeQueryLength: 'De plaatsnaam moet 3–120 tekens bevatten.', tooManyRoutes: 'Te veel routeaanvragen. Probeer het later opnieuw.', routeOutsideLombok: 'Beide routepunten moeten op het land van Lombok liggen.', routeNotFound: 'Geen wegroute gevonden. Controleer de gekozen punten op de kaart.', routeNoRoadAccess: 'Deze route heeft geen toegang via de weg. Kies een ander punt bij een weg.', routeServiceDown: 'De routeservice is nu niet bereikbaar. Probeer het zo opnieuw.'
   },
   fr: {
     mapPoint: 'Point sur la carte {lat}, {lng}', mapLoadError: 'La carte n’a pas pu être chargée. Vérifiez votre connexion et réessayez.',
@@ -171,7 +171,7 @@ const mapCopy = {
     chooseDifferent: 'Choisissez des points de départ et d’arrivée différents.', waitForRoute: 'Attendez que l’itinéraire et le prix soient calculés.', completeBooking: 'Renseignez votre nom, votre numéro WhatsApp, la date et l’heure de prise en charge.', bookingSaveFailed: 'La réservation n’a pas pu être enregistrée.', bookingOpened: 'La demande de transfert a été ouverte dans WhatsApp.',
     searchResultsPickup: 'Résultats pour le lieu de prise en charge', searchResultsDestination: 'Résultats pour la destination', swapLocations: 'Inverser le départ et la destination', interactiveMap: 'Carte interactive de l’itinéraire', zoomIn: 'Zoom avant', zoomOut: 'Zoom arrière',
     bookingService: 'Service de transfert', whatsappGreeting: 'Bonjour Wonderful Lombok, je souhaite réserver un transfert.', codeLabel: 'Code', nameLabel: 'Nom', accuracyLabel: 'Précision du lieu de prise en charge', distanceLabel: 'Distance estimée', costLabel: 'Coût estimé', peopleValue: '{count} personnes',
-    tooManySearches: 'Trop de recherches. Réessayez plus tard.', placeQueryLength: 'Le nom du lieu doit comporter entre 3 et 120 caractères.', tooManyRoutes: 'Trop de demandes d’itinéraire. Réessayez plus tard.', routeOutsideLombok: 'Les deux points de l’itinéraire doivent se trouver à Lombok.', routeNotFound: 'Aucun itinéraire routier trouvé. Vérifiez les points choisis sur la carte.', routeServiceDown: 'Le service d’itinéraire est inaccessible pour le moment. Réessayez dans un instant.'
+    tooManySearches: 'Trop de recherches. Réessayez plus tard.', placeQueryLength: 'Le nom du lieu doit comporter entre 3 et 120 caractères.', tooManyRoutes: 'Trop de demandes d’itinéraire. Réessayez plus tard.', routeOutsideLombok: 'Les deux points de l’itinéraire doivent se trouver sur la terre ferme à Lombok.', routeNotFound: 'Aucun itinéraire routier trouvé. Vérifiez les points choisis sur la carte.', routeNoRoadAccess: 'Cet itinéraire n’est pas accessible par la route. Choisissez un autre point près d’une route.', routeServiceDown: 'Le service d’itinéraire est inaccessible pour le moment. Réessayez dans un instant.'
   },
   de: {
     mapPoint: 'Kartenpunkt {lat}, {lng}', mapLoadError: 'Die Karte konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
@@ -185,7 +185,7 @@ const mapCopy = {
     chooseDifferent: 'Wählen Sie unterschiedliche Abhol- und Zielpunkte.', waitForRoute: 'Warten Sie, bis Straßenroute und Preis berechnet wurden.', completeBooking: 'Füllen Sie Name, WhatsApp-Nummer, Datum und Abholzeit aus.', bookingSaveFailed: 'Die Buchung konnte nicht gespeichert werden.', bookingOpened: 'Die Transferanfrage wurde in WhatsApp geöffnet.',
     searchResultsPickup: 'Suchergebnisse für den Abholort', searchResultsDestination: 'Suchergebnisse für das Ziel', swapLocations: 'Abholort und Ziel tauschen', interactiveMap: 'Interaktive Karte der Abholroute', zoomIn: 'Vergrößern', zoomOut: 'Verkleinern',
     bookingService: 'Transferservice', whatsappGreeting: 'Hallo Wonderful Lombok, ich möchte einen Transfer buchen.', codeLabel: 'Code', nameLabel: 'Name', accuracyLabel: 'Genauigkeit des Abholorts', distanceLabel: 'Geschätzte Entfernung', costLabel: 'Geschätzte Kosten', peopleValue: '{count} Personen',
-    tooManySearches: 'Zu viele Suchanfragen. Versuchen Sie es später erneut.', placeQueryLength: 'Der Ortsname muss 3–120 Zeichen enthalten.', tooManyRoutes: 'Zu viele Routenanfragen. Versuchen Sie es später erneut.', routeOutsideLombok: 'Beide Routenpunkte müssen auf Lombok liegen.', routeNotFound: 'Keine Straßenroute gefunden. Prüfen Sie die gewählten Punkte auf der Karte.', routeServiceDown: 'Der Routendienst ist derzeit nicht erreichbar. Versuchen Sie es gleich noch einmal.'
+    tooManySearches: 'Zu viele Suchanfragen. Versuchen Sie es später erneut.', placeQueryLength: 'Der Ortsname muss 3–120 Zeichen enthalten.', tooManyRoutes: 'Zu viele Routenanfragen. Versuchen Sie es später erneut.', routeOutsideLombok: 'Beide Routenpunkte müssen auf dem Festland von Lombok liegen.', routeNotFound: 'Keine Straßenroute gefunden. Prüfen Sie die gewählten Punkte auf der Karte.', routeNoRoadAccess: 'Diese Route ist nicht über die Straße erreichbar. Wählen Sie einen anderen Punkt in Straßennähe.', routeServiceDown: 'Der Routendienst ist derzeit nicht erreichbar. Versuchen Sie es gleich noch einmal.'
   },
   ms: {
     mapPoint: 'Titik peta {lat}, {lng}', mapLoadError: 'Peta tidak dapat dimuatkan. Semak sambungan anda dan cuba lagi.',
@@ -199,11 +199,78 @@ const mapCopy = {
     chooseDifferent: 'Pilih lokasi jemput dan destinasi yang berbeza.', waitForRoute: 'Tunggu sehingga laluan jalan dan harga selesai dikira.', completeBooking: 'Lengkapkan nama, nombor WhatsApp, tarikh dan waktu jemput.', bookingSaveFailed: 'Tempahan tidak dapat disimpan.', bookingOpened: 'Permintaan travel telah dibuka dalam WhatsApp.',
     searchResultsPickup: 'Hasil carian lokasi jemput', searchResultsDestination: 'Hasil carian destinasi', swapLocations: 'Tukar lokasi jemput dan destinasi', interactiveMap: 'Peta interaktif laluan jemputan', zoomIn: 'Zum masuk', zoomOut: 'Zum keluar',
     bookingService: 'Perkhidmatan Travel', whatsappGreeting: 'Hai Wonderful Lombok, saya ingin menempah perkhidmatan travel.', codeLabel: 'Kod', nameLabel: 'Nama', accuracyLabel: 'Ketepatan lokasi jemput', distanceLabel: 'Anggaran jarak', costLabel: 'Anggaran kos', peopleValue: '{count} orang',
-    tooManySearches: 'Terlalu banyak carian. Cuba lagi kemudian.', placeQueryLength: 'Nama tempat mesti mengandungi 3–120 aksara.', tooManyRoutes: 'Terlalu banyak permintaan laluan. Cuba lagi kemudian.', routeOutsideLombok: 'Kedua-dua titik laluan mesti berada di Lombok.', routeNotFound: 'Laluan jalan tidak ditemui. Semak titik pilihan pada peta.', routeServiceDown: 'Perkhidmatan laluan tidak dapat dicapai sekarang. Cuba lagi sebentar lagi.'
+    tooManySearches: 'Terlalu banyak carian. Cuba lagi kemudian.', placeQueryLength: 'Nama tempat mesti mengandungi 3–120 aksara.', tooManyRoutes: 'Terlalu banyak permintaan laluan. Cuba lagi kemudian.', routeOutsideLombok: 'Kedua-dua titik laluan mesti berada di daratan Lombok.', routeNotFound: 'Laluan jalan tidak ditemui. Semak titik pilihan pada peta.', routeNoRoadAccess: 'Laluan ini tiada akses jalan raya. Pilih titik lain berhampiran jalan.', routeServiceDown: 'Perkhidmatan laluan tidak dapat dicapai sekarang. Cuba lagi sebentar lagi.'
+  }
+};
+
+const routePlannerCopy = {
+  id: {
+    routeStopCount: 'Rute membutuhkan tepat 2 titik perjalanan.', routeDuplicateStop: 'Titik jemput dan tujuan harus berbeda.',
+    pickOnMap: 'Pilih di peta', cancelGps: 'Batal', chooseBothPoints: 'Pilih lokasi jemput dan tujuan terlebih dahulu.',
+    mapNotConfigured: 'Layanan peta belum dikonfigurasi. Hubungi admin.',
+    mapPermissionDenied: 'Kunci layanan peta tidak diizinkan untuk situs ini.', mapQuotaExceeded: 'Kuota layanan peta habis. Coba lagi nanti.',
+    mapNetworkError: 'Layanan peta tidak dapat dijangkau. Periksa koneksi lalu coba lagi.',
+    routeDuration: '{minutes} menit', routeDurationLabel: 'Estimasi waktu'
+  },
+  en: {
+    routeStopCount: 'A route needs exactly 2 points.', routeDuplicateStop: 'Pick-up and destination points must be different.',
+    pickOnMap: 'Choose on map', cancelGps: 'Cancel', chooseBothPoints: 'Choose both a pick-up location and a destination first.',
+    mapNotConfigured: 'Map service is not configured. Contact the administrator.',
+    mapPermissionDenied: 'The map service key is not allowed for this site.', mapQuotaExceeded: 'The map service quota is exhausted. Try again later.',
+    mapNetworkError: 'The map service cannot be reached. Check your connection and try again.',
+    routeDuration: '{minutes} min', routeDurationLabel: 'Estimated time'
+  },
+  'zh-cn': {
+    routeStopCount: '路线需要恰好 2 个点。', routeDuplicateStop: '接送地点和目的地必须不同。',
+    pickOnMap: '在地图上选择', cancelGps: '取消', chooseBothPoints: '请先选择接送地点和目的地。',
+    mapNotConfigured: '地图服务尚未配置。请联系管理员。',
+    mapPermissionDenied: '此网站无权使用地图服务密钥。', mapQuotaExceeded: '地图服务配额已用完，请稍后再试。',
+    mapNetworkError: '无法连接地图服务。请检查网络后重试。',
+    routeDuration: '{minutes} 分钟', routeDurationLabel: '预计时间'
+  },
+  'zh-tw': {
+    routeStopCount: '路線需要恰好 2 個點。', routeDuplicateStop: '接送地點和目的地必須不同。',
+    pickOnMap: '在地圖上選擇', cancelGps: '取消', chooseBothPoints: '請先選擇接送地點和目的地。',
+    mapNotConfigured: '地圖服務尚未設定。請聯絡管理員。',
+    mapPermissionDenied: '此網站無權使用地圖服務金鑰。', mapQuotaExceeded: '地圖服務配額已用完，請稍後再試。',
+    mapNetworkError: '無法連線地圖服務。請檢查網路後重試。',
+    routeDuration: '{minutes} 分鐘', routeDurationLabel: '預計時間'
+  },
+  nl: {
+    routeStopCount: 'Een route heeft precies 2 punten nodig.', routeDuplicateStop: 'Ophaal- en bestemmingspunt moeten verschillend zijn.',
+    pickOnMap: 'Op kaart kiezen', cancelGps: 'Annuleren', chooseBothPoints: 'Kies eerst een ophaal- en bestemmingslocatie.',
+    mapNotConfigured: 'Kaartdienst is niet geconfigureerd. Neem contact op met de beheerder.',
+    mapPermissionDenied: 'De sleutel van de kaartdienst is niet toegestaan voor deze site.', mapQuotaExceeded: 'Het quotum van de kaartdienst is opgebruikt. Probeer het later opnieuw.',
+    mapNetworkError: 'De kaartdienst is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.',
+    routeDuration: '{minutes} min', routeDurationLabel: 'Geschatte tijd'
+  },
+  fr: {
+    routeStopCount: 'Un itinéraire nécessite exactement 2 points.', routeDuplicateStop: 'Les points de départ et d’arrivée doivent être différents.',
+    pickOnMap: 'Choisir sur la carte', cancelGps: 'Annuler', chooseBothPoints: 'Choisissez d’abord un lieu de prise en charge et une destination.',
+    mapNotConfigured: 'Le service de cartes n’est pas configuré. Contactez l’administrateur.',
+    mapPermissionDenied: 'La clé du service de cartes n’est pas autorisée pour ce site.', mapQuotaExceeded: 'Le quota du service de cartes est épuisé. Réessayez plus tard.',
+    mapNetworkError: 'Le service de cartes est inaccessible. Vérifiez votre connexion et réessayez.',
+    routeDuration: '{minutes} min', routeDurationLabel: 'Durée estimée'
+  },
+  de: {
+    routeStopCount: 'Eine Route benötigt genau 2 Punkte.', routeDuplicateStop: 'Abhol- und Zielpunkt müssen unterschiedlich sein.',
+    pickOnMap: 'Auf Karte wählen', cancelGps: 'Abbrechen', chooseBothPoints: 'Wählen Sie zuerst einen Abhol- und einen Zielort.',
+    mapNotConfigured: 'Der Kartendienst ist nicht konfiguriert. Kontaktieren Sie den Administrator.',
+    mapPermissionDenied: 'Der Schlüssel des Kartendienstes ist für diese Website nicht erlaubt.', mapQuotaExceeded: 'Das Kontingent des Kartendienstes ist aufgebraucht. Versuchen Sie es später erneut.',
+    mapNetworkError: 'Der Kartendienst ist nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    routeDuration: '{minutes} Min.', routeDurationLabel: 'Geschätzte Zeit'
+  },
+  ms: {
+    routeStopCount: 'Laluan memerlukan tepat 2 titik.', routeDuplicateStop: 'Titik jemput dan destinasi mesti berbeza.',
+    pickOnMap: 'Pilih pada peta', cancelGps: 'Batal', chooseBothPoints: 'Pilih lokasi jemput dan destinasi terlebih dahulu.',
+    mapNotConfigured: 'Perkhidmatan peta belum dikonfigurasikan. Hubungi pentadbir.',
+    mapPermissionDenied: 'Kunci perkhidmatan peta tidak dibenarkan untuk laman ini.', mapQuotaExceeded: 'Kuota perkhidmatan peta telah habis. Cuba lagi kemudian.',
+    mapNetworkError: 'Perkhidmatan peta tidak dapat dihubungi. Semak sambungan anda dan cuba lagi.',
+    routeDuration: '{minutes} min', routeDurationLabel: 'Anggaran masa'
   }
 };
 
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en) };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en) };
 }

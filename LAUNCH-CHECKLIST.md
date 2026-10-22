@@ -14,6 +14,9 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Set `PUBLIC_SITE_URL` to the final HTTPS origin, without a trailing slash.
 - [ ] Confirm `PUBLIC_RENTAL_ENABLED=false` unless the owner has explicitly approved rentals for this release.
 - [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT` are configured in the hosting provider, not in the repository.
+- [ ] Confirm `MAP_PROVIDER` is set to the approved provider. For Google, `PUBLIC_GOOGLE_MAPS_API_KEY` and `GOOGLE_MAPS_SERVER_API_KEY` must be configured in the hosting provider. The browser key must be restricted to Maps JavaScript API and approved HTTP referrers; the server key must be restricted to Places API (New) and Routes API and must never reach the browser bundle.
+- [ ] For an approved Mapbox release, confirm `PUBLIC_MAPBOX_TOKEN` is a URL-restricted public token and `MAPBOX_SERVER_TOKEN` is a secret token scoped only to Geocoding and Directions. The secret token must never reach the browser bundle.
+- [ ] Confirm the active provider's daily quotas, usage limits, and budget alerts are enabled, and that the server key/token is absent from the built client files and source maps.
 - [ ] Confirm no `.env` file, deploy key, database export, upload archive, or backup is included in the release artifact.
 - [ ] Confirm the admin account and revocation path are ready; remove demo or shared admin credentials.
 - [ ] Take a Convex backup/export and record the currently deployed application SHA for rollback.
@@ -48,6 +51,9 @@ Then verify manually, still read-only:
 - [ ] `/admin` redirects to `/login` without a session; `/api/admin/bookings` returns `401` or `403`.
 - [ ] `/admin`, `/login`, and `/api/` responses are not indexable.
 - [ ] Security headers are present, including HSTS on HTTPS.
+- [ ] The public planner map loads with the active provider's restricted browser key/token, and place search returns Lombok results in Indonesian and one non-Indonesian locale.
+- [ ] A pick-up and destination route renders distance, duration, and a polyline; changing or swapping either point recalculates it.
+- [ ] Missing, permission-denied, quota-exhausted, and network-error states show a clear provider-neutral message instead of a broken map or silent search.
 - [ ] An unknown route returns `404`.
 - [ ] Configure the hosting uptime monitor to poll `/api/health` and alert on a non-`200` response; alert on `/api/ready` returning `503`.
 - [ ] Do **not** create a booking, upload a file, change catalog data, or run destructive authentication tests on production.
@@ -76,6 +82,7 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 ## Known residual risks
 
 - If Convex is unavailable, public catalog pages return a localized `503` maintenance page and the sitemap returns `503`. Login remains available, but catalog and booking operations require Convex.
+- Map rendering, place search, route distance, and booking quote verification depend on the active provider's availability, billing, quotas, and correct key/token restrictions (Google Maps Platform or Mapbox).
 - Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.

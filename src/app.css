@@ -841,17 +841,28 @@ h1 {
   padding: 28px;
 }
 
-.route-fields {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
-  gap: 12px;
-  align-items: end;
-}
-
 .location-tools { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); gap: 12px; align-items: start; }
 .location-tools > .swap { margin-top: 20px; }
 .location-field { display: grid; gap: 12px; }
+.field-heading { display: flex; min-height: 30px; align-items: center; justify-content: space-between; gap: 8px; }
+.field-heading label { display: inline; color: var(--ink); font-size: 12px; font-weight: 800; }
+.location-field .map-target-button { min-height: 32px; padding: 4px 10px; border-color: var(--line); font-size: 10px; }
+.location-field .map-target-button.active { border-color: var(--forest); background: var(--forest); color: white; }
 .location-search { position: relative; z-index: 3; }
+.gps-action { width: fit-content; }
+.location-field select { min-height: 42px; font-size: 12px; }
+.location-guidance strong { color: var(--forest); }
+.swap {
+  width: 44px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--forest);
+  cursor: pointer;
+  font-size: 21px;
+}
+.swap:disabled { opacity: 0.45; cursor: not-allowed; }
 .place-suggestions { position: absolute; z-index: 700; top: calc(100% + 5px); left: 0; display: grid; width: 100%; max-height: 260px; overflow-y: auto; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-control); box-shadow: 0 14px 30px rgba(5,35,29,.18); }
 .location-field .place-suggestions button { width: 100%; min-height: 44px; padding: 9px 10px; border: 0; border-radius: 4px; background: var(--surface-control); color: var(--ink); font-size: 12px; font-weight: 650; line-height: 1.35; text-align: left; }
 .location-field .place-suggestions button:hover,
@@ -859,10 +870,13 @@ h1 {
 .location-field button { min-height: 40px; padding: 8px 16px; border: 1px solid #9eaaa4; border-radius: var(--radius-sm); background: var(--paper); color: var(--forest); cursor: pointer; font-size: 11px; font-weight: 800; }
 .location-field button:hover { border-color: var(--forest); background: var(--forest); color: white; }
 .location-field button:disabled { cursor: wait; opacity: .6; }
-.gps-action { width: fit-content; }
-.location-field select { min-height: 42px; font-size: 12px; }
-.location-guidance strong { color: var(--forest); }
+.map-controls { position: absolute; right: 12px; bottom: 12px; z-index: 500; display: grid; gap: 6px; }
+.map-controls button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #a9b2ac; border-radius: 4px; background: var(--paper); color: var(--forest); cursor: pointer; font-size: 21px; font-weight: 800; box-shadow: 0 4px 12px rgba(5,35,29,.16); }
+.map-controls button:hover { background: var(--surface-soft); }
 .route-notice { margin-top: -10px; padding: 10px 12px; border-left: 3px solid var(--accent-strong); background: var(--surface-soft); color: var(--ink); }
+.mapbox-marker { display: grid; width: 30px; height: 30px; place-items: center; border: 2px solid white; border-radius: 50%; background: var(--forest); color: white; cursor: pointer; font-size: 13px; font-weight: 800; box-shadow: 0 3px 10px rgba(5,35,29,.35); }
+.mapbox-gps-marker { width: 16px; height: 16px; border: 3px solid white; border-radius: 50%; background: #08778c; box-shadow: 0 0 0 2px #08778c; }
+.mapboxgl-ctrl-attrib { font-size: 10px; }
 
 label {
   display: grid;
@@ -901,22 +915,6 @@ select:hover {
   border-color: var(--forest);
 }
 
-.swap {
-  width: 44px;
-  height: 48px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--forest);
-  cursor: pointer;
-  font-size: 21px;
-}
-
-.swap:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 .helper {
   margin: 12px 0 22px;
   color: #526760;
@@ -932,10 +930,16 @@ select:hover {
   background: #dfe5dd;
 }
 
-.map {
+.map,
+.map.mapboxgl-map {
   position: absolute;
   inset: 0;
   z-index: 1;
+}
+
+.map:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: -3px;
 }
 
 .map-state {
@@ -1026,7 +1030,7 @@ select:hover {
 
 .route-summary div {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: minmax(64px, 30%) minmax(0, 1fr);
   gap: 8px;
   align-items: baseline;
 }
@@ -1039,7 +1043,10 @@ select:hover {
 }
 
 .route-summary b {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .form-row {
@@ -1681,23 +1688,10 @@ footer {
     padding: 20px 18px;
   }
 
-  .route-fields {
-    grid-template-columns: 1fr 44px;
-  }
-
   .location-tools { grid-template-columns: 1fr; }
   .location-tools .location-field:first-child { grid-column: 1; grid-row: 1; }
   .location-tools .location-field:last-child { grid-column: 1; grid-row: 3; }
   .location-tools .swap { grid-column: 1; grid-row: 2; justify-self: end; margin-top: 0; }
-
-  .route-fields label:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .route-fields .swap {
-    grid-column: 2;
-    grid-row: 1;
-  }
 
   .map-wrap {
     min-height: 350px;
@@ -1815,6 +1809,11 @@ footer {
 .booking-summary h4 { margin-bottom: 8px; font-size: 17px; }
 .booking-summary p { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .booking-summary p b { width: 100%; color: var(--ink); }
+.booking-itinerary { display: grid; gap: 5px; margin: 4px 0 0; padding: 10px 0 0 22px; border-top: 1px solid var(--line); color: var(--ink); font-size: 12px; }
+.booking-itinerary li { padding-left: 4px; line-height: 1.4; }
+.booking-itinerary span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.booking-itinerary b { overflow-wrap: anywhere; }
+.booking-route-meta { margin-top: 4px; color: var(--forest) !important; font-weight: 700; }
 .booking-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--forest); border-radius: 4px; color: var(--forest); font-size: 12px; font-weight: 800; text-decoration: none; }
 .booking-actions label { gap: 5px; }
 .booking-actions select { min-height: 40px; font-size: 12px; }

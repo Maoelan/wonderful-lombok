@@ -25,7 +25,7 @@ This repository currently powers a showcase deployment. Production hosting and t
 - Eight interface languages: Indonesian, English, Simplified Chinese, Traditional Chinese, Dutch, French, German, and Malay.
 - Tour catalog with galleries, itineraries, inclusions, and group-based pricing.
 - Lombok destination directory with image galleries and details.
-- Transfer calculator with geolocation, road routing, maps, and distance-based estimates.
+- Two-point transfer planner (pick-up and destination) with a Google Maps or Mapbox browser map, Lombok-focused place search, road-route distance and duration, and distance-based estimates. The provider is selected with `MAP_PROVIDER`.
 - Booking records stored in Convex before continuing through WhatsApp.
 - Custom admin CMS for catalog content, translations, rich text, images, settings, and bookings, with versioned payload validation and revision checks that reject stale concurrent saves.
 - SEO essentials including metadata, canonical URLs, `hreflang`, `robots.txt`, and a sitemap.
@@ -36,7 +36,7 @@ This repository currently powers a showcase deployment. Production hosting and t
 
 - SvelteKit and Svelte 5
 - Convex Database and File Storage
-- Leaflet, OpenStreetMap, Nominatim, and OSRM
+- Google Maps Platform: Maps JavaScript API, Places API (New), and Routes API, or Mapbox GL JS, Geocoding API v5, and Directions API v5
 - Vercel
 
 ## Local development
@@ -53,7 +53,7 @@ npm run admin:create
 npm run dev
 ```
 
-Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. See [ENVIRONMENT.md](ENVIRONMENT.md) for variable purpose, visibility, ownership, and rotation cadence. Never commit real credentials or deployment secrets.
+Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. The planner defaults to Google via `MAP_PROVIDER=google`; set `MAP_PROVIDER=mapbox` to use the Mapbox implementation. Google needs `PUBLIC_GOOGLE_MAPS_API_KEY` for the browser map and `GOOGLE_MAPS_SERVER_API_KEY` for Places and Routes. Mapbox needs `PUBLIC_MAPBOX_TOKEN` for the browser map and a separate `MAPBOX_SERVER_TOKEN` scoped to Geocoding and Directions. Without the credentials for the active provider, the map and search fail closed with a configuration message. See [ENVIRONMENT.md](ENVIRONMENT.md) for variable purpose, visibility, ownership, token restrictions, quotas, and rotation cadence. Never commit real credentials or deployment secrets.
 
 Open `http://127.0.0.1:5173` after the development server starts.
 
@@ -109,5 +109,9 @@ No public repository or application can be guaranteed vulnerability-free. Run th
 ## Photo credits
 
 Demo imagery is sourced from Wikimedia Commons. Attribution and license details are available on the source pages for [Tanjung Aan](https://commons.wikimedia.org/wiki/Category:Tanjung_Aan_Beach), [Seger Beach](https://commons.wikimedia.org/wiki/File:PANTAI_SEGER.jpg), [Sade Village](https://commons.wikimedia.org/wiki/File:Traditional_Sasak_Village_Sade_houses.JPG), [the Gili Islands](https://commons.wikimedia.org/wiki/Category:Gili_Islands), [Senggigi](https://commons.wikimedia.org/wiki/Category:Senggigi), and [Rinjani and Sembalun](https://commons.wikimedia.org/wiki/Category:Rinjani-Lombok_UNESCO_Global_Geopark).
+
+## Map data
+
+The route planner validates land points against a simplified coastline derived from [OpenStreetMap relation 7219495](https://www.openstreetmap.org/relation/7219495), © OpenStreetMap contributors, available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/). The polygon is used only to reject route points in the sea; it is not a surveyed boundary. Google Routes requests use `DRIVE` and avoid ferries. Mapbox Directions requests use `mapbox/driving` and `exclude=ferry`. For both providers, every returned step must be a driving step, and each selected point must snap within 250 m of the road network or the route is rejected. Mapbox map data and terms are attributed in the map itself.
 
 Replace all demo contact details, pricing, and content through the admin panel before using this project as an official business website.

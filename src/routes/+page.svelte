@@ -167,7 +167,7 @@
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} /></div>
+      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} googleMapsKey={data.googleMapsKey} mapProvider={data.mapProvider} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
 
@@ -197,7 +197,7 @@
   <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
-  <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en}</p>
+  <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 <WhatsAppFloat whatsapp={settings.whatsapp} {locale} />

@@ -26,3 +26,19 @@ test('separates browser-visible values from server-only values', () => {
   assert.match(environmentDoc, /`CONVEX_SERVER_SECRET`/);
   assert.match(environmentDoc, /HttpOnly/);
 });
+
+test('documents Google Maps services, key separation, and quota ownership', () => {
+  for (const term of ['Maps JavaScript API', 'Places API (New)', 'Routes API', 'HTTP referrer restrictions', 'budget alerts', 'daily quota']) {
+    assert.match(environmentDoc, new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), term);
+  }
+  assert.match(environmentDoc, /`PUBLIC_GOOGLE_MAPS_API_KEY`[\s\S]*Browser-visible by design/);
+  assert.match(environmentDoc, /`GOOGLE_MAPS_SERVER_API_KEY`[\s\S]*Server-only/);
+});
+
+test('documents the Mapbox provider, separate tokens, and least-privilege scopes', () => {
+  for (const term of ['MAP_PROVIDER', 'PUBLIC_MAPBOX_TOKEN', 'MAPBOX_SERVER_TOKEN', 'Geocoding API v5', 'Directions API v5', 'Mapbox GL JS', 'secret `sk.` token', 'URL restrictions']) {
+    assert.match(environmentDoc, new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), term);
+  }
+  assert.match(environmentDoc, /`PUBLIC_MAPBOX_TOKEN`[\s\S]*Browser-visible by design/);
+  assert.match(environmentDoc, /`MAPBOX_SERVER_TOKEN`[\s\S]*Server-only/);
+});

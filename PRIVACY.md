@@ -8,7 +8,7 @@ A booking can contain:
 
 - booking code, idempotency key, service type and name, travel date, number of guests, status, created and updated timestamps;
 - customer name, WhatsApp number, optional notes, and site locale;
-- for travel bookings: origin and destination labels, origin and destination coordinates, GPS accuracy and source, pickup time, routed distance, and estimated price.
+- for travel bookings: pickup, ordered stop, and destination labels and coordinates; GPS accuracy and source for the pickup point; pickup time; routed distance; estimated duration; and estimated price.
 
 The site does not collect payment card data or create customer accounts. Payment and final confirmation happen outside the site through WhatsApp.
 
@@ -16,16 +16,16 @@ The site does not collect payment card data or create customer accounts. Payment
 
 - Name and WhatsApp number let the team confirm the booking and contact the customer.
 - Travel date, guests, service, and notes let the team plan the trip.
-- Pickup and destination coordinates are used to calculate the road route and estimate the travel price, and to tell the driver where to go.
+- Pickup, ordered stop, and destination coordinates are used to calculate the road route and estimate the travel price and duration, and to tell the driver where to go.
 - Status and timestamps support admin follow-up.
 
 ## Location data
 
-Coordinates are stored only for the pickup point and destination the customer selected. The application does not track location in the background, does not store a location history, and does not expose booking coordinates in the public catalog, sitemap, structured data, or public API.
+Coordinates are stored only for the pickup point, ordered stops, and destination the customer selected. The application does not track location in the background, does not store a location history, and does not expose booking coordinates in the public catalog, sitemap, structured data, or public API.
 
-During a travel quote, coordinates are sent to the configured road-routing provider. Address searches are sent to the configured geocoding provider. Those providers process the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests.
+During a travel quote, the selected coordinates are sent to the active routing provider: Google Routes API when `MAP_PROVIDER=google`, or Mapbox Directions API v5 when `MAP_PROVIDER=mapbox`. Address searches are sent to Google Places API (New) or Mapbox Geocoding API v5 respectively. Those providers process the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests. The route geometry and distance are returned to the browser, but the booking coordinates are stored only in Convex with the booking.
 
-Coordinates are kept with the booking because operations need the pickup point for dispatch and customer support. If precise coordinates are not needed for a future service type, do not add them to that service's detail schema.
+Coordinates are kept with the booking because operations need the pickup point and ordered stops for dispatch and customer support. If precise coordinates are not needed for a future service type, do not add them to that service's detail schema.
 
 ## Who can access it
 
@@ -65,4 +65,7 @@ Both routes require an active admin session. The delete route also passes throug
 
 - `tests/bookings-csv.test.js` covers CSV escaping, formula-injection protection, headers, and BOM output.
 - `tests/booking-data.test.js` covers booking deletion, idempotency-record cleanup, and missing records.
+- `tests/booking-validation.test.js` covers ordered stops, duplicate points, Lombok bounds, and quote verification.
+- `tests/upstream-routes.test.js` covers the place-search and route proxies, including quota and permission failures.
+- `tests/map-providers.test.js` covers Google/Mapbox provider selection, Mapbox Geocoding and Directions parsing, ferry rejection, and snap-distance rejection.
 - `tests/request-security.test.js` covers trusted-origin enforcement for admin mutation paths.
