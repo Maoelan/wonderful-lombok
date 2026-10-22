@@ -6,7 +6,7 @@ const privacy = readFileSync(new URL('../PRIVACY.md', import.meta.url), 'utf8');
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 
 test('privacy inventory documents booking and location data', () => {
-  for (const term of ['customer name', 'WhatsApp number', 'origin and destination coordinates', 'GPS accuracy', 'road-routing provider', 'admin users']) {
+  for (const term of ['customer name', 'WhatsApp number', 'ordered stop', 'destination coordinates', 'GPS accuracy', 'Google Routes API', 'Google Places API (New)', 'admin users']) {
     assert.match(privacy, new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), term);
   }
 });

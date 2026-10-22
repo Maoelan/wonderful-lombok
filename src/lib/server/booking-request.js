@@ -19,6 +19,7 @@ export async function createBookingRequest({
   body,
   idempotencyKey,
   fetchImpl = globalThis.fetch,
+  googleMapsApiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY,
   loadCatalog,
   saveBooking,
   rentalEnabled = false,
@@ -50,12 +51,18 @@ export async function createBookingRequest({
     let quote;
     try {
       const catalog = await loadCatalog();
-      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl });
+      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl, apiKey: googleMapsApiKey });
       verifyTravelQuote(details, quote);
     } catch (error) {
       return bookingFailure(error);
     }
-    details = { ...details, distanceKm: quote.distanceKm, estimatedPrice: quote.estimatedPrice, travelRate: quote.travelRate };
+    details = {
+      ...details,
+      distanceKm: quote.distanceKm,
+      durationMinutes: quote.durationMinutes,
+      estimatedPrice: quote.estimatedPrice,
+      travelRate: quote.travelRate
+    };
   }
 
   try {
