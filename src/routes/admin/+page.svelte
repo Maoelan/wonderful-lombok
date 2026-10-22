@@ -1,17 +1,29 @@
 <script>
   import { onMount } from 'svelte';
+  import { beforeNavigate } from '$app/navigation';
   import { slugify } from '#lib/i18n.js';
+  import { createUnsavedChangesGuard } from '#lib/unsaved-changes.js';
   import RichTextEditor from '#lib/RichTextEditor.svelte';
   import TrashIcon from '#lib/TrashIcon.svelte';
   export let data;
   let catalog = structuredClone(data.catalog);
+  let catalogRevision = data.catalogRevision ?? 0;
   let bookings = data.bookings;
   let active = 'overview';
   let saved = false;
   let dirty = false;
+  let saving = false;
+  let editVersion = 0;
   let saveError = '';
   let uploading = '';
   let bookingsLoading = false;
+  let deletingBookingId = '';
+
+  const leaveGuard = createUnsavedChangesGuard({
+    isDirty: () => dirty,
+    confirmLeave: () => window.confirm('Ada perubahan yang belum disimpan. Tinggalkan halaman admin?')
+  });
+  beforeNavigate(leaveGuard.beforeNavigate);
 
   $: newBookings = bookings.filter((item) => item.status === 'baru');
   $: pageInfo = ({
@@ -28,10 +40,16 @@
     const timer = window.setInterval(() => { if (!document.hidden) refreshBookings(true); }, 15_000);
     const refreshVisible = () => { if (!document.hidden) refreshBookings(true); };
     document.addEventListener('visibilitychange', refreshVisible);
-    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refreshVisible); };
+    window.addEventListener('beforeunload', leaveGuard.beforeUnload);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refreshVisible);
+      window.removeEventListener('beforeunload', leaveGuard.beforeUnload);
+    };
   });
 
   async function refreshBookings(silent = false) {
+    if (deletingBookingId) return;
     if (!silent) bookingsLoading = true;
     try {
       const response = await fetch('/api/admin/bookings');
@@ -46,6 +64,7 @@
   }
 
   async function persist() {
+    if (saving) return;
     saveError = '';
     if (!/^62\d{8,13}$/.test(catalog.settings.whatsapp.replace(/\D/g, ''))) {
       saveError = 'Nomor WhatsApp harus memakai format internasional, misalnya 628123456789.';
@@ -57,19 +76,36 @@
       active = 'settings';
       return;
     }
+    saving = true;
+    const editVersionAtSave = editVersion;
     try {
       const response = await fetch('/api/admin/catalog', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(catalog)
+        body: JSON.stringify({ catalog, expectedRevision: catalogRevision })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 409) {
+        dirty = true;
+        saved = false;
+        saveError = result.error || 'Katalog telah diubah oleh sesi admin lain. Muat ulang halaman admin sebelum menyimpan lagi.';
+        return;
+      }
       if (!response.ok) throw new Error(result.error || 'Perubahan gagal disimpan.');
-      dirty = false;
-      saved = true;
-      setTimeout(() => saved = false, 2400);
+      if (!Number.isInteger(result.revision)) throw new Error('Respons penyimpanan tidak valid. Muat ulang halaman admin.');
+      catalogRevision = result.revision;
+      if (editVersion === editVersionAtSave) {
+        dirty = false;
+        saved = true;
+        setTimeout(() => saved = false, 2400);
+      } else {
+        dirty = true;
+        saved = false;
+      }
     } catch (error) {
       saveError = error.message;
+    } finally {
+      saving = false;
     }
   }
 
@@ -82,6 +118,18 @@
     if (event?.target?.closest('.booking-admin-list')) return;
     dirty = true;
     saved = false;
+    editVersion += 1;
+  }
+
+  function nextSlug(prefix, items, field = 'slug') {
+    const used = new Set((items || []).map((item) => item[field]).filter(Boolean));
+    let index = (items || []).length + 1;
+    let slug = `${prefix}-${index}`;
+    while (used.has(slug)) {
+      index += 1;
+      slug = `${prefix}-${index}`;
+    }
+    return slug;
   }
 
   function updateRental(index, field, value) {
@@ -91,7 +139,7 @@
 
   function addPackage() {
     const name = 'Paket baru';
-    catalog.packages = [...catalog.packages, { slug: `${slugify(name)}-${catalog.packages.length + 1}`, category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], destinationSlugs: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
+    catalog.packages = [...catalog.packages, { slug: nextSlug(slugify(name), catalog.packages), category: 'Private tour', duration: '1 hari', name, route: 'Isi destinasi paket', detail: 'Isi detail paket', price: 'Rp0', unit: 'per orang', image: '', images: [], destinationSlugs: [], itinerary: [{ day: 'Hari 1', title: 'Judul perjalanan', items: ['Aktivitas pertama'] }], includes: ['Transportasi'], excludes: ['Pengeluaran pribadi'], priceTiers: [{ key: 'tier-1', guests: '1–2 orang', price: 'Rp0', note: 'per orang' }] }];
     catalog = { ...catalog };
     markDirty();
   }
@@ -104,7 +152,7 @@
     }).filter((day) => day.title));
   }
   function itineraryText(days) { return (days || []).map((day) => [day.title, ...(day.items || [])].join('\n')).join('\n\n'); }
-  function addPriceTier(index) { updatePackage(index, 'priceTiers', [...(catalog.packages[index].priceTiers || []), { guests: '1 orang', guestsEn: '1 guest', price: 'Rp0', note: 'per orang', noteEn: 'per person' }]); markDirty(); }
+  function addPriceTier(index) { const tiers = catalog.packages[index].priceTiers || []; updatePackage(index, 'priceTiers', [...tiers, { key: nextSlug('tier', tiers, 'key'), guests: '1 orang', guestsEn: '1 guest', price: 'Rp0', note: 'per orang', noteEn: 'per person' }]); markDirty(); }
   function updatePriceTier(packageIndex, tierIndex, field, value) { catalog.packages[packageIndex].priceTiers[tierIndex][field] = value; catalog = { ...catalog }; }
   function removePriceTier(packageIndex, tierIndex) { updatePackage(packageIndex, 'priceTiers', catalog.packages[packageIndex].priceTiers.filter((_, index) => index !== tierIndex)); markDirty(); }
 
@@ -120,13 +168,13 @@
   }
 
   function addDestination() {
-    catalog.destinations = [...catalog.destinations, { slug: `destinasi-${catalog.destinations.length + 1}`, name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
+    catalog.destinations = [...catalog.destinations, { slug: nextSlug('destinasi', catalog.destinations), name: 'Destinasi baru', note: 'Keterangan singkat', detail: 'Isi detail destinasi', image: '', images: [] }];
     catalog = { ...catalog };
     markDirty();
   }
 
   function removeDestination(index) {
-    if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}?`)) return;
+    if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}? Gambar yang hanya dipakai destinasi ini akan dihapus permanen setelah katalog disimpan.`)) return;
     const slug = catalog.destinations[index].slug;
     catalog.destinations = catalog.destinations.filter((_, itemIndex) => itemIndex !== index);
     catalog.packages = catalog.packages.map((item) => ({ ...item, destinationSlugs: (item.destinationSlugs || []).filter((value) => value !== slug) }));
@@ -140,7 +188,7 @@
   }
 
   function addFaq() {
-    catalog.faqs = [...catalog.faqs, { question: 'Pertanyaan baru', answer: 'Tulis jawaban yang membantu pelanggan.' }];
+    catalog.faqs = [...catalog.faqs, { slug: nextSlug('faq', catalog.faqs), question: 'Pertanyaan baru', answer: 'Tulis jawaban yang membantu pelanggan.' }];
     catalog = { ...catalog };
     markDirty();
   }
@@ -169,15 +217,15 @@
   }
 
   function clearImage(label, apply) {
-    if (confirm(`Hapus ${label}?`)) { apply(''); markDirty(); }
+    if (confirm(`Hapus ${label}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(''); markDirty(); }
   }
 
   function removeGalleryImage(images, imageIndex, apply) {
-    if (confirm(`Hapus gambar galeri nomor ${imageIndex + 1}?`)) { apply(images.filter((_, index) => index !== imageIndex)); markDirty(); }
+    if (confirm(`Hapus gambar galeri nomor ${imageIndex + 1}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(images.filter((_, index) => index !== imageIndex)); markDirty(); }
   }
 
   function removePackage(index) {
-    if (!confirm(`Hapus paket ${catalog.packages[index].name}?`)) return;
+    if (!confirm(`Hapus paket ${catalog.packages[index].name}? Gambar yang hanya dipakai paket ini akan dihapus permanen setelah katalog disimpan.`)) return;
     catalog.packages = catalog.packages.filter((_, itemIndex) => itemIndex !== index);
     catalog = { ...catalog };
     markDirty();
@@ -187,6 +235,26 @@
     const response = await fetch(`/api/admin/bookings/${item.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
     if (!response.ok) { saveError = 'Status pemesanan gagal diperbarui.'; return; }
     item.status = status; bookings = [...bookings];
+  }
+
+  async function deleteBookingRecord(item) {
+    if (deletingBookingId) return;
+    if (!confirm(`Hapus pemesanan ${item.code}? Data pelanggan akan dihapus permanen.`)) return;
+    deletingBookingId = item.id;
+    saveError = '';
+    try {
+      const response = await fetch(`/api/admin/bookings/${item.id}`, { method: 'DELETE' });
+      if (response.status === 204) {
+        bookings = bookings.filter((booking) => booking.id !== item.id);
+        return;
+      }
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || 'Pemesanan gagal dihapus.');
+    } catch (error) {
+      saveError = error.message;
+    } finally {
+      deletingBookingId = '';
+    }
   }
 </script>
 
@@ -215,7 +283,7 @@
   <main class="admin-main" on:input={markDirty} on:change={markDirty}>
     <header class="admin-header">
       <div><p class="admin-kicker">Wonderful Lombok</p><h2>{pageInfo[0]}</h2><p>{pageInfo[1]}</p></div>
-      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty}>Simpan perubahan</button></div>
+      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving} aria-busy={saving}>{saving ? 'Menyimpan...' : 'Simpan perubahan'}</button></div>
     </header>
 
     {#if saveError}<p class="admin-error" role="alert">{saveError}</p>{/if}
@@ -237,12 +305,12 @@
       </section>
     {:else if active === 'bookings'}
       <section class="admin-section" aria-labelledby="admin-bookings-title">
-        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div>
+        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><div class="admin-heading-actions"><a class="admin-secondary" href="/api/admin/bookings/export">Unduh CSV</a><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div></div>
         {#if bookings.length}
           <div class="booking-admin-list">{#each bookings as item}<article>
             <div class="booking-code"><b>{item.code}</b><span>{new Date(item.created_at).toLocaleString('id-ID')}</span></div>
             <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span></p></div>
-            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label></div>
+            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label><button class="booking-delete" type="button" on:click={() => deleteBookingRecord(item)} disabled={deletingBookingId === item.id} aria-label="Hapus pemesanan {item.code}">{deletingBookingId === item.id ? 'Menghapus…' : 'Hapus'}</button></div>
           </article>{/each}</div>
         {:else}<div class="admin-empty"><strong>Belum ada pemesanan</strong><p>Pesanan yang dibuat pelanggan akan muncul otomatis di halaman ini.</p></div>{/if}
       </section>

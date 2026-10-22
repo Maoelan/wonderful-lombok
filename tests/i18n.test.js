@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
-import { destinationSlug, getCopy, getFormCopy, localeTag, localizeCatalog, nominatimLanguage } from '../src/lib/i18n.js';
+import { destinationSlug, getCopy, getFormCopy, localeTag, nominatimLanguage } from '../src/lib/i18n.js';
+import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 
 test('Chinese package details contain no Indonesian or English fallback content', () => {
   const catalog = localizeCatalog(defaultCatalog, 'zh-cn');

@@ -42,6 +42,35 @@ test('server travel quote returns a retryable error when OSRM is unavailable', a
   );
 });
 
+test('server travel quote retries one transient OSRM outage', async () => {
+  let calls = 0;
+  const quote = await getTravelQuote(details, 10_000, {
+    retryDelayMs: 0,
+    fetchImpl: async () => {
+      calls += 1;
+      return new Response(JSON.stringify(calls === 1 ? { code: 'Error' } : osrmPayload), { status: calls === 1 ? 503 : 200 });
+    }
+  });
+
+  assert.deepEqual(quote, { distanceKm: 13, estimatedPrice: 130_000, travelRate: 10_000 });
+  assert.equal(calls, 2);
+});
+
+test('server travel quote maps a persistent OSRM 503 to a retryable error', async () => {
+  let calls = 0;
+  await assert.rejects(
+    getTravelQuote(details, 10_000, {
+      retryDelayMs: 0,
+      fetchImpl: async () => {
+        calls += 1;
+        return new Response(JSON.stringify({ code: 'Error' }), { status: 503 });
+      }
+    }),
+    (error) => error instanceof TravelQuoteError && error.status === 503
+  );
+  assert.equal(calls, 2);
+});
+
 test('server travel quote rejects an invalid catalog rate', async () => {
   await assert.rejects(
     getTravelQuote(details, 0, { fetchImpl: async () => ({ ok: true, json: async () => osrmPayload }) }),

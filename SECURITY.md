@@ -33,7 +33,9 @@ Rate limits are enforced in process memory with these rules:
 - routing: 120 requests per hour per client address;
 - uploads: 30 requests per hour per admin;
 - catalog saves: 120 requests per hour per admin;
-- booking status changes: 240 requests per hour per admin.
+- booking status changes: 240 requests per hour per admin;
+- booking exports: 20 requests per hour per admin;
+- booking deletions: 60 requests per hour per admin.
 
 A limited response includes `Retry-After` in seconds.
 
@@ -47,6 +49,18 @@ The in-memory table is bounded. When it is full, new keys are rejected instead o
 
 Both booking forms include an off-screen `website` field that people do not see. The server rejects requests where that field is non-empty before any quote or persistence work happens.
 
+## Uploaded image metadata
+
+Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared MIME type and magic bytes, and capped at 5 MB per file and 5.5 MB per multipart request. Before the bytes are sent to Convex storage, JPEG EXIF/XMP/IPTC/comment segments, PNG `eXIf` and text chunks, and WebP `EXIF`/`XMP` chunks are removed. A JPEG orientation value is preserved with a minimal EXIF segment so phone photos are not rotated unexpectedly. Malformed images are rejected instead of being stored with their metadata.
+
+This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
+
+When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including links or URLs inside rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save. Deletion is permanent and cannot be undone; admin confirmations call this out, and `PRIVACY.md` records the operational procedure.
+
+## Booking data access
+
+Booking records contain customer name, WhatsApp number, travel details, and travel coordinates. They are available only to authenticated admins. The CSV export route sends `Cache-Control: no-store` and is rate-limited. Deleting a booking requires an authenticated admin, a trusted `Origin`, and an explicit confirmation in the admin UI; the mutation removes the booking and its idempotency record. The full data inventory, retention target, and export/deletion procedure are in [PRIVACY.md](PRIVACY.md).
+
 ## Secret handling
 
-Environment variables are documented in `.env.example` (without values). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles. See Issue #6 and the deployment checklist for rotation ownership and cadence.
+Environment variables are documented in `.env.example` (without values). Their purpose, visibility, owner, and rotation cadence are recorded in [ENVIRONMENT.md](ENVIRONMENT.md). Server-only values such as `CONVEX_SERVER_SECRET` must never be imported through `$app/env/public` or exposed in client bundles.

@@ -1818,6 +1818,8 @@ footer {
 .booking-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--forest); border-radius: 4px; color: var(--forest); font-size: 12px; font-weight: 800; text-decoration: none; }
 .booking-actions label { gap: 5px; }
 .booking-actions select { min-height: 40px; font-size: 12px; }
+.booking-delete { min-height: 40px; border: 1px solid #932f25; border-radius: 4px; background: transparent; color: #932f25; cursor: pointer; font-size: 12px; font-weight: 800; }
+.booking-delete:disabled { cursor: default; opacity: .55; }
 .admin-empty { padding: 40px; border: 1px dashed var(--line); background: var(--paper); text-align: center; }
 .admin-empty strong { font-size: 18px; }
 .admin-empty p { margin: 7px 0 0; color: var(--muted); }
@@ -1986,13 +1988,14 @@ footer {
 @keyframes saved-in { from { opacity: 0; transform: translateY(4px); } }
 .admin-save, .admin-secondary { min-height: 46px; border: 0; border-radius: 4px; background: var(--forest); color: white; cursor: pointer; padding: 10px 22px; font-weight: 800; }
 .admin-save:disabled { cursor: default; opacity: .46; }
-.admin-secondary { border: 1px solid var(--forest); background: transparent; color: var(--forest); }
+.admin-secondary { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--forest); background: transparent; color: var(--forest); text-decoration: none; }
 .admin-notice { display: grid; grid-template-columns: 120px 1fr; gap: 20px; margin: 28px 0 50px; padding: 17px 20px; border-left: 4px solid var(--gold); background: var(--paper); color: var(--muted); font-size: 13px; line-height: 1.55; }
 .admin-error { margin: 22px 0 -8px; padding: 14px 18px; border-left: 4px solid #932f25; background: #fff0ed; color: #7c1d1d; font-size: 13px; font-weight: 700; }
 .admin-notice strong { color: var(--forest); }
 .admin-section { max-width: 1050px; padding-top: 44px; }
 .admin-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
 .admin-section-heading h3 { margin-bottom: 0; }
+.admin-heading-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .admin-section h3 { margin: 6px 0 30px; font-size: 38px; }
 .admin-editor-list { display: grid; gap: 16px; }
 .admin-editor-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper); }

@@ -1,7 +1,9 @@
 import { slugify } from '../i18n.js';
+import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
 
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
+const optionalSlug = (value) => value === undefined || value === '' || (typeof value === 'string' && value.length <= 80 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value));
 const stringList = (value, maxItems = 30) => Array.isArray(value) && value.length <= maxItems && value.every((item) => text(item, 1, 500));
 const validItinerary = (value) => Array.isArray(value) && value.length <= 14 && value.every((day) => text(day?.day, 1, 40) && text(day.title, 2, 200) && stringList(day.items || [], 30));
 
@@ -29,6 +31,7 @@ function validGallery(images) {
 
 export function validateCatalog(catalog) {
   if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog)) return 'Data katalog tidak valid.';
+  if (catalog.schemaVersion !== CATALOG_SCHEMA_VERSION) return 'Versi skema katalog tidak didukung.';
   if (!Array.isArray(catalog.packages) || !Array.isArray(catalog.destinations) || !Array.isArray(catalog.rentals) || !Array.isArray(catalog.faqs)) return 'Data katalog tidak lengkap.';
   if (catalog.packages.length > 30 || catalog.destinations.length > 50 || catalog.rentals.length > 30 || catalog.faqs.length > 30) return 'Jumlah item katalog terlalu banyak.';
 
@@ -55,10 +58,22 @@ export function validateCatalog(catalog) {
   });
   if (!destinationsValid) return 'Data destinasi tidak valid.';
 
-  const rentalsValid = catalog.rentals.every((item) => text(item?.symbol, 1, 10) && text(item.name, 2, 100) && text(item.detail, 2, 500) && text(item.price, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.detailEn, 500) && optionalText(item.priceEn, 100));
+  const rentalSlugs = new Set();
+  const rentalsValid = catalog.rentals.every((item) => {
+    if (!optionalSlug(item?.slug)) return false;
+    if (item.slug && rentalSlugs.has(item.slug)) return false;
+    if (item.slug) rentalSlugs.add(item.slug);
+    return text(item?.symbol, 1, 10) && text(item.name, 2, 100) && text(item.detail, 2, 500) && text(item.price, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.detailEn, 500) && optionalText(item.priceEn, 100);
+  });
   if (!rentalsValid) return 'Data rental tidak valid.';
 
-  const faqsValid = catalog.faqs.every((item) => text(item?.question, 5, 200) && text(item.answer, 5, 1500) && optionalText(item.questionEn, 200) && optionalText(item.answerEn, 1500));
+  const faqSlugs = new Set();
+  const faqsValid = catalog.faqs.every((item) => {
+    if (!optionalSlug(item?.slug)) return false;
+    if (item.slug && faqSlugs.has(item.slug)) return false;
+    if (item.slug) faqSlugs.add(item.slug);
+    return text(item?.question, 5, 200) && text(item.answer, 5, 1500) && optionalText(item.questionEn, 200) && optionalText(item.answerEn, 1500);
+  });
   if (!faqsValid) return 'Pertanyaan atau jawaban FAQ tidak valid.';
 
   if (!Number.isFinite(Number(catalog.travelRate)) || Number(catalog.travelRate) < 1000 || Number(catalog.travelRate) > 1_000_000) return 'Tarif travel tidak valid.';
