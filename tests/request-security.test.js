@@ -14,7 +14,7 @@ const base = (overrides = {}) => ({
 });
 
 test('cookie-authenticated mutations require a matching Origin header', () => {
-  for (const pathname of ['/login', '/logout', '/admin', '/api/admin/bookings', '/api/admin/bookings/abc', '/api/admin/catalog', '/api/admin/upload']) {
+  for (const pathname of ['/login', '/logout', '/admin', '/api/admin/bookings', '/api/admin/bookings/abc', '/api/admin/bookings/export', '/api/admin/catalog', '/api/admin/upload']) {
     assert.equal(requiresTrustedOrigin(pathname), true, pathname);
     assert.equal(checkRequestOrigin(base({ pathname })).ok, true, `${pathname} matching origin`);
     assert.equal(checkRequestOrigin(base({ pathname, origin: null })).reason, 'missing', `${pathname} missing origin`);

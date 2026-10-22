@@ -5,6 +5,7 @@ on:
     branches: [develop, main]
   push:
     branches: [develop, main]
+  workflow_dispatch:
   schedule:
     # Monday at 03:17 Asia/Jakarta (GitHub cron uses UTC).
     - cron: "17 20 * * 0"

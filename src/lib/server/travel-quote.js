@@ -1,4 +1,5 @@
 import { calculatePickupPrice, readRoadRoute, roadRouteUrl } from '../pickup.js';
+import { fetchWithRetry } from './upstream.js';
 
 export class TravelQuoteError extends Error {
   constructor(message, status = 503) {
@@ -8,7 +9,7 @@ export class TravelQuoteError extends Error {
   }
 }
 
-export async function getTravelQuote(details, rate, { fetchImpl = globalThis.fetch, timeoutMs = 10_000 } = {}) {
+export async function getTravelQuote(details, rate, { fetchImpl = globalThis.fetch, timeoutMs = 10_000, retries = 1, retryDelayMs = 100 } = {}) {
   const travelRate = Number(rate);
   if (!Number.isFinite(travelRate) || travelRate <= 0) {
     throw new TravelQuoteError('Tarif travel belum dikonfigurasi.');
@@ -24,8 +25,11 @@ export async function getTravelQuote(details, rate, { fetchImpl = globalThis.fet
 
   let response;
   try {
-    response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) });
+    response = await fetchWithRetry(url, {}, { fetchImpl, timeoutMs, retries, retryDelayMs });
   } catch {
+    throw new TravelQuoteError('Layanan rute sedang tidak tersedia. Coba lagi.', 503);
+  }
+  if (response.status === 429 || response.status >= 500) {
     throw new TravelQuoteError('Layanan rute sedang tidak tersedia. Coba lagi.', 503);
   }
 

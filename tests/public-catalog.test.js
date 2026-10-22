@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { localizeCatalog } from '../src/lib/i18n.js';
+import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 import { publicCatalog } from '../src/lib/server/public-catalog.js';
 
 const catalog = {

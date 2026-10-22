@@ -3,11 +3,17 @@ import { authenticate, createSession } from '#lib/server/auth.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { getPublicCatalog } from '#lib/server/db.js';
+import { defaultCatalog } from '#lib/catalog.js';
 
 export async function load({ locals }) {
   if (locals.user) redirect(303, '/admin');
-  const catalog = await getPublicCatalog();
-  return { colorTheme: catalog.settings.colorTheme };
+  let colorTheme = defaultCatalog.settings.colorTheme;
+  try {
+    colorTheme = (await getPublicCatalog()).settings.colorTheme;
+  } catch {
+    // Login must stay available even when the catalog backend is down.
+  }
+  return { colorTheme };
 }
 
 export const actions = {

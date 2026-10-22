@@ -1,10 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
+import { CATALOG_SCHEMA_VERSION } from '../src/lib/catalog-schema.js';
 import { validateCatalog, validImage } from '../src/lib/server/catalog-validation.js';
 
 test('default catalog passes server validation', () => {
   assert.equal(validateCatalog(structuredClone(defaultCatalog)), null);
+});
+
+test('catalog requires the current schema version', () => {
+  const missing = structuredClone(defaultCatalog);
+  delete missing.schemaVersion;
+  assert.equal(validateCatalog(missing), 'Versi skema katalog tidak didukung.');
+
+  const future = structuredClone(defaultCatalog);
+  future.schemaVersion = CATALOG_SCHEMA_VERSION + 1;
+  assert.equal(validateCatalog(future), 'Versi skema katalog tidak didukung.');
+
+  const stringVersion = structuredClone(defaultCatalog);
+  stringVersion.schemaVersion = String(CATALOG_SCHEMA_VERSION);
+  assert.equal(validateCatalog(stringVersion), 'Versi skema katalog tidak didukung.');
 });
 
 test('catalog rejects unsafe and malformed image URLs', () => {
