@@ -56,6 +56,8 @@ The public planner requires these Google Cloud APIs in the project that owns bot
 
 Do not enable unrelated Google APIs on either key. The browser key must have HTTP referrer restrictions for the production host and approved preview hosts. The server key must not be exposed to the browser, must not have HTTP referrer restrictions, and should be restricted to the two server APIs above. Google Cloud billing, quota limits, and budget alerts are dashboard-only controls and cannot be verified from this repository.
 
+The application also enforces fail-closed distributed map limits through Convex: 10 requests per IP per minute, 30 place searches per IP per hour, 60 route calculations per IP per hour, 60 global requests per minute per operation, and 200 global requests per day per operation. Booking quote verification shares the route allowance. These limits intentionally favor cost protection during development; review them with real traffic before launch. Provider errors are not retried by public map endpoints because server errors can still consume quota.
+
 ## Mapbox services
 
 Set `MAP_PROVIDER=mapbox` to use Mapbox instead of Google. The public planner then requires:

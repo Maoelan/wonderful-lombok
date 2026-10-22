@@ -9,5 +9,8 @@ export default defineSchema({
     code: v.string(), idempotencyKey: v.optional(v.string()), serviceType: v.string(), serviceName: v.string(), travelDate: v.string(), people: v.number(),
     customerName: v.string(), whatsapp: v.string(), details: v.any(), status: v.string(), createdAt: v.number(), updatedAt: v.number()
   }).index('by_created_at', ['createdAt']),
-  bookingRequests: defineTable({ key: v.string(), code: v.string() }).index('by_key', ['key'])
+  bookingRequests: defineTable({ key: v.string(), code: v.string() }).index('by_key', ['key']),
+  mapRateLimits: defineTable({ key: v.string(), count: v.number(), resetAt: v.number() })
+    .index('by_key', ['key'])
+    .index('by_reset_at', ['resetAt'])
 });

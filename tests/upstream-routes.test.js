@@ -148,7 +148,7 @@ test('geocode switches to Mapbox when MAP_PROVIDER is mapbox', async () => {
   }
 });
 
-test('geocode returns a localized outage instead of an empty success', async () => {
+test('geocode does not retry a billable provider outage', async () => {
   let calls = 0;
   const response = await geocode({
     url: new URL('http://localhost/api/geocode?q=Kuta&lang=en'),
@@ -160,7 +160,7 @@ test('geocode returns a localized outage instead of an empty success', async () 
   });
 
   assert.equal(response.status, 502);
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
   assert.equal((await response.json()).error, 'The map service cannot be reached. Check your connection and try again.');
 });
 
@@ -179,7 +179,7 @@ test('geocode distinguishes provider permission and quota failures', async () =>
   }
 });
 
-test('route retries one transient Google Routes outage', async () => {
+test('route does not retry a billable Google Routes outage', async () => {
   let calls = 0;
   const response = await route({
     url: new URL('http://localhost/api/route?fromLat=-8.5&fromLng=116.1&toLat=-8.6&toLng=116.2&lang=en'),
@@ -193,13 +193,9 @@ test('route retries one transient Google Routes outage', async () => {
     }
   });
 
-  assert.equal(response.status, 200);
-  assert.equal(calls, 2);
-  const body = await response.json();
-  assert.equal(body.distanceKm, 13);
-  assert.equal(body.durationMinutes, 30);
-  assert.equal(body.roadAccess, true);
-  assert.deepEqual(body.points, [[-8.5, 116.1], [-8.6, 116.2]]);
+  assert.equal(response.status, 502);
+  assert.equal(calls, 1);
+  assert.equal((await response.json()).error, 'The map service cannot be reached. Check your connection and try again.');
 });
 
 test('route posts exactly the pick-up and destination to Google Routes', async () => {
@@ -298,7 +294,7 @@ test('route rejects a ferry route as lacking road access', async () => {
   assert.equal((await response.json()).error, 'This route has no road access. Choose another point near a road.');
 });
 
-test('route reports a persistent Google Routes outage as a service error', async () => {
+test('route reports a Google Routes outage as a service error', async () => {
   let calls = 0;
   const response = await route({
     url: new URL('http://localhost/api/route?fromLat=-8.5&fromLng=116.1&toLat=-8.6&toLng=116.2&lang=en'),
@@ -310,7 +306,7 @@ test('route reports a persistent Google Routes outage as a service error', async
   });
 
   assert.equal(response.status, 502);
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
   assert.equal((await response.json()).error, 'The map service cannot be reached. Check your connection and try again.');
 });
 

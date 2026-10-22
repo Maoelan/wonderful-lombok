@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import { getFormCopy, isLocale } from '#lib/i18n.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
-import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { consumeMapUsage } from '#lib/server/map-usage-guard.js';
 import { getMapProviderName, searchPlaces } from '#lib/server/map-providers/index.js';
 import { TravelQuoteError } from '#lib/server/travel-quote-error.js';
 
@@ -10,10 +10,12 @@ export async function GET({ url, getClientAddress, fetch }) {
   const requestedLocale = url.searchParams.get('lang');
   const locale = isLocale(requestedLocale) ? requestedLocale : 'en';
   const t = getFormCopy(locale);
-  const limit = consumeRateLimit(`geocode:${clientAddressKey(getClientAddress())}`, 60, 60 * 60_000);
-  if (!limit.allowed) return tooManyRequests(t.tooManySearches, limit);
+  const clientAddress = clientAddressKey(getClientAddress());
   const query = url.searchParams.get('q')?.trim() || '';
   if (query.length < 3 || query.length > 120) return json({ error: t.placeQueryLength }, { status: 400 });
+
+  const usage = await consumeMapUsage('geocode', clientAddress);
+  if (!usage.allowed) return tooManyRequests(t.tooManySearches, usage);
 
   try {
     const results = await searchPlaces(query, locale, {
@@ -22,7 +24,7 @@ export async function GET({ url, getClientAddress, fetch }) {
       token: process.env.MAPBOX_SERVER_TOKEN,
       fetchImpl: fetch,
       timeoutMs: 8_000,
-      retries: 1
+      retries: 0
     });
     return json({ results }, { headers: { 'cache-control': 'private, max-age=300' } });
   } catch (error) {

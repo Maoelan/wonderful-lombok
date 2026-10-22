@@ -17,6 +17,7 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Confirm `MAP_PROVIDER` is set to the approved provider. For Google, `PUBLIC_GOOGLE_MAPS_API_KEY` and `GOOGLE_MAPS_SERVER_API_KEY` must be configured in the hosting provider. The browser key must be restricted to Maps JavaScript API and approved HTTP referrers; the server key must be restricted to Places API (New) and Routes API and must never reach the browser bundle.
 - [ ] For an approved Mapbox release, confirm `PUBLIC_MAPBOX_TOKEN` is a URL-restricted public token and `MAPBOX_SERVER_TOKEN` is a secret token scoped only to Geocoding and Directions. The secret token must never reach the browser bundle.
 - [ ] Confirm the active provider's daily quotas, usage limits, and budget alerts are enabled, and that the server key/token is absent from the built client files and source maps.
+- [ ] Confirm the deployed Convex schema includes `mapRateLimits`; without it, production map requests intentionally fail closed before contacting the paid provider.
 - [ ] Confirm no `.env` file, deploy key, database export, upload archive, or backup is included in the release artifact.
 - [ ] Confirm the admin account and revocation path are ready; remove demo or shared admin credentials.
 - [ ] Take a Convex backup/export and record the currently deployed application SHA for rollback.
@@ -83,7 +84,7 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 
 - If Convex is unavailable, public catalog pages return a localized `503` maintenance page and the sitemap returns `503`. Login remains available, but catalog and booking operations require Convex.
 - Map rendering, place search, route distance, and booking quote verification depend on the active provider's availability, billing, quotas, and correct key/token restrictions (Google Maps Platform or Mapbox).
-- Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
+- General rate limiting is in process memory. Google and Mapbox place-search and route calls additionally use a fail-closed Convex counter shared across serverless instances.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
 - The CI secret scan is a high-confidence tracked-file check, not full-history scanning. GitHub-native push protection and full-history scanning still need repository-owner setup.

@@ -2,8 +2,8 @@ import { json } from '@sveltejs/kit';
 import { getFormCopy, isLocale } from '#lib/i18n.js';
 import { MAX_TRAVEL_POINTS, isInsideLombok } from '#lib/pickup.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
-import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
+import { consumeMapUsage } from '#lib/server/map-usage-guard.js';
 import { TravelQuoteError, getRoadRoute } from '#lib/server/travel-quote.js';
 
 const number = (url, key) => Number(url.searchParams.get(key));
@@ -22,8 +22,7 @@ function publicError(error, t) {
 
 async function routeResponse(stops, locale, fetch, getClientAddress) {
   const t = getFormCopy(locale);
-  const limit = consumeRateLimit(`route:${clientAddressKey(getClientAddress())}`, 120, 60 * 60_000);
-  if (!limit.allowed) return tooManyRequests(t.tooManyRoutes, limit);
+  const clientAddress = clientAddressKey(getClientAddress());
   if (!Array.isArray(stops) || stops.length !== MAX_TRAVEL_POINTS) {
     return json({ error: t.routeStopCount }, { status: 400 });
   }
@@ -35,11 +34,14 @@ async function routeResponse(stops, locale, fetch, getClientAddress) {
     seen.add(key);
   }
 
+  const usage = await consumeMapUsage('route', clientAddress);
+  if (!usage.allowed) return tooManyRequests(t.tooManyRoutes, usage);
+
   try {
     const route = await getRoadRoute(stops, locale, {
       fetchImpl: fetch,
       timeoutMs: 10_000,
-      retries: 1
+      retries: 0
     });
     return json(route, { headers: { 'cache-control': 'private, no-store' } });
   } catch (error) {

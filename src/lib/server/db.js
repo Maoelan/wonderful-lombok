@@ -57,3 +57,7 @@ export async function updateBookingStatus(id, status) {
 export async function deleteBooking(id) {
   return convexMutation('bookings:remove', { id });
 }
+
+export async function consumeDistributedMapLimit(buckets, now = Date.now()) {
+  return convexMutation('mapRateLimits:consume', { buckets, now });
+}

@@ -77,6 +77,22 @@ test('booking request stores the server travel quote and normalized customer dat
   ]);
 });
 
+test('booking quote verification stops before Google when the shared route budget is exhausted', async () => {
+  let providerCalls = 0;
+  const result = await createBookingRequest({
+    body: travelBody(),
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174099',
+    now,
+    fetchImpl: async () => { providerCalls += 1; return new Response(JSON.stringify(routePayload), { status: 200 }); },
+    consumeTravelQuote: async () => ({ allowed: false }),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async () => 'WL-NEVER'
+  });
+
+  assert.equal(result.status, 429);
+  assert.equal(providerCalls, 0);
+});
+
 test('booking request rejects duplicate or excessive stops before calling Google', async () => {
   let calls = 0;
   const duplicate = await createBookingRequest({
