@@ -5,11 +5,12 @@ import { parse } from 'svelte/compiler';
 
 // Semgrep CE does not parse Svelte; scan its scripts with original line numbers.
 export function extractScripts(source, filename) {
-  const ast = parse(source, { filename });
+  const ast = parse(source, { filename, modern: true });
   return [['instance', ast.instance], ['module', ast.module]]
     .filter(([, script]) => script)
     .map(([kind, script]) => ({
       kind,
+      extension: script.attributes.some((attribute) => attribute.name === 'lang' && attribute.value[0]?.data === 'ts') ? 'ts' : 'js',
       code: '\n'.repeat((source.slice(0, script.content.start).match(/\n/g) || []).length)
         + source.slice(script.content.start, script.content.end)
     }));
@@ -20,9 +21,9 @@ function prepare(directory, output) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const file = join(directory, entry.name);
     if (entry.isDirectory()) count += prepare(file, output);
-    else if (entry.name.endsWith('.svelte')) {
-      for (const { kind, code } of extractScripts(readFileSync(file, 'utf8'), file)) {
-        const target = join(output, `${file}.${kind}.js`);
+    else if (entry.isFile() && entry.name.endsWith('.svelte')) {
+      for (const { kind, code, extension } of extractScripts(readFileSync(file, 'utf8'), file)) {
+        const target = join(output, `${file}.${kind}.${extension}`);
         mkdirSync(dirname(target), { recursive: true });
         writeFileSync(target, code);
         count++;
