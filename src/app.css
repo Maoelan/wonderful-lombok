@@ -1,3 +1,39 @@
+@import './lib/travel-ui.css';
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+html:root {
+  --color-primary: #0b4f6c;
+  --color-ink: #12212b;
+  --color-body: #46566a;
+  --color-accent: #f2b544;
+  --color-accent-tint: #fbf0d9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f8fa;
+  --color-border: #dde6ec;
+  --color-danger: #c62828;
+  --color-primary-deep: #07394e;
+  --color-control: #8297a5;
+  --color-on-primary: #ffffff;
+  --color-scrim: linear-gradient(90deg, rgba(5,35,52,.82), rgba(5,35,52,.4) 52%, rgba(5,35,52,.08));
+  --color-image-scrim: linear-gradient(0deg, rgba(5,35,52,.85), rgba(5,35,52,0) 75%);
+  --shadow-floating: 0 8px 24px rgba(11,79,108,.12);
+}
+
+/* Keep the existing CMS theme choice meaningful without changing its stored value. */
+html body .site-theme:not(.theme-ocean),
+html body .admin-shell:not(.theme-ocean),
+html body .login-page:not(.theme-ocean) {
+  --color-primary: #245749;
+  --color-primary-deep: #153e35;
+}
+
 :root {
   font-family: var(--font-body);
   color: #173c34;

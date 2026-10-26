@@ -11,6 +11,22 @@
   const today = todayInWita();
 
   function close() { if (!loading) booking = null; }
+  function focusDialog(node) {
+    const previousFocus = document.activeElement;
+    node.focus();
+    const handleKey = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); close(); }
+      if (event.key !== 'Tab') return;
+      const controls = [...node.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]')].filter((element) => element.tabIndex >= 0 && element.getClientRects().length && !element.closest('[aria-hidden="true"]'));
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (!first) { event.preventDefault(); node.focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === node)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === node)) { event.preventDefault(); first.focus(); }
+    };
+    node.addEventListener('keydown', handleKey);
+    return { destroy() { node.removeEventListener('keydown', handleKey); if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus(); } };
+  }
   async function submit() {
     error = ''; loading = true;
     const whatsappWindow = window.open('about:blank', '_blank');
@@ -33,7 +49,7 @@
 
 {#if booking}
   <div class="booking-backdrop" role="presentation" on:click={close} on:keydown={(e) => e.key === 'Escape' && close()}>
-    <div class="booking-dialog" role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
+    <div class="booking-dialog" use:focusDialog role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
       <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
       <p class="label">{t.booking}</p><h2 id="booking-title">{booking.name}</h2>
       <p>{t.bookingIntro}</p>
