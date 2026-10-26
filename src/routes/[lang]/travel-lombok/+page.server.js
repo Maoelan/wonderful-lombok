@@ -1,7 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { getPublicCatalog } from '#lib/server/db.js';
 import { loadCatalogOrMaintenance } from '#lib/server/catalog-fallback.js';
-import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
+import { getSiteOrigin } from '#lib/server/site-url.js';
+import { getSocialImageUrl } from '#lib/social-image.js';
 import { alternateUrls, isLocale, localePath } from '#lib/i18n.js';
 import { localizeCatalog } from '#lib/server/catalog-i18n.js';
 
@@ -15,6 +16,6 @@ export async function load({ params, url }) {
     catalog,
     canonicalUrl: `${origin}${localePath(params.lang, suffix)}`,
     alternateUrls: alternateUrls(origin, suffix),
-    socialImageUrl: absoluteUrl(catalog.settings.heroImage, origin)
+    socialImageUrl: getSocialImageUrl(catalog.settings.heroImage, origin)
   };
 }

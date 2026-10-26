@@ -102,7 +102,7 @@ Do not commit admin credentials, environment files, deploy keys, customer record
 - Convex-hosted images removed from the catalog are deleted after a successful save if no catalog field still references them, including URLs inside rich text. This deletion is permanent; the admin confirmation warns before saving.
 - Security headers are applied by the application.
 - Environment files, local Vercel metadata, private keys, dumps, and backups are excluded through `.gitignore`.
-- The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment.
+- The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment. Production requires the Vercel Firewall/WAF or shared-store gate in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md).
 
 No public repository or application can be guaranteed vulnerability-free. Run the test suite, dependency audit, secret scan, and production build before each release.
 

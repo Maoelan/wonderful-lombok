@@ -16,6 +16,7 @@
   let destinationMenu;
   let menuToggle;
   const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
+  const fallbackImage = '/wonderful-lombok-icon-192.png';
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
   $: formCopy = getFormCopy(locale);
@@ -31,10 +32,9 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
-  $: heroSource = imageUrl(settings.heroImage, 1280);
-  $: heroSrcset = imageSrcset(settings.heroImage, [640, 960, 1280, 1600]);
+  $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
+  $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
-  const fallbackImage = '/wonderful-lombok-icon-192.png';
   const packageGallery = (item) => {
     const images = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
     return images.length ? images : [fallbackImage];
@@ -198,7 +198,7 @@
   {/if}
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
-    <div class="about-image"><img src={imageUrl(settings.aboutImage, 900)} srcset={imageSrcset(settings.aboutImage, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 50vw" alt={seo.imageAlt} loading="lazy" decoding="async" width="900" height="900" /></div>
+    <div class="about-image"><img src={imageUrl(settings.aboutImage || fallbackImage, 900)} srcset={imageSrcset(settings.aboutImage || fallbackImage, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 50vw" alt={seo.imageAlt} loading="lazy" decoding="async" width="900" height="900" /></div>
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 

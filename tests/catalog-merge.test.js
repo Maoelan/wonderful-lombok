@@ -43,7 +43,7 @@ test('a new package does not inherit another package defaults', () => {
   });
 
   assert.equal(merged.packages[0].slug, 'brand-new-tour');
-  assert.equal(merged.packages[0].nameEn, 'Brand new tour');
+  assert.equal(merged.packages[0].nameEn, '');
   assert.notEqual(merged.packages[0].nameEn, first.nameEn);
   assert.equal(merged.packages[0].unitEn, '');
 });

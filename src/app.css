@@ -1851,6 +1851,14 @@ footer {
 .booking-summary h4 { margin-bottom: 8px; font-size: 17px; }
 .booking-summary p { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .booking-summary p b { width: 100%; color: var(--ink); }
+.booking-details { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+.booking-details div { display: grid; gap: 2px; min-width: 120px; }
+.booking-details dt { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.booking-details dd { margin: 0; color: var(--ink); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.booking-details .booking-detail-wide { flex-basis: 100%; }
+.booking-summary .booking-detail-notes { display: block; margin-top: 8px !important; overflow-wrap: anywhere; }
+.admin-results-note { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
+.admin-load-more { display: flex; justify-content: center; margin-top: 18px; }
 .booking-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--forest); border-radius: 4px; color: var(--forest); font-size: 12px; font-weight: 800; text-decoration: none; }
 .booking-actions label { gap: 5px; }
 .booking-actions select { min-height: 40px; font-size: 12px; }
@@ -1959,6 +1967,9 @@ footer {
 .admin-checkbox-list small, .admin-inline-empty { color: var(--muted); font-size: 11px; }
 .admin-price-tier { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
 .admin-price-tier button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #932f25; cursor: pointer; font-weight: 800; }
+.admin-price-tier input[readonly] { background: var(--surface-muted); color: var(--muted); }
+.admin-translation .admin-inline-empty { margin: 0; }
+.admin-translation .admin-price-tier { grid-template-columns: 1fr 1fr 1fr; }
 .admin-secondary.compact { width: fit-content; min-height: 42px; margin-top: 6px; padding: 8px 14px; }
 .whatsapp-float { position: fixed; z-index: 1500; right: max(22px, calc((100vw - 1240px) / 2)); bottom: 24px; display: inline-flex; min-height: 54px; align-items: center; gap: 11px; padding: 0 18px; border: 2px solid white; border-radius: 28px; background: #168c49; color: white; text-decoration: none; box-shadow: 0 9px 24px rgba(5,35,29,.25); transition: background .18s ease, transform .18s ease; }
 .whatsapp-float span { font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
@@ -1988,7 +1999,7 @@ footer {
   .price-section { margin: 0 -18px; padding: 42px 18px; }
   .price-row { grid-template-columns: 1fr auto; }
   .price-row span { grid-column: 1 / -1; }
-  .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .admin-price-tier, .admin-translation .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .admin-checkbox-list { grid-template-columns: 1fr; }
   .whatsapp-float { right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); width: 50px; min-height: 50px; justify-content: center; padding: 0; border: 0; border-radius: 50%; }
   .whatsapp-float span { display: none; }

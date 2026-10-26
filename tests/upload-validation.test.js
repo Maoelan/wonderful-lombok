@@ -49,6 +49,11 @@ test('enforces the per-file size limit', () => {
   assert.equal(validateUploadSize('1')?.status, 400);
 });
 
+test('keeps uploads below the Vercel function request limit', () => {
+  assert.ok(MAX_UPLOAD_BYTES < MAX_UPLOAD_REQUEST_BYTES);
+  assert.ok(MAX_UPLOAD_REQUEST_BYTES < 4.5 * 1024 * 1024);
+});
+
 test('enforces the larger multipart request limit', () => {
   assert.equal(validateUploadRequestSize(undefined), null);
   assert.equal(validateUploadRequestSize(''), null);
