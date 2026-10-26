@@ -2,6 +2,14 @@
 
 This document records the security decisions that support the launch hardening work in Issue #6. It does not contain secret values.
 
+## Automated security gate
+
+Private-repository CI uses Semgrep Community Edition instead of the unavailable GitHub Code Scanning integration. The `Security / Analyze JavaScript` job runs on pull requests, pushes to `develop` and `main`, manual dispatch, and a weekly schedule. It requires only repository read access, no Semgrep account, and no production credentials. Telemetry and version checks are disabled; scanner image, community rules and Actions are pinned to immutable digests/commits.
+
+The scan covers application JavaScript/TypeScript, Convex functions, scripts, workflow security and secret patterns. Svelte script blocks are extracted with the Svelte parser, retaining original line numbers; malformed components fail extraction. A deliberately vulnerable, unimported test fixture must produce a finding before application scanning starts. Any application finding or scanner/configuration error fails the job; there is no `continue-on-error` or baseline exclusion. JSON/SARIF reports remain private Actions artifacts for seven days, not GitHub Code Scanning uploads.
+
+Semgrep CE is not equivalent to CodeQL or an audit: it does not provide the same cross-function analysis, and extracted Svelte scripts do not cover template-level data flow. The existing dependency audit, tracked-file secret scan, server validation tests and read-only deployment smoke tests remain separate checks. Review rules/image updates before changing their pins. Branch rules should require `Test, audit, and build`, `Analyze JavaScript` from this Security workflow, and the Vercel deployment; an obsolete CodeQL-specific required check must be deliberately replaced, not bypassed.
+
 ## Admin origin checks
 
 Every unsafe request (`POST`, `PUT`, `PATCH`, `DELETE`) must send an `Origin` header that exactly matches an approved origin. The approved origins are:
