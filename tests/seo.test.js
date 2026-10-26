@@ -2,6 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { breadcrumbSchema, destinationSchema, getDestinationSeo, getSeoCopy, getTravelSeo, jsonLdScript, plainDescription, tourSchema, travelAgencySchema, travelServiceSchema } from '../src/lib/seo.js';
 
+test('JSON-LD cannot inject a closing script tag and preserves JSON values', () => {
+  const value = { text: '</script><img src=x onerror=alert(1)>', quotes: '\"\'&', unicode: '\u2028\u2029' };
+  const output = jsonLdScript(value);
+  const payload = output.slice(output.indexOf('>') + 1, output.lastIndexOf('</script>'));
+  assert.equal(payload.includes('<'), false);
+  assert.deepEqual(JSON.parse(payload), value);
+  assert.equal((output.match(/<\/script>/g) || []).length, 1);
+});
+
 test('every supported locale has unique SEO metadata', () => {
   const locales = ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms'];
   const descriptions = locales.map((locale) => getSeoCopy(locale).homeDescription);

@@ -167,6 +167,8 @@ export function plainDescription(value, maximum = 160) {
 
 export function jsonLdScript(value) {
   const json = JSON.stringify(value).replace(/</g, '\\u003c');
+  // Reviewed: serialized JSON escapes every '<', so values cannot close this script element; covered by seo.test.js.
+  // nosemgrep: security-rules.javascript.lang.security.html-in-template-string
   return `<script type="application/ld+json">${json}</script>`;
 }
 
