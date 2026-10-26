@@ -635,13 +635,14 @@ body .site-theme .hero-intro { max-width: 580px; margin: 18px 0 0; color: var(--
 body .site-theme .hero-intro p { color: inherit; margin: 0; }
 body .site-theme .service-choice { position: relative; z-index: 2; display: block; margin: -40px auto 0; padding: 8px 20px; background: var(--color-surface); border-radius: 8px; box-shadow: var(--shadow-floating); }
 body .site-theme .choice-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
-body .site-theme .service-tile { display: flex; align-items: center; gap: 20px; min-height: 88px; padding: 12px 20px; color: var(--color-primary); text-decoration: none; border-radius: 6px; }
+/* Keep the floating choice box at the two-line Indonesian height in every locale. */
+body .site-theme .service-tile { display: flex; align-items: center; gap: 20px; width: 100%; min-width: 0; min-height: 95px; padding: 12px 20px; color: var(--color-primary); text-decoration: none; border-radius: 6px; }
 body .site-theme .service-tile + .service-tile { border-left: 1px solid var(--color-border); }
-body .site-theme .service-tile > .ui-icon:first-child { width: 42px; height: 42px; }
-body .site-theme .service-tile > .ui-icon:last-child { width: 16px; margin-left: auto; }
-body .site-theme .service-tile > span { display: grid; gap: 6px; }
+body .site-theme .service-tile > .ui-icon:first-child { width: 42px; height: 42px; flex: 0 0 auto; }
+body .site-theme .service-tile > .ui-icon:last-child { width: 16px; margin-left: auto; flex: 0 0 auto; }
+body .site-theme .service-tile > span { display: grid; gap: 6px; min-width: 0; }
 body .site-theme .service-tile strong { font-size: 16px; }
-body .site-theme .service-tile span span { font-size: 13px; color: var(--color-body); font-weight: 400; line-height: 1.5; }
+body .site-theme .service-tile span span { font-size: 13px; color: var(--color-body); font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
 body .site-theme .service-tile:hover { background: var(--color-surface-muted); }
 body .site-theme .packages { padding: 48px 0 56px; }
 body .site-theme .section-heading { display: flex; justify-content: space-between; margin-bottom: 22px; align-items: center; gap: 24px; }
@@ -762,7 +763,7 @@ body .admin-shell .admin-image-trash { color: var(--color-danger); background: v
   body .site-theme .hero-image img { object-position: 65% center; }
   body .site-theme .service-choice { margin-top: -48px; padding: 8px; }
   body .site-theme .choice-list { grid-template-columns: 1fr; }
-  body .site-theme .service-tile { min-height: 88px; padding: 14px 12px; gap: 16px; }
+  body .site-theme .service-tile { min-height: 95px; padding: 14px 12px; gap: 16px; }
   body .site-theme .service-tile + .service-tile { border-left: 0; border-top: 1px solid var(--color-border); }
   body .site-theme .service-tile span span { font-size: 13px; }
   body .site-theme .packages { padding: 36px 0 40px; }
