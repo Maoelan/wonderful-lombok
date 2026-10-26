@@ -30,6 +30,7 @@
 
 <main class="error-shell">
   <section class="error-card" aria-labelledby="error-title">
+    <a class="error-brand" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="140" height="70" /></a>
     <p class="error-code">{page.status}</p>
     <h1 id="error-title">{page.status === 503 ? t.busy : t.notFound}</h1>
     <p>{message}</p>
@@ -48,26 +49,28 @@
     min-height: 100vh;
     place-items: center;
     padding: 32px 20px;
-    background: var(--cream);
+    background: var(--surface-soft);
     color: var(--ink);
   }
 
   .error-card {
     width: min(560px, 100%);
     padding: clamp(28px, 6vw, 52px);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
+    border: 0;
+    border-radius: 8px;
     background: var(--paper);
-    box-shadow: 0 20px 60px rgb(18 63 53 / 10%);
+    box-shadow: none;
   }
+
+  .error-brand { display: inline-flex; margin-bottom: 28px; }
 
   .error-code {
     margin: 0 0 12px;
     color: var(--accent-strong);
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0;
   }
 
   h1 {

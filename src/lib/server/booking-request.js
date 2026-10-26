@@ -1,6 +1,7 @@
 import {
   BookingValidationError,
   isValidIdempotencyKey,
+  isValidPickupDateTime,
   isValidTravelDate,
   normalizeBookingDetails,
   normalizeWhatsApp,
@@ -47,6 +48,10 @@ export async function createBookingRequest({
   let details;
   try { details = normalizeBookingDetails(body.serviceType, body.details); } catch (error) { return bookingFailure(error); }
 
+  if (body.serviceType === 'travel' && !isValidPickupDateTime(body.travelDate, details.pickupTime, now)) {
+    return failure('Jam jemput sudah lewat. Pilih waktu lain.');
+  }
+
   if (body.serviceType === 'travel') {
     let quote;
     try {
@@ -66,7 +71,7 @@ export async function createBookingRequest({
   }
 
   try {
-    const code = await saveBooking({
+    const saved = await saveBooking({
       serviceType: body.serviceType,
       serviceName,
       travelDate: body.travelDate,
@@ -76,6 +81,9 @@ export async function createBookingRequest({
       details,
       idempotencyKey
     });
+    if (saved?.conflict) return failure('Permintaan pemesanan tidak konsisten. Silakan coba lagi.', 409);
+    const code = typeof saved === 'string' ? saved : saved?.code;
+    if (!code) return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);
     return { status: 201, body: { code } };
   } catch {
     return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);

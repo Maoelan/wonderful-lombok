@@ -5,11 +5,17 @@
   import { createUnsavedChangesGuard } from '#lib/unsaved-changes.js';
   import RichTextEditor from '#lib/RichTextEditor.svelte';
   import TrashIcon from '#lib/TrashIcon.svelte';
+  import UiIcon from '#lib/UiIcon.svelte';
   export let data;
   let catalog = structuredClone(data.catalog);
   let catalogRevision = data.catalogRevision ?? 0;
   let bookings = data.bookings;
+  let bookingsCursor = data.bookingsNextCursor ?? null;
+  let bookingsLoadedMore = false;
   let active = 'overview';
+  let adminMenuOpen = false;
+  let selectedPackage = 0;
+  let selectedDestination = 0;
   let saved = false;
   let dirty = false;
   let saving = false;
@@ -18,6 +24,10 @@
   let uploading = '';
   let bookingsLoading = false;
   let deletingBookingId = '';
+  let statusSavingId = '';
+
+  const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  const formatCurrency = (value) => Number.isFinite(value) ? currency.format(value) : '';
 
   const leaveGuard = createUnsavedChangesGuard({
     isDirty: () => dirty,
@@ -32,6 +42,7 @@
     packages: ['Paket wisata', 'Tambah atau perbarui paket yang tampil di website.'],
     destinations: ['Destinasi', 'Kelola inspirasi tempat yang dapat dikunjungi pelanggan.'],
     travel: ['Paket travel', 'Atur tarif perjalanan berdasarkan jarak.'],
+    rentals: ['Rental', 'Kelola kendaraan dan harga sewa yang tampil di website.'],
     faqs: ['Pertanyaan umum', 'Siapkan jawaban untuk pertanyaan pelanggan.'],
     settings: ['Website dan kontak', 'Atur halaman utama, kontak, tampilan, dan media sosial.']
   })[active] || ['Admin', 'Kelola konten website.'];
@@ -48,14 +59,26 @@
     };
   });
 
-  async function refreshBookings(silent = false) {
-    if (deletingBookingId) return;
+  async function refreshBookings(silent = false, append = false) {
+    if (deletingBookingId || statusSavingId) return;
+    if (silent && bookingsLoadedMore) return;
+    if (append && !bookingsCursor) return;
     if (!silent) bookingsLoading = true;
     try {
-      const response = await fetch('/api/admin/bookings');
-      const result = await response.json();
+      const cursor = append ? bookingsCursor : null;
+      const response = await fetch(`/api/admin/bookings${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`);
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Pemesanan gagal dimuat.');
-      bookings = result.bookings;
+      const page = Array.isArray(result.bookings) ? result.bookings : [];
+      if (append) {
+        const known = new Set(bookings.map((booking) => booking.id));
+        bookings = [...bookings, ...page.filter((booking) => !known.has(booking.id))];
+        bookingsLoadedMore = true;
+      } else {
+        bookings = page;
+        bookingsLoadedMore = false;
+      }
+      bookingsCursor = typeof result.nextCursor === 'string' ? result.nextCursor : null;
     } catch (error) {
       if (!silent) saveError = error.message;
     } finally {
@@ -64,7 +87,10 @@
   }
 
   async function persist() {
-    if (saving) return;
+    if (saving || uploading) {
+      if (uploading) saveError = 'Tunggu unggahan gambar selesai sebelum menyimpan.';
+      return;
+    }
     saveError = '';
     if (!/^62\d{8,13}$/.test(catalog.settings.whatsapp.replace(/\D/g, ''))) {
       saveError = 'Nomor WhatsApp harus memakai format internasional, misalnya 628123456789.';
@@ -121,6 +147,10 @@
     editVersion += 1;
   }
 
+  function confirmLogout(event) {
+    if (dirty && !window.confirm('Ada perubahan yang belum disimpan. Keluar dari admin?')) event.preventDefault();
+  }
+
   function nextSlug(prefix, items, field = 'slug') {
     const used = new Set((items || []).map((item) => item[field]).filter(Boolean));
     let index = (items || []).length + 1;
@@ -145,14 +175,16 @@
   }
 
   function updateLines(index, field, value) { updatePackage(index, field, value.split('\n').map((line) => line.trim()).filter(Boolean)); }
-  function updateItinerary(index, value) {
-    updatePackage(index, 'itinerary', value.split('\n\n').map((block, dayIndex) => {
+  function parseItinerary(value, dayPrefix) {
+    return value.split('\n\n').map((block, dayIndex) => {
       const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
-      return { day: `Hari ${dayIndex + 1}`, title: lines[0] || '', items: lines.slice(1) };
-    }).filter((day) => day.title));
+      return { day: `${dayPrefix} ${dayIndex + 1}`, title: lines[0] || '', items: lines.slice(1) };
+    }).filter((day) => day.title);
   }
+  function updateItinerary(index, value) { updatePackage(index, 'itinerary', parseItinerary(value, 'Hari')); }
+  function updateItineraryEn(index, value) { updatePackage(index, 'itineraryEn', parseItinerary(value, 'Day')); }
   function itineraryText(days) { return (days || []).map((day) => [day.title, ...(day.items || [])].join('\n')).join('\n\n'); }
-  function addPriceTier(index) { const tiers = catalog.packages[index].priceTiers || []; updatePackage(index, 'priceTiers', [...tiers, { key: nextSlug('tier', tiers, 'key'), guests: '1 orang', guestsEn: '1 guest', price: 'Rp0', note: 'per orang', noteEn: 'per person' }]); markDirty(); }
+  function addPriceTier(index) { const tiers = catalog.packages[index].priceTiers || []; updatePackage(index, 'priceTiers', [...tiers, { key: nextSlug('tier', tiers, 'key'), guests: '1 orang', guestsEn: '', price: 'Rp0', note: 'per orang', noteEn: '' }]); markDirty(); }
   function updatePriceTier(packageIndex, tierIndex, field, value) { catalog.packages[packageIndex].priceTiers[tierIndex][field] = value; catalog = { ...catalog }; }
   function removePriceTier(packageIndex, tierIndex) { updatePackage(packageIndex, 'priceTiers', catalog.packages[packageIndex].priceTiers.filter((_, index) => index !== tierIndex)); markDirty(); }
 
@@ -174,6 +206,7 @@
   }
 
   function removeDestination(index) {
+    if (uploadPending()) return;
     if (!confirm(`Hapus destinasi ${catalog.destinations[index].name}? Gambar yang hanya dipakai destinasi ini akan dihapus permanen setelah katalog disimpan.`)) return;
     const slug = catalog.destinations[index].slug;
     catalog.destinations = catalog.destinations.filter((_, itemIndex) => itemIndex !== index);
@@ -200,41 +233,70 @@
     markDirty();
   }
 
-  async function uploadImage(file, apply, key) {
-    if (!file) return;
+  function uploadPending() {
+    if (!uploading) return false;
+    saveError = 'Tunggu unggahan gambar selesai sebelum mengubah katalog.';
+    return true;
+  }
+
+  async function uploadImage(file, apply, key, input) {
+    if (!file || uploading) return;
     uploading = key;
     saveError = '';
     try {
       const form = new FormData();
       form.set('image', file);
       const response = await fetch('/api/admin/upload', { method: 'POST', body: form });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Gambar gagal diunggah.');
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || (response.status === 413 ? 'Gambar terlalu besar. Maksimal 4 MB.' : 'Gambar gagal diunggah.'));
+      if (typeof result.url !== 'string' || !result.url) throw new Error('Respons upload tidak valid.');
       apply(result.url);
       markDirty();
     } catch (error) { saveError = error.message; }
-    finally { uploading = ''; }
+    finally {
+      uploading = '';
+      if (input) input.value = '';
+    }
   }
 
   function clearImage(label, apply) {
+    if (uploadPending()) return;
     if (confirm(`Hapus ${label}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(''); markDirty(); }
   }
 
   function removeGalleryImage(images, imageIndex, apply) {
+    if (uploadPending()) return;
     if (confirm(`Hapus gambar galeri nomor ${imageIndex + 1}? File media akan dihapus permanen setelah katalog disimpan.`)) { apply(images.filter((_, index) => index !== imageIndex)); markDirty(); }
   }
 
   function removePackage(index) {
+    if (uploadPending()) return;
     if (!confirm(`Hapus paket ${catalog.packages[index].name}? Gambar yang hanya dipakai paket ini akan dihapus permanen setelah katalog disimpan.`)) return;
     catalog.packages = catalog.packages.filter((_, itemIndex) => itemIndex !== index);
     catalog = { ...catalog };
     markDirty();
   }
 
-  async function setBookingStatus(item, status) {
-    const response = await fetch(`/api/admin/bookings/${item.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (!response.ok) { saveError = 'Status pemesanan gagal diperbarui.'; return; }
-    item.status = status; bookings = [...bookings];
+  async function setBookingStatus(item, status, select) {
+    if (statusSavingId) {
+      if (select) select.value = item.status;
+      return;
+    }
+    const previous = item.status;
+    statusSavingId = item.id;
+    saveError = '';
+    try {
+      const response = await fetch(`/api/admin/bookings/${item.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Status pemesanan gagal diperbarui.');
+      item.status = status;
+      bookings = [...bookings];
+    } catch (error) {
+      if (select) select.value = previous;
+      saveError = error.message;
+    } finally {
+      statusSavingId = '';
+    }
   }
 
   function bookingItinerary(item) {
@@ -255,7 +317,7 @@
   }
 
   async function deleteBookingRecord(item) {
-    if (deletingBookingId) return;
+    if (deletingBookingId || statusSavingId) return;
     if (!confirm(`Hapus pemesanan ${item.code}? Data pelanggan akan dihapus permanen.`)) return;
     deletingBookingId = item.id;
     saveError = '';
@@ -276,31 +338,34 @@
 </script>
 
 <svelte:head><title>Admin | Wonderful Lombok</title><meta name="robots" content="noindex,nofollow" /></svelte:head>
+<svelte:window on:keydown={(event) => { if (event.key === 'Escape' && adminMenuOpen) { adminMenuOpen = false; document.querySelector('.admin-menu-toggle')?.focus(); } }} />
 
 <div class="admin-shell" class:theme-ocean={catalog.settings.colorTheme === 'ocean'}>
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" class:expanded={adminMenuOpen}>
     <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
-    <div><p class="admin-kicker">Pengelolaan website</p><h1>Admin</h1></div>
-    <nav aria-label="Menu admin">
+    <div class="admin-workspace"><p class="admin-kicker">Pengelolaan website</p><p>Admin</p></div>
+    <button class="admin-menu-toggle" type="button" aria-expanded={adminMenuOpen} aria-controls="admin-navigation" on:click={() => adminMenuOpen = !adminMenuOpen}>{adminMenuOpen ? 'Tutup menu' : 'Menu admin'}<span aria-hidden="true">{adminMenuOpen ? '−' : '+'}</span></button>
+    <nav id="admin-navigation" aria-label="Menu admin">
       <p>Mulai</p>
-      <button class:active={active === 'overview'} on:click={() => active = 'overview'}>Ringkasan</button>
-      <button class:active={active === 'bookings'} on:click={() => active = 'bookings'}>Pemesanan {#if newBookings.length}<span>{newBookings.length} baru</span>{/if}</button>
+      <button class:active={active === 'overview'} on:click={() => { active = 'overview'; adminMenuOpen = false; }}><UiIcon name="overview" />Ringkasan</button>
+      <button class:active={active === 'bookings'} on:click={() => { active = 'bookings'; adminMenuOpen = false; }}><UiIcon name="booking" />Pemesanan {#if newBookings.length}<span>{newBookings.length} baru</span>{/if}</button>
       <p>Isi website</p>
-      <button class:active={active === 'packages'} on:click={() => active = 'packages'}>Paket wisata <span>{catalog.packages.length}</span></button>
-      <button class:active={active === 'destinations'} on:click={() => active = 'destinations'}>Destinasi <span>{catalog.destinations.length}</span></button>
-      <button class:active={active === 'travel'} on:click={() => active = 'travel'}>Paket travel</button>
-      <button class:active={active === 'faqs'} on:click={() => active = 'faqs'}>Pertanyaan umum <span>{catalog.faqs.length}</span></button>
+      <button class:active={active === 'packages'} on:click={() => { active = 'packages'; adminMenuOpen = false; }}><UiIcon name="tour" />Paket wisata <span>{catalog.packages.length}</span></button>
+      <button class:active={active === 'destinations'} on:click={() => { active = 'destinations'; adminMenuOpen = false; }}><UiIcon name="pin" />Destinasi <span>{catalog.destinations.length}</span></button>
+      <button class:active={active === 'travel'} on:click={() => { active = 'travel'; adminMenuOpen = false; }}><UiIcon name="travel" />Paket travel</button>
+      <button class:active={active === 'rentals'} on:click={() => { active = 'rentals'; adminMenuOpen = false; }}><UiIcon name="rental" />Rental <span>{catalog.rentals?.length ?? 0}</span></button>
+      <button class:active={active === 'faqs'} on:click={() => { active = 'faqs'; adminMenuOpen = false; }}><UiIcon name="faq" />Pertanyaan umum <span>{catalog.faqs.length}</span></button>
       <p>Pengaturan</p>
-      <button class:active={active === 'settings'} on:click={() => active = 'settings'}>Website dan kontak</button>
+      <button class:active={active === 'settings'} on:click={() => { active = 'settings'; adminMenuOpen = false; }}><UiIcon name="settings" />Website dan kontak</button>
     </nav>
     <a class="admin-site-link" href="/" target="_blank" rel="noreferrer">Buka website publik</a>
-    <form class="admin-logout" method="POST" action="/logout"><button type="submit">Keluar dari admin</button></form>
+    <form class="admin-logout" method="POST" action="/logout" on:submit={confirmLogout}><button type="submit">Keluar dari admin</button></form>
   </aside>
 
   <main class="admin-main" on:input={markDirty} on:change={markDirty}>
     <header class="admin-header">
-      <div><p class="admin-kicker">Wonderful Lombok</p><h2>{pageInfo[0]}</h2><p>{pageInfo[1]}</p></div>
-      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving} aria-busy={saving}>{saving ? 'Menyimpan...' : 'Simpan perubahan'}</button></div>
+      <div><p class="admin-kicker">Wonderful Lombok</p><h1>{pageInfo[0]}</h1><p>{pageInfo[1]}</p></div>
+      <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving || Boolean(uploading)} aria-busy={saving || Boolean(uploading)}>{saving ? 'Menyimpan...' : uploading ? 'Menunggu unggahan...' : 'Simpan perubahan'}</button></div>
     </header>
 
     {#if saveError}<p class="admin-error" role="alert">{saveError}</p>{/if}
@@ -322,21 +387,40 @@
       </section>
     {:else if active === 'bookings'}
       <section class="admin-section" aria-labelledby="admin-bookings-title">
-        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><div class="admin-heading-actions"><a class="admin-secondary" href="/api/admin/bookings/export">Unduh CSV</a><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div></div>
+        <div class="admin-section-heading"><div><p class="admin-kicker">Permintaan pelanggan</p><h3 id="admin-bookings-title">Pemesanan masuk</h3></div><div class="admin-heading-actions"><a class="admin-secondary" href="/api/admin/bookings/export">Unduh CSV</a><button class="admin-secondary" type="button" on:click={() => refreshBookings()} disabled={bookingsLoading || Boolean(statusSavingId) || Boolean(deletingBookingId)}>{bookingsLoading ? 'Memuat…' : 'Muat ulang'}</button></div></div>
         {#if bookings.length}
+          <p class="admin-results-note">{bookings.length} pemesanan ditampilkan{bookingsCursor ? ' · data lebih lama masih tersedia' : ' · semua data sudah dimuat'}.</p>
           <div class="booking-admin-list">{#each bookings as item}{@const itinerary = bookingItinerary(item)}<article>
             <div class="booking-code"><b>{item.code}</b><span>{new Date(item.created_at).toLocaleString('id-ID')}</span></div>
-            <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span>{#if item.details?.pickupTime}<span>Jam jemput: {item.details.pickupTime} WITA</span>{/if}</p>{#if itinerary.length}<ol class="booking-itinerary" aria-label="Rute perjalanan">{#each itinerary as stop}<li><span>{stop.label}</span><b>{stop.name}</b></li>{/each}</ol>{/if}{#if item.details?.distanceKm}<span class="booking-route-meta">{item.details.distanceKm} km{#if item.details.durationMinutes} · {item.details.durationMinutes} menit{/if} · {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.details.estimatedPrice || 0)}</span>{/if}</div>
-            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value)} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label><button class="booking-delete" type="button" on:click={() => deleteBookingRecord(item)} disabled={deletingBookingId === item.id} aria-label="Hapus pemesanan {item.code}">{deletingBookingId === item.id ? 'Menghapus…' : 'Hapus'}</button></div>
+            <div class="booking-summary"><h4>{item.service_name}</h4><p><b>{item.customer_name}</b><span>Tanggal perjalanan: {new Date(item.travel_date).toLocaleDateString('id-ID')}</span><span>Jumlah tamu: {item.people} orang</span></p>
+              {#if item.service_type === 'travel' && item.details}
+                <dl class="booking-details">
+                  <div><dt>Jam jemput</dt><dd>{item.details.pickupTime || '—'}</dd></div>
+                  <div><dt>Jarak</dt><dd>{item.details.distanceKm ? `${item.details.distanceKm} km` : '—'}</dd></div>
+                  <div><dt>Durasi</dt><dd>{item.details.durationMinutes ? `${item.details.durationMinutes} menit` : '—'}</dd></div>
+                  <div><dt>Estimasi biaya</dt><dd>{formatCurrency(item.details.estimatedPrice) || '—'}</dd></div>
+                  {#if item.details.notes}<div class="booking-detail-wide"><dt>Catatan</dt><dd>{item.details.notes}</dd></div>{/if}
+                </dl>
+              {:else if item.details?.notes}
+                <p class="booking-detail-notes"><b>Catatan:</b> {item.details.notes}</p>
+              {/if}
+              {#if itinerary.length}<ol class="booking-itinerary" aria-label="Rute perjalanan">{#each itinerary as stop}<li><span>{stop.label}</span><b>{stop.name}</b></li>{/each}</ol>{/if}
+            </div>
+            <div class="booking-actions"><a href={`https://wa.me/${item.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Hubungi pelanggan</a><label><span>Status pesanan</span><select value={item.status} on:change={(event) => setBookingStatus(item, event.currentTarget.value, event.currentTarget)} disabled={Boolean(statusSavingId) || Boolean(deletingBookingId)} aria-busy={statusSavingId === item.id} aria-label="Status {item.code}"><option value="baru">Baru</option><option value="dikonfirmasi">Dikonfirmasi</option><option value="selesai">Selesai</option><option value="dibatalkan">Dibatalkan</option></select></label><button class="booking-delete" type="button" on:click={() => deleteBookingRecord(item)} disabled={Boolean(deletingBookingId) || Boolean(statusSavingId)} aria-label="Hapus pemesanan {item.code}">{deletingBookingId === item.id ? 'Menghapus…' : 'Hapus'}</button></div>
           </article>{/each}</div>
+          {#if bookingsCursor}<div class="admin-load-more"><button class="admin-secondary" type="button" on:click={() => refreshBookings(false, true)} disabled={bookingsLoading || Boolean(statusSavingId) || Boolean(deletingBookingId)}>{bookingsLoading ? 'Memuat…' : 'Muat pemesanan lebih lama'}</button></div>{/if}
         {:else}<div class="admin-empty"><strong>Belum ada pemesanan</strong><p>Pesanan yang dibuat pelanggan akan muncul otomatis di halaman ini.</p></div>{/if}
       </section>
     {:else if active === 'packages'}
       <section class="admin-section" aria-labelledby="admin-packages-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Katalog</p><h3 id="admin-packages-title">Paket Wisata</h3></div><button class="admin-secondary" on:click={addPackage}>Tambah paket</button></div>
+        <div class="admin-catalog-workspace">
+        <div class="admin-object-list" aria-label="Paket wisata">
+          {#each catalog.packages as item, index}<button type="button" class:selected={index === Math.min(selectedPackage, catalog.packages.length - 1)} aria-pressed={index === Math.min(selectedPackage, catalog.packages.length - 1)} on:click={() => selectedPackage = index}>{#if item.image}<img src={item.image} alt="" loading="lazy" />{/if}<span><b>{item.name}</b><small>{item.duration} · {item.price}</small></span><UiIcon name="chevron" /></button>{/each}
+        </div>
         <div class="admin-editor-list">
           {#each catalog.packages as item, index}
-            <details class="admin-editor-card" open={index === 0}>
+            <details class="admin-editor-card" class:selected={index === Math.min(selectedPackage, catalog.packages.length - 1)} open={index === Math.min(selectedPackage, catalog.packages.length - 1)}>
               <summary class="admin-editor-summary"><span class="admin-card-number">{String(index + 1).padStart(2, '0')}</span>{#if item.image}<img src={item.image} alt="" />{/if}<span class="admin-item-summary"><b>{item.name}</b><small>{item.duration} · {item.price}</small></span><span class="admin-editor-toggle">Edit</span></summary>
               <div class="admin-editor-body"><div class="admin-fields">
                 <details class="admin-advanced"><summary>Pengaturan alamat halaman</summary><label><span>Alamat halaman</span><input value={item.slug} on:input={(event) => updatePackage(index, 'slug', slugify(event.currentTarget.value))} /><small>Biasanya tidak perlu diubah setelah paket dipublikasikan.</small></label></details>
@@ -346,40 +430,65 @@
                 <fieldset class="admin-subsection admin-destination-picker"><legend>Destinasi dalam paket</legend><p>Pilih destinasi yang benar-benar dikunjungi. Paket ini akan otomatis tampil pada halaman destinasi yang dipilih.</p>{#if catalog.destinations.length}<div class="admin-checkbox-list">{#each catalog.destinations as destination}<label class:selected={(item.destinationSlugs || []).includes(destination.slug)}><input type="checkbox" checked={(item.destinationSlugs || []).includes(destination.slug)} on:change={(event) => setPackageDestination(index, destination.slug, event.currentTarget.checked)} /><span><strong>{destination.name}</strong><small>{destination.note}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada destinasi. Tambahkan destinasi terlebih dahulu.</p>{/if}</fieldset>
                 <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
                 <div class="admin-field-row"><label><span>Harga</span><input value={item.price} on:input={(event) => updatePackage(index, 'price', event.currentTarget.value)} /></label><label><span>Satuan</span><input value={item.unit} on:input={(event) => updatePackage(index, 'unit', event.currentTarget.value)} /></label></div>
+                <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">
+                  <p class="admin-inline-empty">Dipakai di halaman berbahasa Inggris. Kosongkan untuk memakai konten Indonesia di atas.</p>
+                  <div class="admin-field-row"><label><span>Durasi (English)</span><input value={item.durationEn || ''} on:input={(event) => updatePackage(index, 'durationEn', event.currentTarget.value)} placeholder="Example: 2 days 1 night" /></label><label><span>Kategori (English)</span><input value={item.categoryEn || ''} on:input={(event) => updatePackage(index, 'categoryEn', event.currentTarget.value)} placeholder="Example: Private tour" /></label></div>
+                  <label><span>Nama paket (English)</span><input value={item.nameEn || ''} on:input={(event) => updatePackage(index, 'nameEn', event.currentTarget.value)} /></label>
+                  <label><span>Destinasi dan aktivitas (English)</span><textarea rows="2" value={item.routeEn || ''} on:input={(event) => updatePackage(index, 'routeEn', event.currentTarget.value)}></textarea></label>
+                  <RichTextEditor label="Deskripsi paket (English)" bind:value={item.detailEn} />
+                  <label><span>Satuan (English)</span><input value={item.unitEn || ''} on:input={(event) => updatePackage(index, 'unitEn', event.currentTarget.value)} placeholder="Example: per person" /></label>
+                  <label><span>Itinerary (English)</span><textarea rows="8" value={itineraryText(item.itineraryEn)} on:change={(event) => updateItineraryEn(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
+                  <div class="admin-field-row"><label><span>Sudah termasuk (English)</span><textarea rows="5" value={(item.includesEn || []).join('\n')} on:change={(event) => updateLines(index, 'includesEn', event.currentTarget.value)}></textarea><small>Satu fasilitas per baris.</small></label><label><span>Belum termasuk (English)</span><textarea rows="5" value={(item.excludesEn || []).join('\n')} on:change={(event) => updateLines(index, 'excludesEn', event.currentTarget.value)}></textarea><small>Satu item per baris.</small></label></div>
+                  <fieldset class="admin-subsection"><legend>Harga berdasarkan jumlah tamu (English)</legend><p class="admin-inline-empty">Harga tetap memakai nilai pada bagian harga di atas.</p>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-price-tier"><input aria-label="Jumlah tamu (English)" value={tier.guestsEn || ''} on:input={(event) => updatePriceTier(index, tierIndex, 'guestsEn', event.currentTarget.value)} /><input aria-label="Harga" value={tier.price} readonly /><input aria-label="Keterangan (English)" value={tier.noteEn || ''} on:input={(event) => updatePriceTier(index, tierIndex, 'noteEn', event.currentTarget.value)} /></div>{/each}</fieldset>
+                </div></details>
+                <details class="admin-field-group"><summary>Itinerary Indonesia</summary><div>
                 <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
                 <div class="admin-field-row"><label><span>Sudah termasuk</span><textarea rows="5" value={(item.includes || []).join('\n')} on:change={(event) => updateLines(index, 'includes', event.currentTarget.value)}></textarea><small>Satu fasilitas per baris.</small></label><label><span>Belum termasuk</span><textarea rows="5" value={(item.excludes || []).join('\n')} on:change={(event) => updateLines(index, 'excludes', event.currentTarget.value)}></textarea><small>Satu item per baris.</small></label></div>
                 <fieldset class="admin-subsection"><legend>Harga berdasarkan jumlah tamu</legend>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-price-tier"><input aria-label="Jumlah tamu" value={tier.guests} on:input={(event) => updatePriceTier(index, tierIndex, 'guests', event.currentTarget.value)} /><input aria-label="Harga" value={tier.price} on:input={(event) => updatePriceTier(index, tierIndex, 'price', event.currentTarget.value)} /><input aria-label="Keterangan" value={tier.note} on:input={(event) => updatePriceTier(index, tierIndex, 'note', event.currentTarget.value)} /><button type="button" on:click={() => removePriceTier(index, tierIndex)}>Hapus</button></div>{/each}<button class="admin-secondary compact" type="button" on:click={() => addPriceTier(index)}>Tambah pilihan harga</button></fieldset>
 
+                </div></details>
+                <details class="admin-field-group" open><summary>Galeri foto</summary><div>
                 {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><span><strong>Gambar utama saat ini</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage(`gambar utama ${item.name}`, (value) => updatePackage(index, 'image', value))} aria-label="Hapus gambar utama {item.name}"><TrashIcon /></button></div>{/if}
-                <label><span>Upload gambar utama</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'image', url), `package-${index}`)} /><small>{uploading === `package-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
+                <label><span>Upload gambar utama</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'image', url), `package-${index}`, event.currentTarget)} /><small>{uploading === `package-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 4 MB.'}</small></label>
                 {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><button class="admin-image-trash" type="button" on:click={() => removeGalleryImage(item.images, imageIndex, (images) => updatePackage(index, 'images', images))} aria-label="Hapus gambar galeri {imageIndex + 1} dari {item.name}"><TrashIcon /></button></figure>{/each}</div>{/if}
-                <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'images', [...(item.images || []), url]), `gallery-${index}`)} /><small>{uploading === `gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri.'}</small></label>
-              </div><button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}">Hapus paket</button></div>
+                <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'images', [...(item.images || []), url]), `gallery-${index}`, event.currentTarget)} /><small>{uploading === `gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri.'}</small></label>
+                </div></details>
+              </div><button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}"><TrashIcon />Hapus paket</button></div>
             </details>
           {/each}
-        </div>
+        </div></div>
       </section>
     {:else if active === 'destinations'}
       <section class="admin-section" aria-labelledby="admin-destinations-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Inspirasi perjalanan</p><h3 id="admin-destinations-title">Destinasi</h3></div><button class="admin-secondary" on:click={addDestination}>Tambah destinasi</button></div>
+        <div class="admin-catalog-workspace">
+        <div class="admin-object-list" aria-label="Destinasi">
+          {#each catalog.destinations as item, index}<button type="button" class:selected={index === Math.min(selectedDestination, catalog.destinations.length - 1)} aria-pressed={index === Math.min(selectedDestination, catalog.destinations.length - 1)} on:click={() => selectedDestination = index}>{#if item.image}<img src={item.image} alt="" loading="lazy" />{/if}<span><b>{item.name}</b><small>{item.note}</small></span><UiIcon name="chevron" /></button>{/each}
+        </div>
         <div class="admin-editor-list">
           {#each catalog.destinations as item, index}
-            <details class="admin-editor-card" open={index === 0}>
+            <details class="admin-editor-card" class:selected={index === Math.min(selectedDestination, catalog.destinations.length - 1)} open={index === Math.min(selectedDestination, catalog.destinations.length - 1)}>
               <summary class="admin-editor-summary"><span class="admin-card-number">{String(index + 1).padStart(2, '0')}</span>{#if item.image}<img src={item.image} alt="" />{/if}<span class="admin-item-summary"><b>{item.name}</b><small>{item.note}</small></span><span class="admin-editor-toggle">Edit</span></summary>
               <div class="admin-editor-body"><div class="admin-fields">
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Keterangan singkat</span><input value={item.note} on:input={(event) => updateDestination(index, 'note', event.currentTarget.value)} /></label>
                 <RichTextEditor label="Deskripsi destinasi" bind:value={item.detail} />
+                <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">
+                  <p class="admin-inline-empty">Dipakai di halaman berbahasa Inggris. Kosongkan untuk memakai konten Indonesia di atas.</p>
+                  <label><span>Nama destinasi (English)</span><input value={item.nameEn || ''} on:input={(event) => updateDestination(index, 'nameEn', event.currentTarget.value)} /></label>
+                  <label><span>Keterangan singkat (English)</span><input value={item.noteEn || ''} on:input={(event) => updateDestination(index, 'noteEn', event.currentTarget.value)} /></label>
+                  <RichTextEditor label="Deskripsi destinasi (English)" bind:value={item.detailEn} />
+                </div></details>
                 <fieldset class="admin-subsection admin-destination-picker"><legend>Paket untuk destinasi ini</legend><p>Centang paket yang ingin ditampilkan pada halaman {item.name}.</p>{#if catalog.packages.length}<div class="admin-checkbox-list">{#each catalog.packages as packageItem, packageIndex}<label class:selected={(packageItem.destinationSlugs || []).includes(item.slug)}><input type="checkbox" checked={(packageItem.destinationSlugs || []).includes(item.slug)} on:change={(event) => setPackageDestination(packageIndex, item.slug, event.currentTarget.checked)} /><span><strong>{packageItem.name}</strong><small>{packageItem.duration} · {packageItem.price}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada paket wisata.</p>{/if}</fieldset>
 
                 {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><span><strong>Gambar utama saat ini</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage(`gambar utama ${item.name}`, (value) => updateDestination(index, 'image', value))} aria-label="Hapus gambar utama {item.name}"><TrashIcon /></button></div>{/if}
-                <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
+                <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`, event.currentTarget)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 4 MB.'}</small></label>
                 {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><button class="admin-image-trash" type="button" on:click={() => removeGalleryImage(item.images, imageIndex, (images) => updateDestination(index, 'images', images))} aria-label="Hapus gambar galeri {imageIndex + 1} dari {item.name}"><TrashIcon /></button></figure>{/each}</div>{/if}
-                <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'images', [...(item.images || []), url]), `destination-gallery-${index}`)} /><small>{uploading === `destination-gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri destinasi.'}</small></label>
-              </div><button class="admin-delete" on:click={() => removeDestination(index)} aria-label="Hapus destinasi {item.name}">Hapus destinasi</button></div>
+                <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'images', [...(item.images || []), url]), `destination-gallery-${index}`, event.currentTarget)} /><small>{uploading === `destination-gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri destinasi.'}</small></label>
+              </div><button class="admin-delete" on:click={() => removeDestination(index)} aria-label="Hapus destinasi {item.name}"><TrashIcon />Hapus destinasi</button></div>
             </details>
           {/each}
-        </div>
+        </div></div>
       </section>
     {:else if active === 'travel'}
       <section class="admin-section admin-narrow" aria-labelledby="admin-travel-title">
@@ -394,7 +503,14 @@
           {#each catalog.rentals as item, index}
             <article class="admin-editor-card rental-editor">
               <div class="admin-card-number">{item.symbol}</div>
-              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><RichTextEditor label="Keterangan layanan" bind:value={item.detail} /><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label></div>
+              <div class="admin-fields"><label><span>Nama layanan</span><input value={item.name} on:input={(event) => updateRental(index, 'name', event.currentTarget.value)} /></label><RichTextEditor label="Keterangan layanan" bind:value={item.detail} /><label><span>Harga yang ditampilkan</span><input value={item.price} on:input={(event) => updateRental(index, 'price', event.currentTarget.value)} /></label>
+                <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">
+                  <p class="admin-inline-empty">Dipakai di halaman berbahasa Inggris. Kosongkan untuk memakai konten Indonesia di atas.</p>
+                  <label><span>Nama layanan (English)</span><input value={item.nameEn || ''} on:input={(event) => updateRental(index, 'nameEn', event.currentTarget.value)} /></label>
+                  <RichTextEditor label="Keterangan layanan (English)" bind:value={item.detailEn} />
+                  <label><span>Harga yang ditampilkan (English)</span><input value={item.priceEn || ''} on:input={(event) => updateRental(index, 'priceEn', event.currentTarget.value)} /></label>
+                </div></details>
+              </div>
             </article>
           {/each}
         </div>
@@ -410,6 +526,11 @@
               <div class="admin-editor-body"><div class="admin-fields">
                 <label><span>Pertanyaan</span><input maxlength="200" value={item.question} on:input={(event) => updateFaq(index, 'question', event.currentTarget.value)} /></label>
                 <RichTextEditor label="Jawaban" bind:value={item.answer} />
+                <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">
+                  <p class="admin-inline-empty">Dipakai di halaman berbahasa Inggris. Kosongkan untuk memakai konten Indonesia di atas.</p>
+                  <label><span>Pertanyaan (English)</span><input maxlength="200" value={item.questionEn || ''} on:input={(event) => updateFaq(index, 'questionEn', event.currentTarget.value)} /></label>
+                  <RichTextEditor label="Jawaban (English)" bind:value={item.answerEn} />
+                </div></details>
 
               </div><button class="admin-delete" on:click={() => removeFaq(index)} aria-label="Hapus pertanyaan {item.question}">Hapus pertanyaan</button></div>
             </details>
@@ -430,12 +551,19 @@
             <label><span>Palet warna website</span><select bind:value={catalog.settings.colorTheme}><option value="classic">Klasik: hijau dan emas</option><option value="ocean">Laut Lombok: navy dan teal</option></select><small>Pratinjau langsung terlihat di admin. Simpan untuk menerapkannya ke website publik.</small></label>
             <label><span>Judul utama</span><textarea rows="2" bind:value={catalog.settings.heroTitle}></textarea></label>
             <RichTextEditor label="Deskripsi utama" bind:value={catalog.settings.heroDescription} />
-            {#if catalog.settings.heroImage}<div class="admin-image-preview"><img src={catalog.settings.heroImage} alt="Pratinjau gambar latar bagian atas" /><span><strong>Background bagian atas</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage('gambar latar bagian atas', (value) => catalog.settings.heroImage = value)} aria-label="Hapus gambar latar bagian atas"><TrashIcon /></button></div>{/if}
-            <label><span>Upload gambar latar bagian atas</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => catalog.settings.heroImage = url, 'hero-background')} /><small>{uploading === 'hero-background' ? 'Mengunggah…' : 'Gambar landscape disarankan. Maksimal 5 MB.'}</small></label>
+            {#if catalog.settings.heroImage}<div class="admin-image-preview"><img src={catalog.settings.heroImage} alt="Pratinjau gambar latar bagian atas" /><span><strong>Background bagian atas</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage('gambar latar bagian atas', (value) => { catalog.settings.heroImage = value; catalog = { ...catalog }; })} aria-label="Hapus gambar latar bagian atas"><TrashIcon /></button></div>{/if}
+            <label><span>Upload gambar latar bagian atas</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => { catalog.settings.heroImage = url; catalog = { ...catalog }; }, 'hero-background', event.currentTarget)} /><small>{uploading === 'hero-background' ? 'Mengunggah…' : 'Gambar landscape disarankan. Maksimal 4 MB.'}</small></label>
             <label><span>Judul bagian profil</span><textarea rows="2" bind:value={catalog.settings.aboutTitle}></textarea></label>
             <RichTextEditor label="Deskripsi profil" bind:value={catalog.settings.aboutDescription} />
-            {#if catalog.settings.aboutImage}<div class="admin-image-preview"><img src={catalog.settings.aboutImage} alt="Pratinjau gambar bagian profil" /><span><strong>Gambar Mengapa Wonderful Lombok</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage('gambar bagian profil', (value) => catalog.settings.aboutImage = value)} aria-label="Hapus gambar bagian profil"><TrashIcon /></button></div>{/if}
-            <label><span>Upload gambar bagian profil</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => catalog.settings.aboutImage = url, 'about-background')} /><small>{uploading === 'about-background' ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
+            {#if catalog.settings.aboutImage}<div class="admin-image-preview"><img src={catalog.settings.aboutImage} alt="Pratinjau gambar bagian profil" /><span><strong>Gambar Mengapa Wonderful Lombok</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage('gambar bagian profil', (value) => { catalog.settings.aboutImage = value; catalog = { ...catalog }; })} aria-label="Hapus gambar bagian profil"><TrashIcon /></button></div>{/if}
+            <label><span>Upload gambar bagian profil</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => { catalog.settings.aboutImage = url; catalog = { ...catalog }; }, 'about-background', event.currentTarget)} /><small>{uploading === 'about-background' ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 4 MB.'}</small></label>
+            <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">
+              <p class="admin-inline-empty">Dipakai di halaman berbahasa Inggris. Kosongkan untuk memakai konten Indonesia di atas.</p>
+              <label><span>Judul utama (English)</span><textarea rows="2" bind:value={catalog.settings.heroTitleEn}></textarea></label>
+              <RichTextEditor label="Deskripsi utama (English)" bind:value={catalog.settings.heroDescriptionEn} />
+              <label><span>Judul bagian profil (English)</span><textarea rows="2" bind:value={catalog.settings.aboutTitleEn}></textarea></label>
+              <RichTextEditor label="Deskripsi profil (English)" bind:value={catalog.settings.aboutDescriptionEn} />
+            </div></details>
           </fieldset>
           <fieldset><legend>Media sosial</legend>
             <label><span>URL Instagram</span><input bind:value={catalog.settings.instagram} type="url" placeholder="https://instagram.com/..." /></label>

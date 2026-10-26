@@ -1,7 +1,8 @@
 <script>
   import LazyPickupCalculator from '#lib/LazyPickupCalculator.svelte';
-  import LanguageSelector from '#lib/LanguageSelector.svelte';
+  import SiteHeader from '#lib/SiteHeader.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
+  import SiteFooter from '#lib/SiteFooter.svelte';
   import { getCopy, languages, localePath } from '#lib/i18n.js';
   import { getSeoCopy, getTravelSeo, jsonLdScript, travelServiceSchema } from '#lib/seo.js';
 
@@ -29,7 +30,7 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-  <header class="inner-header"><a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a><nav aria-label={c.menu}><a href={localePath(data.locale, '/paket-wisata')}>{c.tours}</a><LanguageSelector locale={data.locale} suffix="/travel-lombok" /></nav></header>
+  <SiteHeader locale={data.locale} suffix="/travel-lombok" />
   <main class="catalog-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><span>{travel.label}</span></nav>
     <section class="catalog-intro" aria-labelledby="travel-page-title"><p class="label">{travel.label}</p><h1 id="travel-page-title">{travel.heading}</h1>{#each travel.intro as paragraph}<p>{paragraph}</p>{/each}</section>
@@ -39,5 +40,6 @@
     </div>
     <section class="pickup-block" id="hitung-travel" aria-labelledby="calculator-title"><div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2 id="calculator-title">{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div><div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={data.catalog.travelRate} whatsapp={data.catalog.settings.whatsapp} locale={data.locale} googleMapsKey={data.googleMapsKey} mapProvider={data.mapProvider} mapboxToken={data.mapboxToken} /></div></section>
   </main>
+  <SiteFooter settings={data.catalog.settings} locale={data.locale} />
   <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

@@ -42,12 +42,23 @@ export async function createBooking(data) {
   return convexMutation('bookings:create', { idempotencyKey: data.idempotencyKey, data: { serviceType: data.serviceType, serviceName: data.serviceName, travelDate: data.travelDate, people: data.people, customerName: data.name, whatsapp: data.whatsapp, details: data.details } });
 }
 
-export async function getBookings() {
-  return convexQuery('bookings:list');
+export async function getBookingsPage(cursor = null) {
+  return convexQuery('bookings:listPage', { cursor });
 }
 
 export async function getBookingsForExport() {
-  return convexQuery('bookings:exportList');
+  const bookings = [];
+  const seenCursors = new Set();
+  let cursor = null;
+  do {
+    if (cursor && seenCursors.has(cursor)) throw new Error('Cursor ekspor pemesanan berulang.');
+    if (cursor) seenCursors.add(cursor);
+    const page = await convexQuery('bookings:exportPage', { cursor });
+    if (page?.pageStatus === 'SplitRequired') throw new Error('Halaman ekspor pemesanan terlalu besar.');
+    bookings.push(...(page?.bookings ?? []));
+    cursor = page?.nextCursor ?? null;
+  } while (cursor);
+  return bookings;
 }
 
 export async function updateBookingStatus(id, status) {

@@ -40,7 +40,7 @@ The current operating target is:
 
 - booking records: delete 12 months after the travel date, or earlier when the customer requests deletion and there is no open operational or legal need to keep them;
 - removed catalog media: delete permanently on the next successful catalog save, as implemented in `catalog:save`; the admin confirmation warns that there is no undo, so keep an approved backup before removing media that may be needed again;
-- orphaned uploads that were never saved: review monthly and delete;
+- orphaned uploads that were never saved: review monthly and delete; client-side cleanup is not implemented, so an upload abandoned before a catalog save remains until this manual review;
 - application logs: the application does not write booking payloads or secrets to logs. Hosting and database logs follow the provider's retention settings.
 
 This period and the public privacy notice still require owner and legal approval. Automated expiry cleanup is not implemented yet, so the process below is manual until a scheduled cleanup is added.
@@ -51,7 +51,7 @@ Export:
 
 1. Sign in to the admin page and open **Pemesanan**.
 2. Choose **Unduh CSV**, or send an authenticated `GET /api/admin/bookings/export`.
-3. The CSV includes the latest 5,000 bookings, is UTF-8 with a BOM, escapes spreadsheet formula prefixes, and is served with `no-store`.
+3. The CSV includes the entire booking history, read page by page without a silent row cap. A large export may take longer. The file is UTF-8 with a BOM, escapes spreadsheet formula prefixes, and is served with `no-store`.
 
 Delete a booking:
 

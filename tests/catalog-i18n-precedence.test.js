@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
+import { mergeCatalogData } from '../src/lib/server/catalog-merge.js';
 import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 
 const adminCatalog = {
@@ -79,28 +80,69 @@ test('English uses the admin English fields and preserves admin prices', () => {
   assert.equal(catalog.settings.heroTitle, 'Admin hero');
 });
 
-test('non-English locales keep the bundled translation without overwriting admin price tiers', () => {
+test('edited admin base content wins over stale bundled non-English copy', () => {
   const catalog = localizeCatalog(adminCatalog, 'nl');
   const tier = catalog.packages[0].priceTiers[0];
 
-  assert.match(catalog.packages[0].name, /Zuid-Lombok/);
-  assert.match(catalog.packages[0].itinerary[0].day, /Ochtend/);
-  assert.match(catalog.packages[0].includes[0], /Priv/);
-  assert.match(tier.guests, /personen/);
-  assert.match(tier.note, /totaal/);
+  assert.equal(catalog.packages[0].name, 'Nama admin');
+  assert.equal(catalog.packages[0].itinerary[0].title, 'Itinerary admin');
+  assert.equal(catalog.packages[0].includes[0], 'Termasuk admin');
+  assert.equal(tier.guests, '1 orang');
+  assert.equal(tier.note, 'Catatan admin');
   assert.equal(tier.price, 'Rp9.999.999');
   assert.equal(catalog.packages[0].price, 'Rp9.999.999');
-  assert.match(catalog.settings.heroTitle, /Lombok/);
+  assert.equal(catalog.settings.heroTitle, 'Judul admin');
   assert.equal(catalog.settings.whatsapp, '+620000000000');
 });
 
-test('Chinese keeps its bundled translation and does not restore a hardcoded price', () => {
+test('unedited default content still uses the bundled non-English copy', () => {
+  const catalog = localizeCatalog(defaultCatalog, 'nl');
+
+  assert.match(catalog.packages[0].name, /Zuid-Lombok/);
+  assert.match(catalog.packages[0].itinerary[0].day, /Ochtend/);
+  assert.match(catalog.settings.heroTitle, /Lombok/);
+});
+
+test('edited admin content is shown in Chinese instead of the stale bundled copy', () => {
   const catalog = localizeCatalog(adminCatalog, 'zh-cn');
 
-  assert.notEqual(catalog.packages[0].name, 'Admin package');
-  assert.notEqual(catalog.packages[0].name, 'Nama admin');
+  assert.equal(catalog.packages[0].name, 'Nama admin');
   assert.equal(catalog.packages[0].priceTiers[0].price, 'Rp9.999.999');
   assert.equal(catalog.packages[0].price, 'Rp9.999.999');
+});
+
+test('edited settings appear in every locale until an English translation is saved', () => {
+  const settings = { ...defaultCatalog.settings, heroTitle: 'Judul baru dari admin' };
+
+  assert.equal(localizeCatalog({ ...defaultCatalog, settings }, 'nl').settings.heroTitle, 'Judul baru dari admin');
+  assert.equal(localizeCatalog({ ...defaultCatalog, settings }, 'en').settings.heroTitle, 'Judul baru dari admin');
+
+  settings.heroTitleEn = 'New admin title';
+  assert.equal(localizeCatalog({ ...defaultCatalog, settings }, 'en').settings.heroTitle, 'New admin title');
+});
+
+test('English falls back to an edited base until its English field is edited', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.name = 'Nama baru dari admin';
+
+  const untouchedEnglish = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'en');
+  assert.equal(untouchedEnglish.packages[0].name, 'Nama baru dari admin');
+
+  packageItem.nameEn = 'New admin name';
+  const translated = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'en');
+  assert.equal(translated.packages[0].name, 'New admin name');
+});
+
+test('a new package follows later base edits until English is entered', () => {
+  const merged = mergeCatalogData({
+    ...defaultCatalog,
+    packages: [{ slug: 'brand-new-tour', name: 'Nama awal', price: 'Rp1' }]
+  });
+  merged.packages[0].name = 'Nama dasar yang diedit';
+  assert.equal(localizeCatalog(merged, 'en').packages[0].name, 'Nama dasar yang diedit');
+
+  merged.packages[0].nameEn = 'Explicit English name';
+  assert.equal(localizeCatalog(merged, 'en').packages[0].name, 'Explicit English name');
 });
 
 test('reordered packages, rentals, and FAQs keep their own translations', () => {

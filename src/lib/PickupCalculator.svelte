@@ -4,7 +4,7 @@
   import { createMap } from './maps/index.js';
   import { createWhatsAppUrl } from './whatsapp.js';
   import { createIdempotencyKey } from './idempotency.js';
-  import { todayInWita } from './date.js';
+  import { currentTimeInWita, todayInWita } from './date.js';
   import { getFormCopy, localeTag } from './i18n.js';
 
   let mapElement;
@@ -29,6 +29,7 @@
   $: t = getFormCopy(locale);
   $: availablePlaces = localizedPlaces(locale);
   const today = todayInWita();
+  $: minimumPickupTime = pickupDate === today ? currentTimeInWita() : '';
   $: rupiah = new Intl.NumberFormat(localeTag(locale), { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   $: price = calculatePickupPrice(distance, rate);
   $: routeReady = Boolean(origin && destination && (origin.lat !== destination.lat || origin.lng !== destination.lng));
@@ -435,49 +436,51 @@
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
     try {
+      const payload = {
+        name: customerName,
+        whatsapp: phone,
+        travelDate: pickupDate,
+        people: Number(passengers),
+        serviceType: 'travel',
+        serviceName: t.bookingService,
+        website,
+        details: {
+          origin: origin.name.trim(),
+          destination: destination.name.trim(),
+          originCoordinates: [origin.lat, origin.lng],
+          originAccuracyM: origin.accuracy || null,
+          originSource: origin.source || 'search',
+          destinationCoordinates: [destination.lat, destination.lng],
+          pickupTime,
+          distanceKm: distance,
+          estimatedPrice: price,
+          locale
+        }
+      };
       const fingerprint = JSON.stringify({
-        customerName: customerName.trim(),
-        phone: phone.trim(),
-        pickupDate,
-        pickupTime,
-        passengers: Number(passengers),
-        origin,
-        destination,
-        distance,
-        price
+        ...payload,
+        name: customerName.trim(),
+        whatsapp: phone.trim(),
+        serviceName: String(t.bookingService ?? '').trim(),
+        website: website.trim()
       });
-      if (fingerprint !== lastBookingFingerprint) {
+      if (!idempotencyKey || fingerprint !== lastBookingFingerprint) {
         lastBookingFingerprint = fingerprint;
         idempotencyKey = createIdempotencyKey();
       }
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'idempotency-key': idempotencyKey },
-        body: JSON.stringify({
-          name: customerName,
-          whatsapp: phone,
-          travelDate: pickupDate,
-          people: Number(passengers),
-          serviceType: 'travel',
-          serviceName: t.bookingService,
-          website,
-          details: {
-            origin: origin.name,
-            destination: destination.name,
-            originCoordinates: [origin.lat, origin.lng],
-            originAccuracyM: origin.accuracy || null,
-            originSource: origin.source || 'search',
-            destinationCoordinates: [destination.lat, destination.lng],
-            pickupTime,
-            distanceKm: distance,
-            estimatedPrice: price,
-            locale
-          }
-        })
+        body: JSON.stringify(payload)
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      if (!response.ok) {
+        if (response.status === 409) { idempotencyKey = ''; lastBookingFingerprint = ''; }
+        throw new Error(result.error);
+      }
       submitted = true;
+      idempotencyKey = '';
+      lastBookingFingerprint = '';
       website = '';
       const whatsappMessage = [
         t.whatsappGreeting,
@@ -620,7 +623,7 @@
     </div>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>
     <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="0812 3456 7890" /></label>
-    <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" /></label></div>
+    <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" min={minimumPickupTime || undefined} /></label></div>
     <label><span>{t.passengers}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
     {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{t.bookingOpened}</p>{/if}
     <button class="submit" type="submit" disabled={submitting}>{submitting ? t.saving : t.bookTravel}</button>

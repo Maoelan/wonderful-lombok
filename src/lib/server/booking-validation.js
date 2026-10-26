@@ -69,6 +69,22 @@ export function isValidTravelDate(value, now = Date.now()) {
   return value >= todayInWita(now);
 }
 
+function witaTimestamp(date, time) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return NaN;
+  if (typeof time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return NaN;
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute] = time.split(':').map(Number);
+  const timestamp = Date.UTC(year, month - 1, day, hour - 8, minute);
+  const wita = new Date(timestamp + 8 * 60 * 60_000);
+  if (wita.getUTCFullYear() !== year || wita.getUTCMonth() !== month - 1 || wita.getUTCDate() !== day || wita.getUTCHours() !== hour || wita.getUTCMinutes() !== minute) return NaN;
+  return timestamp;
+}
+
+export function isValidPickupDateTime(date, time, now = Date.now()) {
+  const timestamp = witaTimestamp(date, time);
+  return Number.isFinite(timestamp) && timestamp >= now;
+}
+
 export function normalizeWhatsApp(value) {
   const textValue = typeof value === 'string' ? value.trim() : '';
   if (!textValue || !/^\+?[\d\s().-]+$/.test(textValue)) {

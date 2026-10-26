@@ -3,8 +3,9 @@
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
   import { getCopy, languages, localePath } from '#lib/i18n.js';
   import { breadcrumbSchema, getSeoCopy, jsonLdScript } from '#lib/seo.js';
-  import LanguageSelector from '#lib/LanguageSelector.svelte';
+  import SiteHeader from '#lib/SiteHeader.svelte';
   import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
+  import SiteFooter from '#lib/SiteFooter.svelte';
   export let data;
   $: c = getCopy(data.locale);
   $: seo = getSeoCopy(data.locale);
@@ -47,11 +48,8 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-<header class="inner-header">
-  <a class="brand brand-logo" href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
-  <nav aria-label={c.language}><a href={home}>{c.backHome}</a><LanguageSelector locale={data.locale} suffix="/paket-wisata" /></nav>
-</header>
-<main class="catalog-page">
+<SiteHeader locale={data.locale} suffix="/paket-wisata" />
+  <main class="catalog-page" data-whatsapp-float-avoid>
   <section class="catalog-intro"><p class="label">Wonderful Lombok</p><h1>{c.catalogTitle}</h1><p>{c.catalogIntro}</p></section>
   <section class="tour-catalog" aria-label={c.catalogTitle}>
     {#each data.catalog.packages as item, index}
@@ -69,5 +67,6 @@
   </section>
   <aside class="catalog-help" data-whatsapp-float-avoid><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
+<SiteFooter settings={data.catalog.settings} locale={data.locale} />
 <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

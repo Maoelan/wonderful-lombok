@@ -242,6 +242,24 @@ test('booking request rejects arbitrary detail objects and missing idempotency k
   assert.equal(missingKey.status, 400);
 });
 
+test('booking request rejects a pickup time that has already passed', async () => {
+  const saved = [];
+  const body = travelBody({ travelDate: '2026-10-20' });
+  body.details = { ...body.details, pickupTime: '00:00' };
+  const result = await createBookingRequest({
+    body,
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174010',
+    now,
+    fetchImpl: quoteFetch(),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async (booking) => { saved.push(booking); return 'WL-TEST-PAST'; }
+  });
+
+  assert.equal(result.status, 400);
+  assert.match(result.body.error, /sudah lewat/);
+  assert.equal(saved.length, 0);
+});
+
 test('booking request enforces the WITA date and rental flag', async () => {
   const yesterday = await createBookingRequest({
     body: travelBody({ travelDate: '2026-10-19' }),
@@ -293,6 +311,20 @@ test('booking request rejects honeypot submissions without saving', async () => 
 
   assert.equal(result.status, 400);
   assert.equal(saved.length, 0);
+});
+
+test('booking request rejects a reused key with a different payload', async () => {
+  const result = await createBookingRequest({
+    body: travelBody(),
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174009',
+    now,
+    fetchImpl: quoteFetch(),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async () => ({ code: null, conflict: true })
+  });
+
+  assert.equal(result.status, 409);
+  assert.match(result.body.error, /tidak konsisten/);
 });
 
 test('booking request returns a retryable 503 when persistence fails', async () => {

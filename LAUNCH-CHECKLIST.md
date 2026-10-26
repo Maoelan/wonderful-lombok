@@ -13,7 +13,8 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Run `npm run scan:secrets`; CI runs the same high-confidence tracked-file scan. Keep repository secret scanning and push protection enabled where available.
 - [ ] Set `PUBLIC_SITE_URL` to the final HTTPS origin, without a trailing slash.
 - [ ] Confirm `PUBLIC_RENTAL_ENABLED=false` unless the owner has explicitly approved rentals for this release.
-- [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT` are configured in the hosting provider, not in the repository.
+- [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT=4.5M` are configured in the hosting provider, not in the repository. Uploads are capped at 4 MB per file and 4.4 MB per multipart request.
+- [ ] Configure and record the production abuse-control gate: either platform rate-limit rules (for example Vercel Firewall/WAF) for login, booking, geocoding, routing, upload, and admin mutations, or a shared limiter backed by Redis/Convex. Use at least the limits in [SECURITY.md](SECURITY.md#rate-limits-and-abuse-controls). The bundled in-memory limiter is acceptable for the current showcase only; it is not a substitute for this gate in multi-instance production.
 - [ ] Confirm `MAP_PROVIDER` is set to the approved provider. For Google, `PUBLIC_GOOGLE_MAPS_API_KEY` and `GOOGLE_MAPS_SERVER_API_KEY` must be configured in the hosting provider. The browser key must be restricted to Maps JavaScript API and approved HTTP referrers; the server key must be restricted to Places API (New) and Routes API and must never reach the browser bundle.
 - [ ] For an approved Mapbox release, confirm `PUBLIC_MAPBOX_TOKEN` is a URL-restricted public token and `MAPBOX_SERVER_TOKEN` is a secret token scoped only to Geocoding and Directions. The secret token must never reach the browser bundle.
 - [ ] Confirm the active provider's daily quotas, usage limits, and budget alerts are enabled, and that the server key/token is absent from the built client files and source maps.
@@ -54,6 +55,7 @@ Then verify manually, still read-only:
 - [ ] The public planner map loads with the active provider's restricted browser key/token, and place search returns Lombok results in Indonesian and one non-Indonesian locale.
 - [ ] A pick-up and destination route renders distance, duration, and a polyline; changing or swapping either point recalculates it.
 - [ ] Missing, permission-denied, quota-exhausted, and network-error states show a clear provider-neutral message instead of a broken map or silent search.
+- [ ] If a WAF/shared limiter was configured, verify on staging that an over-limit login or booking request returns `429` with `Retry-After`; do not run destructive or lockout tests against production.
 - [ ] An unknown route returns `404`.
 - [ ] Configure the hosting uptime monitor to poll `/api/health` and alert on a non-`200` response; alert on `/api/ready` returning `503`.
 - [ ] Do **not** create a booking, upload a file, change catalog data, or run destructive authentication tests on production.
@@ -83,7 +85,8 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 
 - If Convex is unavailable, public catalog pages return a localized `503` maintenance page and the sitemap returns `503`. Login remains available, but catalog and booking operations require Convex.
 - Map rendering, place search, route distance, and booking quote verification depend on the active provider's availability, billing, quotas, and correct key/token restrictions (Google Maps Platform or Mapbox).
-- Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
+- Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances. Production traffic must not be enabled until the platform WAF/shared-store gate above is recorded as complete.
+- Uploads abandoned before a catalog save are not automatically cleaned up; the monthly manual review in [PRIVACY.md](PRIVACY.md) remains a residual risk until scheduled cleanup is added.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
 - The CI secret scan is a high-confidence tracked-file check, not full-history scanning. GitHub-native push protection and full-history scanning still need repository-owner setup.

@@ -4,6 +4,7 @@ import {
   BookingValidationError,
   MAX_STOPS,
   isValidIdempotencyKey,
+  isValidPickupDateTime,
   isValidTravelDate,
   normalizeBookingDetails,
   normalizeWhatsApp,
@@ -31,6 +32,15 @@ test('travel dates use the WITA calendar instead of UTC', () => {
   assert.equal(isValidTravelDate('2026-10-19', now), false);
   assert.equal(isValidTravelDate('2026-02-31', now), false);
   assert.equal(isValidTravelDate('20-10-2026', now), false);
+});
+
+test('pickup times must be in the WITA future', () => {
+  const now = Date.parse('2026-10-19T16:30:00Z');
+  assert.equal(isValidPickupDateTime('2026-10-20', '00:31', now), true);
+  assert.equal(isValidPickupDateTime('2026-10-20', '00:29', now), false);
+  assert.equal(isValidPickupDateTime('2026-10-19', '23:59', now), false);
+  assert.equal(isValidPickupDateTime('2026-10-20', '24:00', now), false);
+  assert.equal(isValidPickupDateTime('2026-02-31', '10:00', now), false);
 });
 
 test('WhatsApp numbers normalize to one Indonesian mobile format', () => {

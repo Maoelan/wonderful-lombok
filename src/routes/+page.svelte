@@ -7,13 +7,16 @@
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
+  import UiIcon from '../lib/UiIcon.svelte';
 
   export let data;
   let menuOpen = false;
   let booking = null;
   let tourMenu;
   let destinationMenu;
+  let menuToggle;
   const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
+  const fallbackImage = '/wonderful-lombok-icon-192.png';
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
   $: formCopy = getFormCopy(locale);
@@ -29,10 +32,9 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
-  $: heroSource = imageUrl(settings.heroImage, 1280);
-  $: heroSrcset = imageSrcset(settings.heroImage, [640, 960, 1280, 1600]);
+  $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
+  $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
-  const fallbackImage = '/wonderful-lombok-icon-192.png';
   const packageGallery = (item) => {
     const images = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
     return images.length ? images : [fallbackImage];
@@ -43,6 +45,7 @@
     if (destinationMenu) destinationMenu.open = false;
   }
   function handlePageClick(event) {
+    if (event.target instanceof Element && (event.target.closest('.language-picker') || !event.target.closest('.site-header'))) menuOpen = false;
     if (event.target instanceof Element && event.target.closest('.nav-dropdown')) return;
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
@@ -87,13 +90,14 @@
   {@html jsonLdScript(businessSchema)}
 </svelte:head>
 
-<svelte:window on:click={handlePageClick} />
+<svelte:window on:click={handlePageClick} on:keydown={(event) => { if (event.key === 'Escape') { const control = menuOpen ? menuToggle : tourMenu?.open ? tourMenu.querySelector('summary') : destinationMenu?.open ? destinationMenu.querySelector('summary') : null; closeMenu(); control?.focus(); } }} />
 
 <div class="site-theme" class:theme-ocean={settings.colorTheme === 'ocean'}>
+<a class="skip-link" href="#top">{c.heroPrimary}</a>
 <header class="site-header">
   <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
-  <button class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
+  <button bind:this={menuToggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="main-navigation" class:open={menuOpen} aria-label={c.menu}>
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
@@ -102,7 +106,6 @@
         {#each packages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
       </div>
     </details>
-    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
@@ -110,6 +113,8 @@
         {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
       </div>
     </details>
+    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
+    <a href={`${localeHome}#faq`} on:click={closeMenu}>{c.faq}</a>
     <div class="nav-language"><LanguageSelector {locale} /></div>
   </nav>
 </header>
@@ -125,28 +130,38 @@
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-image"><img src={heroSource} srcset={heroSrcset} sizes="100vw" alt={seo.imageAlt} width="1600" height="900" loading="eager" fetchpriority="high" /></div><div class="hero-shade"></div>
     <div class="hero-copy">
-      <p class="label">{c.heroLabel}</p><h1 id="hero-title">{settings.heroTitle}</h1>
+      <h1 id="hero-title">{settings.heroTitle}</h1>
       <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
-      <div class="hero-actions"><a class="button primary" href="#pilih-layanan">{c.heroPrimary}</a><a class="text-link" href="#paket">{c.heroSecondary}</a></div>
     </div>
   </section>
 
   <section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
-    <div class="choice-heading"><p class="label">{c.start}</p><h2 id="choice-title">{c.choiceTitle}</h2></div>
+    <div class="choice-heading sr-only"><h2 id="choice-title">{c.start}</h2><p>{c.choiceTitle}</p></div>
     <div class:without-rental={!rentalEnabled} class="choice-list">
-      <article><span>01</span><h3>{c.tours}</h3><p>{c.tourChoice}</p><a href="#paket">{c.viewTours}</a></article>
-      <article><span>02</span><h3>{c.travel}</h3><p>{c.travelChoice}</p><a href={localePath(locale, '/travel-lombok')}>{c.calculate}</a></article>
-      {#if rentalEnabled}<article><span>03</span><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
+      <a class="service-tile" href={localePath(locale, '/paket-wisata')}><UiIcon name="palm" /><span><strong>{c.tours}</strong><span>{c.tourChoice}</span></span><UiIcon name="chevron" /></a>
+      <a class="service-tile" href={localePath(locale, '/travel-lombok')}><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
+      {#if rentalEnabled}<article><UiIcon name="travel" /><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
   </section>
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><p class="label">{c.tours}</p><h2 id="packages-title">{c.tourHeading}</h2></div><p>{c.tourIntro}</p></div>
-    <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
+    <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div><a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon /></a></div>
+    <div class="package-list" data-whatsapp-float-avoid itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer"><a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a><div class="package-body"><span class="package-number">0{index + 1}</span><h3 itemprop="name">{item.name}</h3><p itemprop="description">{item.route}</p><div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div><div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}</a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div></div></article>
+        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
+          <a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a>
+          <div class="package-body">
+            <h3 itemprop="name">{item.name}</h3>
+            <div class="package-facts"><span>{item.category}</span><span><UiIcon name="clock" />{item.duration}</span></div>
+            <p class="package-route" itemprop="description"><UiIcon name="pin" />{item.route}</p>
+            {#if index === 0}<div class="package-description rich-content">{@html item.detail}</div>{/if}
+            {#if item.includes?.length}<ul class="package-inclusions">{#each item.includes.slice(0, 2) as inclusion}<li>{inclusion}</li>{/each}</ul>{/if}
+            <div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div>
+            <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div>
+          </div>
+        </article>
       {/each}
     </div>
   </section>
@@ -183,20 +198,20 @@
   {/if}
 
   <section class="about section" id="tentang" aria-labelledby="about-title" use:reveal>
-    <div class="about-image"><img src={imageUrl(settings.aboutImage, 900)} srcset={imageSrcset(settings.aboutImage, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 50vw" alt={seo.imageAlt} loading="lazy" decoding="async" width="900" height="900" /></div>
+    <div class="about-image"><img src={imageUrl(settings.aboutImage || fallbackImage, 900)} srcset={imageSrcset(settings.aboutImage || fallbackImage, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 50vw" alt={seo.imageAlt} loading="lazy" decoding="async" width="900" height="900" /></div>
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
-  <section class="faq section" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
+  <section class="faq section" id="faq" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
     <div><p class="label">{c.faq}</p><h2 id="faq-title">{c.faqHeading}</h2></div>
     <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
   </section>
 </main>
 
 <footer id="kontak" data-whatsapp-float-avoid>
-  <div class="footer-brand"><span>Wonderful</span><b>Lombok</b><p>{c.localPartner}</p></div>
+  <div class="footer-brand"><img class="footer-logo" src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="160" height="80" /><p>{c.localPartner}</p></div>
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
-  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><span>{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer">TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer">Facebook</a>{/if}</div>
+  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a><span><UiIcon name="pin" />{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />

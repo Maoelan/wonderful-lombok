@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { getFormCopy } from './i18n.js';
 
   export let rate;
   export let whatsapp;
@@ -10,6 +11,7 @@
 
   let host;
   let Calculator;
+  $: loadingCopy = getFormCopy(locale);
 
   onMount(() => {
     let cancelled = false;
@@ -32,6 +34,6 @@
   {#if Calculator}
     <svelte:component this={Calculator} {rate} {whatsapp} {locale} {googleMapsKey} {mapProvider} {mapboxToken} />
   {:else}
-    <div class="calculator-placeholder" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="calculator-placeholder" role="status"><span class="spinner" aria-hidden="true"></span><p>{loadingCopy.loadingMap}</p></div>
   {/if}
 </div>

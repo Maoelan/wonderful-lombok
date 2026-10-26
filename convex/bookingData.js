@@ -1,3 +1,10 @@
+export async function updateBookingStatus(ctx, id, status, now = Date.now()) {
+  const booking = await ctx.db.get(id);
+  if (!booking) return false;
+  await ctx.db.patch(id, { status, updatedAt: now });
+  return true;
+}
+
 export async function removeBooking(ctx, id) {
   const booking = await ctx.db.get(id);
   if (!booking) return false;
