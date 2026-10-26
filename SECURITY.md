@@ -8,6 +8,8 @@ Private-repository CI uses Semgrep Community Edition instead of the unavailable 
 
 The scan covers application JavaScript/TypeScript, Convex functions, scripts, workflow security and secret patterns. Svelte script blocks are extracted with the Svelte parser, retaining original line numbers; malformed components fail extraction. A deliberately vulnerable, unimported test fixture must produce a finding before application scanning starts. Any application finding or scanner/configuration error fails the job; there is no `continue-on-error` or baseline exclusion. JSON/SARIF reports remain private Actions artifacts for seven days, not GitHub Code Scanning uploads.
 
+The scanner container receives a read-only checkout, no production credentials, and no network access. Its report and extracted-script directory is the only writable mount. Package installation for the parser runs separately on the Linux runner with lifecycle scripts disabled.
+
 Semgrep CE is not equivalent to CodeQL or an audit: it does not provide the same cross-function analysis, and extracted Svelte scripts do not cover template-level data flow. The existing dependency audit, tracked-file secret scan, server validation tests and read-only deployment smoke tests remain separate checks. Review rules/image updates before changing their pins. Branch rules should require `Test, audit, and build`, `Analyze JavaScript` from this Security workflow, and the Vercel deployment; an obsolete CodeQL-specific required check must be deliberately replaced, not bypassed.
 
 ## Admin origin checks
