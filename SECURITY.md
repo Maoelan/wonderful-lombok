@@ -12,6 +12,12 @@ The scanner container receives a read-only checkout, no production credentials, 
 
 Semgrep CE is not equivalent to CodeQL or an audit: it does not provide the same cross-function analysis, and extracted Svelte scripts do not cover template-level data flow. The existing dependency audit, tracked-file secret scan, server validation tests and read-only deployment smoke tests remain separate checks. Review rules/image updates before changing their pins. Branch rules should require `Test, audit, and build`, `Analyze JavaScript` from this Security workflow, and the Vercel deployment; an obsolete CodeQL-specific required check must be deliberately replaced, not bypassed.
 
+### Reviewed scanner exceptions
+
+Four statements have narrowly scoped `nosemgrep` annotations for the low-confidence `html-in-template-string` heuristic, not a disabled rule or excluded file. In `hooks.server.js` the language value comes exclusively from the static language allowlist. `jsonLdScript` serializes values and escapes every `<` before wrapping them in a script tag; the injection/round-trip regression test covers this. In the sitemap, both alternate-link statements pass every dynamic attribute through `escapeXml`. These exceptions must be re-reviewed if their data sources or escaping change. All other findings remain blocking.
+
+The slug validator uses a single linear character check plus explicit separator checks instead of a nested-quantifier regex, and rejects control characters as tested in `catalog-validation.test.js`.
+
 ## Admin origin checks
 
 Every unsafe request (`POST`, `PUT`, `PATCH`, `DELETE`) must send an `Origin` header that exactly matches an approved origin. The approved origins are:

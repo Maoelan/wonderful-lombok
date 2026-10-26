@@ -24,6 +24,8 @@ export async function handle({ event, resolve }) {
   const routeLocale = event.url.pathname.split('/')[1] || 'id';
   const pageLanguage = languages.find(({ code }) => code === routeLocale)?.hreflang || 'id-ID';
   let response = await resolve(event, {
+    // Reviewed: pageLanguage comes only from the static languages allowlist, never the raw route segment.
+    // nosemgrep: security-rules.javascript.lang.security.html-in-template-string
     transformPageChunk: ({ html }) => html.replace('<html lang="id">', `<html lang="${pageLanguage}">`)
   });
   response.headers.set('x-content-type-options', 'nosniff');
