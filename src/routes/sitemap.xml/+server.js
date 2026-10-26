@@ -23,7 +23,11 @@ export async function GET({ url }) {
   }
   const groups = ['', '/paket-wisata', '/travel-lombok', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`), ...catalog.destinations.map((item) => `/destinasi/${destinationSlug(item)}`)];
   const entries = groups.flatMap((suffix, groupIndex) => {
+    // Reviewed: every attribute value is XML-escaped before interpolation (including URLs).
+    // nosemgrep: security-rules.javascript.lang.security.html-in-template-string
     const alternates = languages.map((language) => `    <xhtml:link rel="alternate" hreflang="${escapeXml(language.hreflang)}" href="${escapeXml(`${origin}${localePath(language.code, suffix)}`)}" />`).join('\n');
+    // Reviewed: the only dynamic attribute below passes through escapeXml as well.
+    // nosemgrep: security-rules.javascript.lang.security.html-in-template-string
     const fallback = `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(`${origin}${localePath('id', suffix)}`)}" />`;
     return languages.map((language) => `  <url>\n    <loc>${escapeXml(`${origin}${localePath(language.code, suffix)}`)}</loc>\n${alternates}\n${fallback}\n    <changefreq>weekly</changefreq>\n    <priority>${groupIndex === 0 ? '1.0' : groupIndex === 1 ? '0.9' : '0.8'}</priority>\n  </url>`);
   }).join('\n');

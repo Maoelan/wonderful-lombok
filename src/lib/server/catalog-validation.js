@@ -3,7 +3,8 @@ import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
 
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
-const optionalSlug = (value) => value === undefined || value === '' || (typeof value === 'string' && value.length <= 80 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value));
+export const validSlug = (value) => typeof value === 'string' && value.length > 0 && !/[^a-z0-9-]/.test(value) && !value.startsWith('-') && !value.endsWith('-') && !value.includes('--');
+const optionalSlug = (value) => value === undefined || value === '' || (validSlug(value) && value.length <= 80);
 const stringList = (value, maxItems = 30) => Array.isArray(value) && value.length <= maxItems && value.every((item) => text(item, 1, 500));
 const validItinerary = (value) => Array.isArray(value) && value.length <= 14 && value.every((day) => text(day?.day, 1, 40) && text(day.title, 2, 200) && stringList(day.items || [], 30));
 
@@ -36,11 +37,11 @@ export function validateCatalog(catalog) {
   if (catalog.packages.length > 30 || catalog.destinations.length > 50 || catalog.rentals.length > 30 || catalog.faqs.length > 30) return 'Jumlah item katalog terlalu banyak.';
 
   const destinationKeys = catalog.destinations.map((item) => item?.slug || slugify(item?.name));
-  if (new Set(destinationKeys).size !== destinationKeys.length || destinationKeys.some((slug) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))) return 'Data destinasi tidak valid.';
+  if (new Set(destinationKeys).size !== destinationKeys.length || destinationKeys.some((slug) => !validSlug(slug))) return 'Data destinasi tidak valid.';
   const knownDestinationSlugs = new Set(destinationKeys);
   const slugs = new Set();
   const packagesValid = catalog.packages.every((item) => {
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item?.slug || '') || slugs.has(item.slug)) return false;
+    if (!validSlug(item?.slug) || slugs.has(item.slug)) return false;
     slugs.add(item.slug);
     const tiersValid = Array.isArray(item.priceTiers) && item.priceTiers.length <= 30 && item.priceTiers.every((tier) => text(tier?.guests, 1, 100) && text(tier.price, 1, 50) && text(tier.note, 1, 100) && optionalText(tier.guestsEn, 100) && optionalText(tier.noteEn, 100));
     const related = item.destinationSlugs;
@@ -52,7 +53,7 @@ export function validateCatalog(catalog) {
   const destinationSlugs = new Set();
   const destinationsValid = catalog.destinations.every((item) => {
     const slug = item?.slug || slugify(item?.name);
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || destinationSlugs.has(slug)) return false;
+    if (!validSlug(slug) || destinationSlugs.has(slug)) return false;
     destinationSlugs.add(slug);
     return text(item?.name, 2, 100) && text(item.note, 2, 300) && text(item.detail, 2, 2000) && optionalText(item.nameEn, 100) && optionalText(item.noteEn, 300) && optionalText(item.detailEn, 2000) && validImage(item.image) && validGallery(item.images || []);
   });

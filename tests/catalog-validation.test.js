@@ -2,7 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
 import { CATALOG_SCHEMA_VERSION } from '../src/lib/catalog-schema.js';
-import { validateCatalog, validImage } from '../src/lib/server/catalog-validation.js';
+import { validateCatalog, validImage, validSlug } from '../src/lib/server/catalog-validation.js';
+
+test('slug validation accepts only nonempty ASCII words separated by single hyphens', () => {
+  for (const slug of ['a', 'a1', 'kuta-mandalika', 'a-1-b']) assert.equal(validSlug(slug), true, slug);
+  for (const slug of ['', '-a', 'a-', 'a--b', 'A', 'a b', 'a/b', 'a\n', 'a\r', 'a\t', 'á', 123, null, undefined, {}]) assert.equal(validSlug(slug), false, String(slug));
+  assert.equal(validSlug('a-'.repeat(10000) + '!'), false);
+});
 
 test('default catalog passes server validation', () => {
   assert.equal(validateCatalog(structuredClone(defaultCatalog)), null);

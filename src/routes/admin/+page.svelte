@@ -5,11 +5,15 @@
   import { createUnsavedChangesGuard } from '#lib/unsaved-changes.js';
   import RichTextEditor from '#lib/RichTextEditor.svelte';
   import TrashIcon from '#lib/TrashIcon.svelte';
+  import UiIcon from '#lib/UiIcon.svelte';
   export let data;
   let catalog = structuredClone(data.catalog);
   let catalogRevision = data.catalogRevision ?? 0;
   let bookings = data.bookings;
   let active = 'overview';
+  let adminMenuOpen = false;
+  let selectedPackage = 0;
+  let selectedDestination = 0;
   let saved = false;
   let dirty = false;
   let saving = false;
@@ -259,22 +263,24 @@
 </script>
 
 <svelte:head><title>Admin | Wonderful Lombok</title><meta name="robots" content="noindex,nofollow" /></svelte:head>
+<svelte:window on:keydown={(event) => { if (event.key === 'Escape' && adminMenuOpen) { adminMenuOpen = false; document.querySelector('.admin-menu-toggle')?.focus(); } }} />
 
 <div class="admin-shell" class:theme-ocean={catalog.settings.colorTheme === 'ocean'}>
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" class:expanded={adminMenuOpen}>
     <a class="admin-brand admin-logo" href="/" aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
-    <div><p class="admin-kicker">Pengelolaan website</p><h1>Admin</h1></div>
-    <nav aria-label="Menu admin">
+    <div class="admin-workspace"><p class="admin-kicker">Pengelolaan website</p><p>Admin</p></div>
+    <button class="admin-menu-toggle" type="button" aria-expanded={adminMenuOpen} aria-controls="admin-navigation" on:click={() => adminMenuOpen = !adminMenuOpen}>{adminMenuOpen ? 'Tutup menu' : 'Menu admin'}<span aria-hidden="true">{adminMenuOpen ? '−' : '+'}</span></button>
+    <nav id="admin-navigation" aria-label="Menu admin">
       <p>Mulai</p>
-      <button class:active={active === 'overview'} on:click={() => active = 'overview'}>Ringkasan</button>
-      <button class:active={active === 'bookings'} on:click={() => active = 'bookings'}>Pemesanan {#if newBookings.length}<span>{newBookings.length} baru</span>{/if}</button>
+      <button class:active={active === 'overview'} on:click={() => { active = 'overview'; adminMenuOpen = false; }}><UiIcon name="overview" />Ringkasan</button>
+      <button class:active={active === 'bookings'} on:click={() => { active = 'bookings'; adminMenuOpen = false; }}><UiIcon name="booking" />Pemesanan {#if newBookings.length}<span>{newBookings.length} baru</span>{/if}</button>
       <p>Isi website</p>
-      <button class:active={active === 'packages'} on:click={() => active = 'packages'}>Paket wisata <span>{catalog.packages.length}</span></button>
-      <button class:active={active === 'destinations'} on:click={() => active = 'destinations'}>Destinasi <span>{catalog.destinations.length}</span></button>
-      <button class:active={active === 'travel'} on:click={() => active = 'travel'}>Paket travel</button>
-      <button class:active={active === 'faqs'} on:click={() => active = 'faqs'}>Pertanyaan umum <span>{catalog.faqs.length}</span></button>
+      <button class:active={active === 'packages'} on:click={() => { active = 'packages'; adminMenuOpen = false; }}><UiIcon name="tour" />Paket wisata <span>{catalog.packages.length}</span></button>
+      <button class:active={active === 'destinations'} on:click={() => { active = 'destinations'; adminMenuOpen = false; }}><UiIcon name="pin" />Destinasi <span>{catalog.destinations.length}</span></button>
+      <button class:active={active === 'travel'} on:click={() => { active = 'travel'; adminMenuOpen = false; }}><UiIcon name="travel" />Paket travel</button>
+      <button class:active={active === 'faqs'} on:click={() => { active = 'faqs'; adminMenuOpen = false; }}><UiIcon name="faq" />Pertanyaan umum <span>{catalog.faqs.length}</span></button>
       <p>Pengaturan</p>
-      <button class:active={active === 'settings'} on:click={() => active = 'settings'}>Website dan kontak</button>
+      <button class:active={active === 'settings'} on:click={() => { active = 'settings'; adminMenuOpen = false; }}><UiIcon name="settings" />Website dan kontak</button>
     </nav>
     <a class="admin-site-link" href="/" target="_blank" rel="noreferrer">Buka website publik</a>
     <form class="admin-logout" method="POST" action="/logout"><button type="submit">Keluar dari admin</button></form>
@@ -282,7 +288,7 @@
 
   <main class="admin-main" on:input={markDirty} on:change={markDirty}>
     <header class="admin-header">
-      <div><p class="admin-kicker">Wonderful Lombok</p><h2>{pageInfo[0]}</h2><p>{pageInfo[1]}</p></div>
+      <div><p class="admin-kicker">Wonderful Lombok</p><h1>{pageInfo[0]}</h1><p>{pageInfo[1]}</p></div>
       <div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving} aria-busy={saving}>{saving ? 'Menyimpan...' : 'Simpan perubahan'}</button></div>
     </header>
 
@@ -317,9 +323,13 @@
     {:else if active === 'packages'}
       <section class="admin-section" aria-labelledby="admin-packages-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Katalog</p><h3 id="admin-packages-title">Paket Wisata</h3></div><button class="admin-secondary" on:click={addPackage}>Tambah paket</button></div>
+        <div class="admin-catalog-workspace">
+        <div class="admin-object-list" aria-label="Paket wisata">
+          {#each catalog.packages as item, index}<button type="button" class:selected={index === Math.min(selectedPackage, catalog.packages.length - 1)} aria-pressed={index === Math.min(selectedPackage, catalog.packages.length - 1)} on:click={() => selectedPackage = index}>{#if item.image}<img src={item.image} alt="" loading="lazy" />{/if}<span><b>{item.name}</b><small>{item.duration} · {item.price}</small></span><UiIcon name="chevron" /></button>{/each}
+        </div>
         <div class="admin-editor-list">
           {#each catalog.packages as item, index}
-            <details class="admin-editor-card" open={index === 0}>
+            <details class="admin-editor-card" class:selected={index === Math.min(selectedPackage, catalog.packages.length - 1)} open={index === Math.min(selectedPackage, catalog.packages.length - 1)}>
               <summary class="admin-editor-summary"><span class="admin-card-number">{String(index + 1).padStart(2, '0')}</span>{#if item.image}<img src={item.image} alt="" />{/if}<span class="admin-item-summary"><b>{item.name}</b><small>{item.duration} · {item.price}</small></span><span class="admin-editor-toggle">Edit</span></summary>
               <div class="admin-editor-body"><div class="admin-fields">
                 <details class="admin-advanced"><summary>Pengaturan alamat halaman</summary><label><span>Alamat halaman</span><input value={item.slug} on:input={(event) => updatePackage(index, 'slug', slugify(event.currentTarget.value))} /><small>Biasanya tidak perlu diubah setelah paket dipublikasikan.</small></label></details>
@@ -329,25 +339,33 @@
                 <fieldset class="admin-subsection admin-destination-picker"><legend>Destinasi dalam paket</legend><p>Pilih destinasi yang benar-benar dikunjungi. Paket ini akan otomatis tampil pada halaman destinasi yang dipilih.</p>{#if catalog.destinations.length}<div class="admin-checkbox-list">{#each catalog.destinations as destination}<label class:selected={(item.destinationSlugs || []).includes(destination.slug)}><input type="checkbox" checked={(item.destinationSlugs || []).includes(destination.slug)} on:change={(event) => setPackageDestination(index, destination.slug, event.currentTarget.checked)} /><span><strong>{destination.name}</strong><small>{destination.note}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada destinasi. Tambahkan destinasi terlebih dahulu.</p>{/if}</fieldset>
                 <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
                 <div class="admin-field-row"><label><span>Harga</span><input value={item.price} on:input={(event) => updatePackage(index, 'price', event.currentTarget.value)} /></label><label><span>Satuan</span><input value={item.unit} on:input={(event) => updatePackage(index, 'unit', event.currentTarget.value)} /></label></div>
+                <details class="admin-field-group"><summary>Itinerary Indonesia</summary><div>
                 <label><span>Itinerary Indonesia</span><textarea rows="8" value={itineraryText(item.itinerary)} on:change={(event) => updateItinerary(index, event.currentTarget.value)}></textarea><small>Baris pertama adalah judul hari, baris berikutnya aktivitas. Pisahkan setiap hari dengan satu baris kosong.</small></label>
                 <div class="admin-field-row"><label><span>Sudah termasuk</span><textarea rows="5" value={(item.includes || []).join('\n')} on:change={(event) => updateLines(index, 'includes', event.currentTarget.value)}></textarea><small>Satu fasilitas per baris.</small></label><label><span>Belum termasuk</span><textarea rows="5" value={(item.excludes || []).join('\n')} on:change={(event) => updateLines(index, 'excludes', event.currentTarget.value)}></textarea><small>Satu item per baris.</small></label></div>
                 <fieldset class="admin-subsection"><legend>Harga berdasarkan jumlah tamu</legend>{#each item.priceTiers || [] as tier, tierIndex}<div class="admin-price-tier"><input aria-label="Jumlah tamu" value={tier.guests} on:input={(event) => updatePriceTier(index, tierIndex, 'guests', event.currentTarget.value)} /><input aria-label="Harga" value={tier.price} on:input={(event) => updatePriceTier(index, tierIndex, 'price', event.currentTarget.value)} /><input aria-label="Keterangan" value={tier.note} on:input={(event) => updatePriceTier(index, tierIndex, 'note', event.currentTarget.value)} /><button type="button" on:click={() => removePriceTier(index, tierIndex)}>Hapus</button></div>{/each}<button class="admin-secondary compact" type="button" on:click={() => addPriceTier(index)}>Tambah pilihan harga</button></fieldset>
 
+                </div></details>
+                <details class="admin-field-group" open><summary>Galeri foto</summary><div>
                 {#if item.image}<div class="admin-image-preview"><img src={item.image} alt="Pratinjau {item.name}" /><span><strong>Gambar utama saat ini</strong><small>Gunakan tombol sampah untuk menghapus.</small></span><button class="admin-image-trash" type="button" on:click={() => clearImage(`gambar utama ${item.name}`, (value) => updatePackage(index, 'image', value))} aria-label="Hapus gambar utama {item.name}"><TrashIcon /></button></div>{/if}
                 <label><span>Upload gambar utama</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'image', url), `package-${index}`)} /><small>{uploading === `package-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><button class="admin-image-trash" type="button" on:click={() => removeGalleryImage(item.images, imageIndex, (images) => updatePackage(index, 'images', images))} aria-label="Hapus gambar galeri {imageIndex + 1} dari {item.name}"><TrashIcon /></button></figure>{/each}</div>{/if}
                 <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'images', [...(item.images || []), url]), `gallery-${index}`)} /><small>{uploading === `gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri.'}</small></label>
-              </div><button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}">Hapus paket</button></div>
+                </div></details>
+              </div><button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}"><TrashIcon />Hapus paket</button></div>
             </details>
           {/each}
-        </div>
+        </div></div>
       </section>
     {:else if active === 'destinations'}
       <section class="admin-section" aria-labelledby="admin-destinations-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Inspirasi perjalanan</p><h3 id="admin-destinations-title">Destinasi</h3></div><button class="admin-secondary" on:click={addDestination}>Tambah destinasi</button></div>
+        <div class="admin-catalog-workspace">
+        <div class="admin-object-list" aria-label="Destinasi">
+          {#each catalog.destinations as item, index}<button type="button" class:selected={index === Math.min(selectedDestination, catalog.destinations.length - 1)} aria-pressed={index === Math.min(selectedDestination, catalog.destinations.length - 1)} on:click={() => selectedDestination = index}>{#if item.image}<img src={item.image} alt="" loading="lazy" />{/if}<span><b>{item.name}</b><small>{item.note}</small></span><UiIcon name="chevron" /></button>{/each}
+        </div>
         <div class="admin-editor-list">
           {#each catalog.destinations as item, index}
-            <details class="admin-editor-card" open={index === 0}>
+            <details class="admin-editor-card" class:selected={index === Math.min(selectedDestination, catalog.destinations.length - 1)} open={index === Math.min(selectedDestination, catalog.destinations.length - 1)}>
               <summary class="admin-editor-summary"><span class="admin-card-number">{String(index + 1).padStart(2, '0')}</span>{#if item.image}<img src={item.image} alt="" />{/if}<span class="admin-item-summary"><b>{item.name}</b><small>{item.note}</small></span><span class="admin-editor-toggle">Edit</span></summary>
               <div class="admin-editor-body"><div class="admin-fields">
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
@@ -359,10 +377,10 @@
                 <label><span>Upload gambar</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'image', url), `destination-${index}`)} /><small>{uploading === `destination-${index}` ? 'Mengunggah…' : 'JPG, PNG, atau WebP. Maksimal 5 MB.'}</small></label>
                 {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><button class="admin-image-trash" type="button" on:click={() => removeGalleryImage(item.images, imageIndex, (images) => updateDestination(index, 'images', images))} aria-label="Hapus gambar galeri {imageIndex + 1} dari {item.name}"><TrashIcon /></button></figure>{/each}</div>{/if}
                 <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updateDestination(index, 'images', [...(item.images || []), url]), `destination-gallery-${index}`)} /><small>{uploading === `destination-gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri destinasi.'}</small></label>
-              </div><button class="admin-delete" on:click={() => removeDestination(index)} aria-label="Hapus destinasi {item.name}">Hapus destinasi</button></div>
+              </div><button class="admin-delete" on:click={() => removeDestination(index)} aria-label="Hapus destinasi {item.name}"><TrashIcon />Hapus destinasi</button></div>
             </details>
           {/each}
-        </div>
+        </div></div>
       </section>
     {:else if active === 'travel'}
       <section class="admin-section admin-narrow" aria-labelledby="admin-travel-title">

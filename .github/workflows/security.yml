@@ -1,0 +1,95 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+  schedule:
+    # Monday at 03:17 Asia/Jakarta (GitHub cron uses UTC).
+    - cron: "17 20 * * 0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze JavaScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SEMGREP_IMAGE: semgrep/semgrep:1.182.0@sha256:4a34048c04fef049f71665047f074cffb00cc3d89482f965a5cd151d589237af
+      SEMGREP_SEND_METRICS: "off"
+      SEMGREP_ENABLE_VERSION_CHECK: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Check out pinned community rules
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: semgrep/semgrep-rules
+          ref: 16b9e6d45f10649f6a531ec4838ed9924372c3bc
+          path: .security-rules
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.20.0
+
+      - name: Install parser without dependency lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Extract Svelte scripts for JavaScript analysis
+        run: node scripts/security-svelte.mjs "$RUNNER_TEMP/security-svelte"
+
+      - name: Pull pinned scanner image
+        run: docker pull "$SEMGREP_IMAGE"
+
+      - name: Verify scanner rejects vulnerable code
+        shell: bash
+        run: |
+          set +e
+          docker run --rm --network none -v "$GITHUB_WORKSPACE:/src:ro" -w /src \
+            "$SEMGREP_IMAGE" semgrep scan --oss-only --strict --error --metrics off --disable-version-check \
+            --config .security-rules/javascript/lang/security/detect-eval-with-expression.yaml \
+            tests/fixtures/security/unsafe-eval.js
+          status=$?
+          set -e
+          if [ "$status" -ne 1 ]; then
+            echo "Scanner canary failed: expected finding exit code 1, got $status"
+            exit 1
+          fi
+
+      - name: Scan application and workflow security
+        run: |
+          mkdir -p "$RUNNER_TEMP/security-results"
+          docker run --rm --network none -v "$GITHUB_WORKSPACE:/src:ro" -v "$RUNNER_TEMP:/scan" -w /src \
+            "$SEMGREP_IMAGE" semgrep scan --oss-only --strict --error --metrics off --disable-version-check \
+            --config .security-rules/javascript/lang/security \
+            --config .security-rules/javascript/node-crypto \
+            --config .security-rules/javascript/browser/security \
+            --config .security-rules/javascript/express/security \
+            --config .security-rules/typescript/lang/security \
+            --config .security-rules/yaml/github-actions/security \
+            --config .security-rules/generic/secrets \
+            --json-output /scan/security-results/semgrep.json \
+            --sarif-output /scan/security-results/semgrep.sarif \
+            src convex scripts .github vite.config.js /scan/security-svelte
+
+      - name: Keep private scan reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: security-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/security-results/
+          if-no-files-found: warn
+          retention-days: 7
