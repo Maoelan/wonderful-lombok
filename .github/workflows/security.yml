@@ -74,6 +74,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/security-results"
           docker run --rm --network none -v "$GITHUB_WORKSPACE:/src:ro" -v "$RUNNER_TEMP:/scan" -w /src \
             "$SEMGREP_IMAGE" semgrep scan --oss-only --strict --error --metrics off --disable-version-check \
+            --timeout 120 \
             --config .security-rules/javascript/lang/security \
             --config .security-rules/javascript/node-crypto \
             --config .security-rules/javascript/browser/security \
