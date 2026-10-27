@@ -23,11 +23,11 @@ export function bookingRequestFingerprint(data) {
   return `${serialized.length}:${hash(first)}${hash(second)}`;
 }
 
-export async function createIdempotentBooking(ctx, { idempotencyKey, data, now = Date.now(), generateCode = defaultBookingCode }) {
+export async function createIdempotentBooking(ctx, { idempotencyKey, data, now = Date.now(), generateCode = defaultBookingCode, rejectConflicts = true }) {
   const fingerprint = bookingRequestFingerprint(data);
   const existing = await ctx.db.query('bookingRequests').withIndex('by_key', (q) => q.eq('key', idempotencyKey)).first();
   if (existing) {
-    if (existing.fingerprint && existing.fingerprint !== fingerprint) return { code: null, conflict: true };
+    if (rejectConflicts && existing.fingerprint && existing.fingerprint !== fingerprint) return { code: null, conflict: true };
     return { code: existing.code, conflict: false };
   }
   const code = generateCode(now);

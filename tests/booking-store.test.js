@@ -61,6 +61,24 @@ test('a reused idempotency key with different data is rejected as a conflict', a
   assert.equal(ctx.state.bookingRequests.length, 1);
 });
 
+test('legacy create mode returns the stored code when the payload changed', async () => {
+  const ctx = fakeContext();
+  let sequence = 0;
+  const generateCode = () => `WL-TEST-${++sequence}`;
+
+  await createIdempotentBooking(ctx, { idempotencyKey: 'key-1234567890', data, now: 1, generateCode });
+  const legacy = await createIdempotentBooking(ctx, {
+    idempotencyKey: 'key-1234567890',
+    data: { ...data, customerName: 'Budi' },
+    now: 2,
+    generateCode,
+    rejectConflicts: false
+  });
+
+  assert.deepEqual(legacy, { code: 'WL-TEST-1', conflict: false });
+  assert.equal(ctx.state.bookings.length, 1);
+});
+
 test('booking fingerprints ignore object key order but include values', () => {
   const first = { serviceType: 'travel', details: { distanceKm: 13, locale: 'id' } };
   const reordered = { details: { locale: 'id', distanceKm: 13 }, serviceType: 'travel' };

@@ -10,6 +10,8 @@ function applySecurityHeaders(response, event, production) {
   response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=(self)');
   response.headers.set('cross-origin-opener-policy', 'same-origin');
   response.headers.set('x-permitted-cross-domain-policies', 'none');
+  // Reviewed: the value is hard-coded and never derived from request input.
+  // nosemgrep: security-rules.javascript.express.security.x-frame-options-misconfiguration
   response.headers.set('x-frame-options', 'DENY');
   response.headers.set('origin-agent-cluster', '?1');
   if (event.url.pathname.startsWith('/admin') || event.url.pathname === '/login' || event.url.pathname === '/logout' || event.url.pathname.startsWith('/api/')) {

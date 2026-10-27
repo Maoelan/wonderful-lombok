@@ -39,7 +39,7 @@ export async function updateCatalog(data, expectedRevision) {
 }
 
 export async function createBooking(data) {
-  return convexMutation('bookings:create', { idempotencyKey: data.idempotencyKey, data: { serviceType: data.serviceType, serviceName: data.serviceName, travelDate: data.travelDate, people: data.people, customerName: data.name, whatsapp: data.whatsapp, details: data.details } });
+  return convexMutation('bookings:createChecked', { idempotencyKey: data.idempotencyKey, data: { serviceType: data.serviceType, serviceName: data.serviceName, travelDate: data.travelDate, people: data.people, customerName: data.name, whatsapp: data.whatsapp, details: data.details } });
 }
 
 export async function getBookingsPage(cursor = null) {
