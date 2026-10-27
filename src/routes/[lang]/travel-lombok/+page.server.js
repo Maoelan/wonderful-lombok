@@ -5,7 +5,6 @@ import { getSiteOrigin } from '#lib/server/site-url.js';
 import { getSocialImageUrl } from '#lib/social-image.js';
 import { alternateUrls, isLocale, localePath } from '#lib/i18n.js';
 import { localizeCatalog } from '#lib/server/catalog-i18n.js';
-import { normalizeMapProvider } from '#lib/map-provider.js';
 
 export async function load({ params, url }) {
   if (!isLocale(params.lang)) error(404, 'Page not found');
@@ -15,8 +14,6 @@ export async function load({ params, url }) {
   return {
     locale: params.lang,
     catalog,
-    googleMapsKey: process.env.PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    mapProvider: normalizeMapProvider(process.env.MAP_PROVIDER),
     mapboxToken: process.env.PUBLIC_MAPBOX_TOKEN || '',
     canonicalUrl: `${origin}${localePath(params.lang, suffix)}`,
     alternateUrls: alternateUrls(origin, suffix),

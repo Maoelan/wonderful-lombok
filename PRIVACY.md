@@ -23,7 +23,7 @@ The site does not collect payment card data or create customer accounts. Payment
 
 Coordinates are stored only for the pickup point, ordered stops, and destination the customer selected. The application does not track location in the background, does not store a location history, and does not expose booking coordinates in the public catalog, sitemap, structured data, or public API.
 
-During a travel quote, the selected coordinates are sent to the active routing provider: Google Routes API when `MAP_PROVIDER=google`, or Mapbox Directions API v5 when `MAP_PROVIDER=mapbox`. Address searches are sent to Google Places API (New) or Mapbox Geocoding API v5 respectively. Those providers process the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests. The route geometry and distance are returned to the browser, but the booking coordinates are stored only in Convex with the booking.
+During a travel quote, the selected coordinates are sent to Mapbox Directions API v5. Address and place searches are sent to the Mapbox Search Box API, with a Geocoding API v5 fallback. Mapbox processes the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests. The route geometry and distance are returned to the browser, but the booking coordinates are stored only in Convex with the booking.
 
 Coordinates are kept with the booking because operations need the pickup point and ordered stops for dispatch and customer support. If precise coordinates are not needed for a future service type, do not add them to that service's detail schema.
 
@@ -67,5 +67,5 @@ Both routes require an active admin session. The delete route also passes throug
 - `tests/booking-data.test.js` covers booking deletion, idempotency-record cleanup, and missing records.
 - `tests/booking-validation.test.js` covers ordered stops, duplicate points, Lombok bounds, and quote verification.
 - `tests/upstream-routes.test.js` covers the place-search and route proxies, including quota and permission failures.
-- `tests/map-providers.test.js` covers Google/Mapbox provider selection, Mapbox Geocoding and Directions parsing, ferry rejection, and snap-distance rejection.
+- `tests/map-providers.test.js` covers Mapbox Search Box and Geocoding place search, Directions parsing, ferry rejection, and snap-distance rejection.
 - `tests/request-security.test.js` covers trusted-origin enforcement for admin mutation paths.

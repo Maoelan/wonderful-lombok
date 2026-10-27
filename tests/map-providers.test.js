@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getMapProviderName, getRoadRoute, searchPlaces } from '../src/lib/server/map-providers/index.js';
+import { getRoadRoute, searchPlaces } from '../src/lib/server/map-providers/index.js';
 import { TravelQuoteError } from '../src/lib/server/travel-quote-error.js';
 
 const airport = { lat: -8.756283, lng: 116.277145 };
@@ -28,24 +28,28 @@ const mapboxRoutePayload = {
   }]
 };
 
-test('map provider selection defaults to Google and accepts Mapbox explicitly', () => {
-  assert.equal(getMapProviderName(undefined), 'google');
-  assert.equal(getMapProviderName('google'), 'google');
-  assert.equal(getMapProviderName('MAPBOX'), 'mapbox');
-  assert.equal(getMapProviderName('unknown'), 'google');
-});
-
-test('Mapbox place search uses the server token and keeps only Lombok results', async () => {
+test('Mapbox place search uses Search Box, the access token, and keeps only Lombok results', async () => {
   let requestedUrl;
   const results = await searchPlaces('Kuta', 'en', {
-    provider: 'mapbox',
     token: 'test-mapbox-token',
     fetchImpl: async (url) => {
       requestedUrl = url;
       return new Response(JSON.stringify({
         features: [
-          { id: 'mb1', text: 'Kuta', place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', center: [116.277504, -8.893241] },
-          { id: 'mb2', text: 'Denpasar', place_name: 'Denpasar, Bali, Indonesia', center: [115.22, -8.65] }
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [116.277504, -8.893241] },
+            properties: {
+              mapbox_id: 'mb1',
+              name: 'Kuta',
+              full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia'
+            }
+          },
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [115.22, -8.65] },
+            properties: { mapbox_id: 'mb2', name: 'Denpasar', full_address: 'Denpasar, Bali, Indonesia' }
+          }
         ]
       }), { status: 200 });
     }
@@ -53,7 +57,8 @@ test('Mapbox place search uses the server token and keeps only Lombok results', 
 
   const url = new URL(requestedUrl);
   assert.equal(url.origin, 'https://api.mapbox.com');
-  assert.equal(url.pathname, '/geocoding/v5/mapbox.places/Kuta.json');
+  assert.equal(url.pathname, '/search/searchbox/v1/forward');
+  assert.equal(url.searchParams.get('q'), 'Kuta');
   assert.equal(url.searchParams.get('access_token'), 'test-mapbox-token');
   assert.equal(url.searchParams.get('country'), 'id');
   assert.deepEqual(results, [
@@ -61,10 +66,53 @@ test('Mapbox place search uses the server token and keeps only Lombok results', 
   ]);
 });
 
+test('Mapbox place search falls back to Geocoding when Search Box returns no places', async () => {
+  const requestedUrls = [];
+  const results = await searchPlaces('Jl. Raya Senggigi No.8', 'en', {
+    token: 'test-mapbox-token',
+    fetchImpl: async (url) => {
+      requestedUrls.push(url);
+      if (url.includes('/search/searchbox/v1/forward')) {
+        return new Response(JSON.stringify({ features: [] }), { status: 200 });
+      }
+      return new Response(JSON.stringify({
+        features: [{
+          id: 'geocode-1',
+          text: 'Senggigi',
+          place_name: 'Senggigi, Batu Layar, West Lombok Regency, West Nusa Tenggara, Indonesia',
+          center: [116.044691, -8.493705]
+        }]
+      }), { status: 200 });
+    }
+  });
+
+  assert.equal(requestedUrls.length, 2);
+  assert.match(requestedUrls[0], /\/search\/searchbox\/v1\/forward\?/);
+  assert.match(requestedUrls[1], /\/geocoding\/v5\/mapbox\.places\/Jl\.%20Raya%20Senggigi%20No\.8\.json\?/);
+  assert.deepEqual(results, [
+    { name: 'Senggigi, Batu Layar, West Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.493705, lng: 116.044691, placeId: 'geocode-1' }
+  ]);
+});
+
+test('Mapbox place search maps quota failures without falling back', async () => {
+  const requestedUrls = [];
+  await assert.rejects(
+    searchPlaces('kfc', 'en', {
+      token: 'test-mapbox-token',
+      fetchImpl: async (url) => {
+        requestedUrls.push(url);
+        return new Response('{}', { status: 429 });
+      }
+    }),
+    (error) => error instanceof TravelQuoteError && error.status === 503 && error.code === 'quota_exceeded'
+  );
+  assert.ok(requestedUrls.length >= 1);
+  assert.ok(requestedUrls.every((url) => url.includes('/search/searchbox/v1/forward?')));
+});
+
 test('Mapbox road routes use driving directions and require a full road route', async () => {
   let requestedUrl;
   const route = await getRoadRoute([airport, senggigi], 'en', {
-    provider: 'mapbox',
     token: 'test-mapbox-token',
     fetchImpl: async (url) => {
       requestedUrl = url;
@@ -92,7 +140,6 @@ test('Mapbox routes with a ferry or non-driving step fail closed', async () => {
   };
   await assert.rejects(
     getRoadRoute([airport, senggigi], 'en', {
-      provider: 'mapbox',
       token: 'test-mapbox-token',
       fetchImpl: async () => new Response(JSON.stringify(ferryPayload), { status: 200 })
     }),
@@ -103,7 +150,6 @@ test('Mapbox routes with a ferry or non-driving step fail closed', async () => {
 test('Mapbox routes that snap too far from a selected point are rejected', async () => {
   await assert.rejects(
     getRoadRoute([{ lat: -8.7, lng: 116.5 }, senggigi], 'en', {
-      provider: 'mapbox',
       token: 'test-mapbox-token',
       fetchImpl: async () => new Response(JSON.stringify(mapboxRoutePayload), { status: 200 })
     }),
@@ -111,14 +157,13 @@ test('Mapbox routes that snap too far from a selected point are rejected', async
   );
 });
 
-test('Mapbox providers fail closed without a server token or when the route is missing', async () => {
+test('Mapbox providers fail closed without an access token or when the route is missing', async () => {
   await assert.rejects(
-    searchPlaces('Kuta', 'en', { provider: 'mapbox', token: '', fetchImpl: async () => new Response('{}') }),
+    searchPlaces('Kuta', 'en', { token: '', fetchImpl: async () => new Response('{}') }),
     (error) => error instanceof TravelQuoteError && error.code === 'not_configured'
   );
   await assert.rejects(
     getRoadRoute([airport, senggigi], 'en', {
-      provider: 'mapbox',
       token: 'test-mapbox-token',
       fetchImpl: async () => new Response(JSON.stringify({ routes: [] }), { status: 200 })
     }),

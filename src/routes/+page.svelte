@@ -146,7 +146,7 @@
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
     <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div><a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon /></a></div>
-    <div class="package-list" data-whatsapp-float-avoid itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
+    <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
@@ -182,7 +182,7 @@
     </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} googleMapsKey={data.googleMapsKey} mapProvider={data.mapProvider} mapboxToken={data.mapboxToken} /></div>
+      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
 

@@ -2,19 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBookingRequest } from '../src/lib/server/booking-request.js';
 
-process.env.GOOGLE_MAPS_SERVER_API_KEY = 'test-server-key';
+process.env.MAPBOX_SERVER_TOKEN = 'test-server-token';
 const now = Date.parse('2026-10-19T16:30:00Z');
 const routePayload = {
+  waypoints: [
+    { distance: 0, location: [116.277145, -8.756283] },
+    { distance: 0, location: [116.044691, -8.493705] }
+  ],
   routes: [{
-    distanceMeters: 12_100,
-    duration: '1800s',
-    polyline: { encodedPolyline: 'vemt@ekudUchr@zkl@' },
+    distance: 12_100,
+    duration: 1_800,
+    geometry: {
+      type: 'LineString',
+      coordinates: [[116.277145, -8.756283], [116.044691, -8.493705]]
+    },
     legs: [{
-      startLocation: { latLng: { latitude: -8.756283, longitude: 116.277145 } },
-      endLocation: { latLng: { latitude: -8.493705, longitude: 116.044691 } },
       steps: [
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DEPART' } },
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DESTINATION' } }
+        { mode: 'driving', maneuver: { type: 'depart' } },
+        { mode: 'driving', maneuver: { type: 'arrive' } }
       ]
     }]
   }]
@@ -77,7 +82,7 @@ test('booking request stores the server travel quote and normalized customer dat
   ]);
 });
 
-test('booking request rejects duplicate or excessive stops before calling Google', async () => {
+test('booking request rejects duplicate or excessive stops before calling Mapbox', async () => {
   let calls = 0;
   const duplicate = await createBookingRequest({
     body: travelBody({
@@ -129,7 +134,7 @@ test('booking request rejects duplicate or excessive stops before calling Google
   assert.equal(calls, 0);
 });
 
-test('booking request reports a Google Routes permission failure as retryable', async () => {
+test('booking request reports a Mapbox permission failure as retryable', async () => {
   const result = await createBookingRequest({
     body: travelBody(),
     idempotencyKey: '123e4567-e89b-42d3-a456-426614174012',
@@ -196,15 +201,10 @@ test('booking request rejects sea points inside the old bounding box', async () 
 test('booking request rejects a ferry route as lacking road access', async () => {
   const body = travelBody();
   const ferryPayload = {
+    ...routePayload,
     routes: [{
-      distanceMeters: 12_100,
-      duration: '1800s',
-      polyline: { encodedPolyline: 'vemt@ekudUchr@zkl@' },
-      legs: [{
-        startLocation: { latLng: { latitude: -8.756283, longitude: 116.277145 } },
-        endLocation: { latLng: { latitude: -8.493705, longitude: 116.044691 } },
-        steps: [{ travelMode: 'DRIVE', navigationInstruction: { maneuver: 'FERRY' } }]
-      }]
+      ...routePayload.routes[0],
+      legs: [{ steps: [{ mode: 'driving', maneuver: { type: 'ferry' } }] }]
     }]
   };
   const result = await createBookingRequest({

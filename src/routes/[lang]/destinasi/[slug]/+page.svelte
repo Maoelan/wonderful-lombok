@@ -34,7 +34,7 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-  <SiteHeader locale={data.locale} suffix={`/destinasi/${data.item.slug}`} />
+  <SiteHeader locale={data.locale} suffix={`/destinasi/${data.item.slug}`} packages={data.catalog.packages} destinations={data.catalog.destinations} />
   <main class="tour-detail-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`${home}#destinasi`}>{c.destinations}</a><span>/</span><span>{data.item.name}</span></nav>
     <section class="tour-hero">

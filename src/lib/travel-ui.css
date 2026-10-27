@@ -103,7 +103,7 @@ body .site-theme .package-body p { min-height: 0; margin: 16px 0 0; font-size: 1
 body .site-theme .package-facts { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--forest); font-size: 13px; }
 body .site-theme .package-facts span { display: inline-flex; align-items: center; gap: 7px; }
 body .site-theme .package-facts .ui-icon { width: 16px; height: 16px; }
-body .site-theme .package-inclusions { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 20px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+body .site-theme .package-inclusions { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 20px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
 body .site-theme .package-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; padding: 24px 0 0; margin-top: auto; border: 0; }
 body .site-theme .package-price strong { font-family: var(--font-body); font-size: 24px; font-weight: 650; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 body .site-theme .package-price span { font-size: 13px; }
@@ -173,7 +173,7 @@ body .site-theme .footer-brand b { color: white; font-size: 64px; font-weight: 4
 body .site-theme .footer-brand > span { color: white; font-size: 30px; }
 body .site-theme .footer-brand p { max-width: 280px; margin-top: 22px; font-family: var(--font-body); color: #d6e4df; font-size: 14px; }
 body .site-theme .footer-links { display: grid; align-content: start; gap: 10px; }
-body .site-theme .footer-links a, body .site-theme .footer-contact a, body .site-theme .footer-contact span { display: flex; min-height: 40px; align-items: center; gap: 12px; color: #eff5f2; font-size: 14px; }
+body .site-theme .footer-links a, body .site-theme .footer-contact a, body .site-theme .footer-contact span { display: flex; min-height: 44px; align-items: center; gap: 12px; color: #eff5f2; font-size: 14px; }
 body .site-theme .footer-contact strong { margin-bottom: 8px; font-size: 16px; color: white; }
 body .site-theme .footer-contact { justify-self: stretch; text-align: left; }
 body .site-theme .footer-contact a { justify-self: start; }
@@ -183,7 +183,7 @@ body .site-theme .travel-footer-main { display: grid; grid-template-columns: 1fr
 body .site-theme .travel-footer-brand img { filter: brightness(0) invert(1); }
 body .site-theme .travel-footer-brand p { max-width: 260px; color: #d6e4df; font-size: 14px; }
 body .site-theme .travel-footer nav { display: grid; align-content: start; gap: 8px; }
-body .site-theme .travel-footer a { text-decoration: none; min-height: 40px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+body .site-theme .travel-footer a { text-decoration: none; min-height: 44px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
 body .site-theme .travel-footer a:hover { text-decoration: underline; }
 body .site-theme .travel-footer-contact { display: grid; align-content: start; gap: 8px; }
 body .site-theme .travel-footer-contact p { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 14px; }
@@ -240,10 +240,11 @@ body .site-theme .destination-related { margin-top: 64px; }
 body .site-theme .destination-related h2 { font-size: 38px; }
 body .site-theme .service-information { margin: 0; padding: 16px 0 24px; }
 body .site-theme .service-list { font-size: 15px; }
-body .site-theme .booking-dialog { padding: 36px; border-radius: 8px; background: var(--paper); box-shadow: 0 24px 80px #102e3b33; }
-body .site-theme .booking-dialog h2 { padding-right: 24px; font-size: 32px; line-height: 1.2; }
-body .site-theme .booking-dialog > p { font-size: 14px; }
-body .site-theme .booking-close { color: var(--ink); background: var(--surface-muted); border-radius: 50%; width: 36px; height: 36px; }
+body .site-theme .booking-dialog { padding: 0; border-radius: 8px; background: var(--paper); box-shadow: 0 24px 80px #102e3b33; }
+body .site-theme .booking-body { padding: 36px; }
+body .site-theme .booking-dialog h2 { padding-right: 52px; font-size: 32px; line-height: 1.2; }
+body .site-theme .booking-body > p { font-size: 14px; }
+body .site-theme .booking-close { color: var(--ink); background: var(--surface-muted); border-radius: 50%; width: 44px; height: 44px; }
 body .site-theme .detail-dialog { border-radius: 8px; }
 body .site-theme .detail-copy h2 { font-size: 36px; }
 body .site-theme .gallery-count { font-size: 13px; color: white; background: #15343ce8; }
@@ -511,7 +512,8 @@ body .login-back { font-size: 14px; font-weight: 500; }
   body .site-theme .catalog-help, body .site-theme .detail-cta { padding: 24px; flex-direction: column; align-items: flex-start; gap: 20px; }
   body .site-theme .detail-cta h2 { font-size: 30px; }
   body .site-theme .destination-related h2 { font-size: 32px; }
-  body .site-theme .booking-dialog { padding: 28px 22px; }
+  body .site-theme .booking-dialog { padding: 0; }
+  body .site-theme .booking-body { padding: 28px 22px; }
   body .site-theme .booking-dialog h2 { font-size: 28px; }
   body .site-theme .whatsapp-float { right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
   body .admin-main { padding: 24px 18px 40px; margin: 0 8px 8px; }
@@ -775,7 +777,7 @@ body .admin-shell .admin-image-trash { color: var(--color-danger); background: v
   body .site-theme .section-more .ui-icon { width: 16px; }
   body .site-theme .package-list { display: grid; grid-template-columns: 1fr; gap: 20px; }
   body .site-theme .package-card, body .site-theme .package-card.featured, body .site-theme .package-card:only-of-type, body .site-theme .package-card:last-of-type:nth-of-type(even) { grid-column: auto; grid-row: auto; grid-template-columns: 1fr; grid-template-rows: 200px auto; }
-  body .site-theme .card-image-button, body .site-theme .featured .card-image-button, body .site-theme .package-card:last-of-type:nth-of-type(even) .card-image-button { min-height: 0; height: 200px; }
+  body .site-theme .card-image-button, body .site-theme .package-card.featured .card-image-button, body .site-theme .package-card:last-of-type:nth-of-type(even) .card-image-button { min-height: 0; height: 200px; }
   body .site-theme .package-body { padding: 16px; }
   body .site-theme .package-body h3 { font-size: 18px; }
   body .site-theme .package-price strong { font-size: 22px; }
@@ -824,6 +826,7 @@ body .site-theme .booking-backdrop { padding: max(16px, env(safe-area-inset-top)
   body .site-theme .menu-toggle[aria-expanded='true'] i:first-of-type { transform: translateY(4px) rotate(45deg); }
   body .site-theme .menu-toggle[aria-expanded='true'] i:last-of-type { transform: translateY(-4px) rotate(-45deg); }
   body .site-theme :is(input, select, textarea), body .admin-shell :is(input, select, textarea), body .login-panel input { font-size: 16px; }
+  body .site-theme .location-field select { font-size: 16px; }
   body .admin-shell { min-height: 100dvh; }
   body .admin-sidebar { height: auto; min-height: 0; }
   body .admin-image-trash, body .admin-gallery-preview .admin-image-trash { width: 44px; height: 44px; }

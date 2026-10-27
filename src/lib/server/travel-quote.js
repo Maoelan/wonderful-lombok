@@ -1,11 +1,11 @@
 import { calculatePickupPrice, travelStopsFromDetails } from '../pickup.js';
-import { getRoadRoute as getProviderRoadRoute } from './map-providers/index.js';
+import { getRoadRoute as getMapboxRoadRoute } from './map-providers/index.js';
 import { TravelQuoteError } from './travel-quote-error.js';
 
 export { TravelQuoteError };
 
 export async function getRoadRoute(stops, locale = 'id', options = {}) {
-  return getProviderRoadRoute(stops, locale, options);
+  return getMapboxRoadRoute(stops, locale, options);
 }
 
 export async function getTravelQuote(details, rate, options = {}) {

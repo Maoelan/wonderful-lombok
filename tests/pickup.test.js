@@ -4,19 +4,16 @@ import {
   MAX_TRAVEL_POINTS,
   calculatePickupPrice,
   coordinateDistanceMetres,
-  decodePolyline,
   estimateLabel,
-  googlePlaceSearchBody,
-  googleRouteBody,
   hasStableGpsFix,
   isInsideLombok,
   isUsableGpsFix,
   localizedPlaces,
+  mapboxGeocodePlaceSearchUrl,
   mapboxLanguage,
   mapboxPlaceSearchUrl,
   mapboxRouteUrl,
-  readGooglePlaceResults,
-  readGoogleRoute,
+  readMapboxGeocodePlaceResults,
   readMapboxPlaceResults,
   readMapboxRoute,
   travelStopsFromDetails
@@ -26,17 +23,6 @@ import { createWhatsAppUrl, formatWhatsAppNumber } from '../src/lib/whatsapp.js'
 const airport = { name: 'Bandara Internasional Lombok', lat: -8.756283, lng: 116.277145 };
 const kuta = { name: 'Kuta Mandalika', lat: -8.893241, lng: 116.277504 };
 const senggigi = { name: 'Senggigi', lat: -8.493705, lng: 116.044691 };
-const encodedTwoPointRoute = '~c{r@_xrcU~oR_pR';
-const encodedThreePointRoute = 'vemt@ekudU~vYeAc`mA`nl@';
-const driveSteps = [
-  { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DEPART' } },
-  { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DESTINATION' } }
-];
-const driveLeg = (start, end) => ({
-  startLocation: { latLng: { latitude: start.lat, longitude: start.lng } },
-  endLocation: { latLng: { latitude: end.lat, longitude: end.lng } },
-  steps: driveSteps
-});
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
   assert.equal(calculatePickupPrice(8.2), 90_000);
@@ -50,89 +36,6 @@ test('estimate display does not show a zero price before a route is ready or aft
   assert.equal(estimateLabel({ ...base, loading: false, error: '' }), 'Rp 130000');
   assert.equal(estimateLabel({ ...base, loading: false, error: 'Route not found' }), '—');
   assert.equal(estimateLabel({ ...base, loading: false, error: '', ready: false }), '—');
-});
-
-test('Google encoded polylines decode to latitude and longitude pairs', () => {
-  assert.deepEqual(decodePolyline(encodedTwoPointRoute), [[-8.5, 116.1], [-8.6, 116.2]]);
-  assert.equal(decodePolyline(encodedThreePointRoute).length, 3);
-  assert.throws(() => decodePolyline('\\'), /polyline/i);
-});
-
-test('Google route data uses distance, duration, and decoded geometry', () => {
-  const route = readGoogleRoute({
-    routes: [{
-      distanceMeters: 12_100,
-      duration: '1800s',
-      polyline: { encodedPolyline: encodedTwoPointRoute },
-      legs: [driveLeg({ lat: -8.5, lng: 116.1 }, { lat: -8.6, lng: 116.2 })]
-    }]
-  });
-  assert.equal(route.distanceKm, 13);
-  assert.equal(route.durationMinutes, 30);
-  assert.equal(route.snapDistanceM, 0);
-  assert.equal(route.roadAccess, true);
-  assert.deepEqual(route.points, [[-8.5, 116.1], [-8.6, 116.2]]);
-});
-
-test('Google route data reports how far Google had to snap from the requested stops', () => {
-  const payload = {
-    routes: [{
-      distanceMeters: 12_100,
-      duration: '1800s',
-      polyline: { encodedPolyline: encodedTwoPointRoute },
-      legs: [driveLeg({ lat: -8.5, lng: 116.1 }, { lat: -8.6, lng: 116.2 })]
-    }]
-  };
-  const onRoad = readGoogleRoute(payload, 'No route', [
-    { lat: -8.5, lng: 116.1 },
-    { lat: -8.6, lng: 116.2 }
-  ]);
-  assert.ok(onRoad.snapDistanceM < 2);
-  const seaPoint = readGoogleRoute(payload, 'No route', [
-    { lat: -8.61646, lng: 115.85837 },
-    { lat: -8.43819, lng: 115.976 }
-  ]);
-  assert.ok(seaPoint.snapDistanceM > 500);
-});
-
-test('Google route data only grants road access to all-drive routes without ferries', () => {
-  const base = {
-    distanceMeters: 12_100,
-    duration: '1800s',
-    polyline: { encodedPolyline: encodedTwoPointRoute }
-  };
-  const routeWith = (steps) => readGoogleRoute({
-    routes: [{
-      ...base,
-      legs: [{
-        startLocation: { latLng: { latitude: -8.5, longitude: 116.1 } },
-        endLocation: { latLng: { latitude: -8.6, longitude: 116.2 } },
-        steps
-      }]
-    }]
-  });
-  assert.equal(routeWith([{ travelMode: 'WALK', navigationInstruction: { maneuver: 'DEPART' } }]).roadAccess, false);
-  assert.equal(routeWith([{ travelMode: 'DRIVE', navigationInstruction: { maneuver: 'FERRY' } }]).roadAccess, false);
-  assert.equal(routeWith([{ travelMode: 'DRIVE', navigationInstruction: { maneuver: 'FERRY_TRAIN' } }]).roadAccess, false);
-  assert.equal(readGoogleRoute({ routes: [{ ...base, legs: [] }] }).roadAccess, false);
-});
-
-test('Google route data rejects a missing route with the supplied message', () => {
-  assert.throws(() => readGoogleRoute({}, 'No road route was found.'), /No road route was found/);
-  assert.throws(() => readGoogleRoute({ routes: [{ distanceMeters: 0 }] }, 'No road route was found.'), /No road route was found/);
-});
-
-test('Google route requests contain exactly the pick-up and destination points', () => {
-  assert.equal(MAX_TRAVEL_POINTS, 2);
-  const body = googleRouteBody([airport, senggigi], 'fr');
-  assert.deepEqual(body.origin.location.latLng, { latitude: airport.lat, longitude: airport.lng });
-  assert.deepEqual(body.destination.location.latLng, { latitude: senggigi.lat, longitude: senggigi.lng });
-  assert.equal('intermediates' in body, false);
-  assert.equal(body.languageCode, 'fr');
-  assert.equal(body.travelMode, 'DRIVE');
-  assert.equal(body.routeModifiers.avoidFerries, true);
-  assert.equal(body.units, 'METRIC');
-  assert.throws(() => googleRouteBody([airport, kuta, senggigi], 'fr'), /exactly two points/);
 });
 
 test('GPS fixes must be fresh, accurate, inside Lombok, and stable', () => {
@@ -157,47 +60,44 @@ test('land validation accepts Lombok land points and rejects sea points inside t
   assert.equal(isInsideLombok(-8.35, 116.039), false); // Gili Trawangan
 });
 
-test('Google place search requests are Lombok-bound and locale-aware', () => {
-  const body = googlePlaceSearchBody('  Kuta  ', 'zh-cn');
-  assert.equal(body.textQuery, 'Kuta');
-  assert.equal(body.languageCode, 'zh-CN');
-  assert.equal(body.regionCode, 'ID');
-  assert.equal(body.maxResultCount, 8);
-  assert.equal(body.locationRestriction.rectangle.low.latitude, -9.15);
-  assert.equal(body.locationRestriction.rectangle.high.longitude, 116.82);
-});
-
-test('Google place results use localized addresses and drop outside or duplicate places', () => {
-  const payload = {
-    places: [
-      { id: 'p1', displayName: { text: 'Kuta' }, formattedAddress: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', location: { latitude: -8.893241, longitude: 116.277504 } },
-      { id: 'p2', displayName: { text: 'Kuta Beach' }, formattedAddress: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', location: { latitude: -8.89, longitude: 116.28 } },
-      { id: 'p3', displayName: { text: 'Denpasar' }, formattedAddress: 'Denpasar, Bali, Indonesia', location: { latitude: -8.65, longitude: 115.22 } },
-      { id: 'p1', displayName: { text: 'Kuta duplicate' }, formattedAddress: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', location: { latitude: -8.893241, longitude: 116.277504 } }
-    ]
-  };
-  assert.deepEqual(readGooglePlaceResults(payload), [
-    { name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.893241, lng: 116.277504, placeId: 'p1' },
-    { name: 'Kuta Beach, Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.89, lng: 116.28, placeId: 'p2' }
-  ]);
-});
-
 test('Mapbox place search requests are Lombok-bound and locale-aware', () => {
   const url = new URL(mapboxPlaceSearchUrl('  Kuta  ', 'zh-cn', 'test-mapbox-token'));
-  assert.equal(`${url.origin}${url.pathname}`, 'https://api.mapbox.com/geocoding/v5/mapbox.places/Kuta.json');
+  assert.equal(`${url.origin}${url.pathname}`, 'https://api.mapbox.com/search/searchbox/v1/forward');
+  assert.equal(url.searchParams.get('q'), 'Kuta');
   assert.equal(url.searchParams.get('access_token'), 'test-mapbox-token');
-  assert.equal(url.searchParams.get('autocomplete'), 'true');
   assert.equal(url.searchParams.get('country'), 'id');
   assert.equal(url.searchParams.get('bbox'), '115.78,-9.15,116.82,-8.15');
   assert.equal(url.searchParams.get('proximity'), '116.17,-8.65');
   assert.equal(url.searchParams.get('language'), 'zh-Hans');
   assert.equal(url.searchParams.get('limit'), '8');
-  assert.equal(url.searchParams.get('types'), 'poi,address,place,locality,neighborhood');
+  assert.equal(url.searchParams.get('types'), 'poi,address,place,locality,neighborhood,street');
+
+  const fallback = new URL(mapboxGeocodePlaceSearchUrl('  Kuta  ', 'zh-cn', 'test-mapbox-token'));
+  assert.equal(`${fallback.origin}${fallback.pathname}`, 'https://api.mapbox.com/geocoding/v5/mapbox.places/Kuta.json');
+  assert.equal(fallback.searchParams.get('autocomplete'), 'true');
+  assert.equal(fallback.searchParams.get('country'), 'id');
+  assert.equal(fallback.searchParams.get('types'), 'poi,address,place,locality,neighborhood');
   assert.equal(mapboxLanguage('zh-tw'), 'zh-Hant');
   assert.equal(mapboxLanguage('unknown'), 'en');
 });
 
-test('Mapbox place results use localized addresses and drop outside or duplicate places', () => {
+test('Mapbox Search Box results use full addresses and drop outside or duplicate places', () => {
+  const payload = {
+    features: [
+      { properties: { mapbox_id: 'mb1', name: 'Kuta', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.277504, -8.893241] } },
+      { properties: { mapbox_id: 'mb2', name: 'Kuta Beach', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.28, -8.89] } },
+      { properties: { mapbox_id: 'mb3', name: 'Denpasar', full_address: 'Denpasar, Bali, Indonesia' }, geometry: { coordinates: [115.22, -8.65] } },
+      { properties: { mapbox_id: 'mb1', name: 'Kuta duplicate', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.277504, -8.893241] } },
+      { properties: { mapbox_id: 'mb4', name: 'Sea point', full_address: 'Sea point, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [115.85837, -8.61646] } }
+    ]
+  };
+  assert.deepEqual(readMapboxPlaceResults(payload), [
+    { name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.893241, lng: 116.277504, placeId: 'mb1' },
+    { name: 'Kuta Beach, Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.89, lng: 116.28, placeId: 'mb2' }
+  ]);
+});
+
+test('Mapbox geocoding fallback results keep localized place names and Lombok filtering', () => {
   const payload = {
     features: [
       { id: 'mb1', text: 'Kuta', place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', center: [116.277504, -8.893241] },
@@ -207,7 +107,7 @@ test('Mapbox place results use localized addresses and drop outside or duplicate
       { id: 'mb4', text: 'Sea point', place_name: 'Sea point, West Nusa Tenggara, Indonesia', center: [115.85837, -8.61646] }
     ]
   };
-  assert.deepEqual(readMapboxPlaceResults(payload), [
+  assert.deepEqual(readMapboxGeocodePlaceResults(payload), [
     { name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.893241, lng: 116.277504, placeId: 'mb1' },
     { name: 'Kuta Beach, Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.89, lng: 116.28, placeId: 'mb2' }
   ]);

@@ -3,7 +3,7 @@ import { getFormCopy, isLocale } from '#lib/i18n.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
-import { getMapProviderName, searchPlaces } from '#lib/server/map-providers/index.js';
+import { searchPlaces } from '#lib/server/map-providers/index.js';
 import { TravelQuoteError } from '#lib/server/travel-quote-error.js';
 
 export async function GET({ url, getClientAddress, fetch }) {
@@ -17,9 +17,7 @@ export async function GET({ url, getClientAddress, fetch }) {
 
   try {
     const results = await searchPlaces(query, locale, {
-      provider: getMapProviderName(process.env.MAP_PROVIDER),
-      apiKey: process.env.GOOGLE_MAPS_SERVER_API_KEY,
-      token: process.env.MAPBOX_SERVER_TOKEN,
+      token: process.env.MAPBOX_SERVER_TOKEN || process.env.PUBLIC_MAPBOX_TOKEN,
       fetchImpl: fetch,
       timeoutMs: 8_000,
       retries: 1

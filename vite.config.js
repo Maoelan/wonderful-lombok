@@ -33,7 +33,10 @@ const localConvexImageSources = (() => {
     const url = new URL(process.env.PUBLIC_CONVEX_URL || '');
     if (url.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) return [];
     const port = url.port || '80';
-    return [`http://127.0.0.1:${port}`, `http://localhost:${port}`, `http://[::1]:${port}`];
+    // Chrome rejects an IPv6 literal in a CSP source, so only emit the host
+    // form that matches the configured Convex URL.
+    if (url.hostname === '[::1]') return [`http://[::1]:${port}`];
+    return [`http://127.0.0.1:${port}`, `http://localhost:${port}`];
   } catch {
     return [];
   }
@@ -52,12 +55,12 @@ export default defineConfig({
           'frame-ancestors': ['none'],
           'object-src': ['none'],
           'form-action': ['self'],
-          'script-src': ['self', 'https://maps.googleapis.com', 'https://maps.gstatic.com'],
+          'script-src': ['self'],
           'style-src-elem': ['self', 'https://fonts.googleapis.com', 'https://api.mapbox.com'],
           'style-src-attr': ['unsafe-inline'],
           'font-src': ['self', 'data:', 'https://fonts.gstatic.com'],
-          'img-src': ['self', 'data:', 'blob:', 'https://images.unsplash.com', 'https://commons.wikimedia.org', 'https://thumb.wikimedia.org', 'https://upload.wikimedia.org', 'https://*.convex.cloud', 'https://maps.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://*.gstatic.com', 'https://*.mapbox.com', ...localConvexImageSources],
-          'connect-src': ['self', 'https://maps.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://*.gstatic.com', 'https://api.mapbox.com', 'https://events.mapbox.com', 'https://*.tiles.mapbox.com'],
+          'img-src': ['self', 'data:', 'blob:', 'https://images.unsplash.com', 'https://commons.wikimedia.org', 'https://thumb.wikimedia.org', 'https://upload.wikimedia.org', 'https://*.convex.cloud', 'https://*.mapbox.com', ...localConvexImageSources],
+          'connect-src': ['self', 'https://*.mapbox.com'],
           'frame-src': ['none'],
           'manifest-src': ['self'],
           'media-src': ['self'],

@@ -3,149 +3,119 @@ import assert from 'node:assert/strict';
 import { GET as geocode } from '../src/routes/api/geocode/+server.js';
 import { GET as route, POST as multiStopRoute } from '../src/routes/api/route/+server.js';
 
-process.env.GOOGLE_MAPS_SERVER_API_KEY = 'test-server-key';
+process.env.MAPBOX_SERVER_TOKEN = 'test-server-token';
 
 const geocodePayload = {
-  places: [
+  features: [
     {
-      id: 'place-kuta',
-      displayName: { text: 'Kuta' },
-      formattedAddress: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia',
-      location: { latitude: -8.893241, longitude: 116.277504 }
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [116.277504, -8.893241] },
+      properties: {
+        mapbox_id: 'place-kuta',
+        name: 'Kuta',
+        full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia'
+      }
     },
     {
-      id: 'place-bali',
-      displayName: { text: 'Denpasar' },
-      formattedAddress: 'Denpasar, Bali, Indonesia',
-      location: { latitude: -8.65, longitude: 115.22 }
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [115.22, -8.65] },
+      properties: {
+        mapbox_id: 'place-bali',
+        name: 'Denpasar',
+        full_address: 'Denpasar, Bali, Indonesia'
+      }
     }
   ]
 };
 
 const routePayload = {
+  waypoints: [
+    { distance: 0, location: [116.1, -8.5] },
+    { distance: 0, location: [116.2, -8.6] }
+  ],
   routes: [{
-    distanceMeters: 12_100,
-    duration: '1800s',
-    polyline: { encodedPolyline: '~c{r@_xrcU~oR_pR' },
+    distance: 12_100,
+    duration: 1_800,
+    geometry: {
+      type: 'LineString',
+      coordinates: [[116.1, -8.5], [116.2, -8.6]]
+    },
     legs: [{
-      startLocation: { latLng: { latitude: -8.5, longitude: 116.1 } },
-      endLocation: { latLng: { latitude: -8.6, longitude: 116.2 } },
       steps: [
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DEPART' } },
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DESTINATION' } }
+        { mode: 'driving', maneuver: { type: 'depart' } },
+        { mode: 'driving', maneuver: { type: 'arrive' } }
       ]
     }]
   }]
 };
 
 const airportSenggigiPayload = {
+  waypoints: [
+    { distance: 0, location: [116.277145, -8.756283] },
+    { distance: 0, location: [116.044691, -8.493705] }
+  ],
   routes: [{
-    distanceMeters: 12_100,
-    duration: '1800s',
-    polyline: { encodedPolyline: 'vemt@ekudUchr@zkl@' },
+    distance: 12_100,
+    duration: 1_800,
+    geometry: {
+      type: 'LineString',
+      coordinates: [[116.277145, -8.756283], [116.044691, -8.493705]]
+    },
     legs: [{
-      startLocation: { latLng: { latitude: -8.756283, longitude: 116.277145 } },
-      endLocation: { latLng: { latitude: -8.493705, longitude: 116.044691 } },
       steps: [
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DEPART' } },
-        { travelMode: 'DRIVE', navigationInstruction: { maneuver: 'DESTINATION' } }
+        { mode: 'driving', maneuver: { type: 'depart' } },
+        { mode: 'driving', maneuver: { type: 'arrive' } }
       ]
     }]
   }]
 };
 
 const ferryPayload = {
+  waypoints: airportSenggigiPayload.waypoints,
   routes: [{
-    distanceMeters: 12_100,
-    duration: '1800s',
-    polyline: { encodedPolyline: 'vemt@ekudUchr@zkl@' },
-    legs: [{
-      startLocation: { latLng: { latitude: -8.756283, longitude: 116.277145 } },
-      endLocation: { latLng: { latitude: -8.493705, longitude: 116.044691 } },
-      steps: [{ travelMode: 'DRIVE', navigationInstruction: { maneuver: 'FERRY' } }]
-    }]
+    ...airportSenggigiPayload.routes[0],
+    legs: [{ steps: [{ mode: 'driving', maneuver: { type: 'ferry' } }] }]
   }]
 };
 
-test('geocode uses Google Places and keeps only Lombok results', async () => {
+test('geocode uses Mapbox Search Box and keeps only Lombok results', async () => {
   let requestedUrl = '';
-  let requestedOptions;
   const response = await geocode({
     url: new URL('http://localhost/api/geocode?q=Kuta&lang=en'),
     getClientAddress: () => '203.0.113.10',
-    fetch: async (url, options) => {
+    fetch: async (url) => {
       requestedUrl = url;
-      requestedOptions = options;
       return new Response(JSON.stringify(geocodePayload), { status: 200 });
     }
   });
 
   assert.equal(response.status, 200);
-  assert.equal(requestedUrl, 'https://places.googleapis.com/v1/places:searchText');
-  assert.equal(requestedOptions.headers['x-goog-api-key'], 'test-server-key');
-  assert.match(requestedOptions.headers['x-goog-fieldmask'], /places\.displayName/);
+  const url = new URL(requestedUrl);
+  assert.equal(`${url.origin}${url.pathname}`, 'https://api.mapbox.com/search/searchbox/v1/forward');
+  assert.equal(url.searchParams.get('q'), 'Kuta');
+  assert.equal(url.searchParams.get('access_token'), 'test-server-token');
+  assert.equal(url.searchParams.get('country'), 'id');
+  assert.equal(url.searchParams.get('limit'), '8');
   const body = await response.json();
   assert.equal(body.results.length, 1);
   assert.equal(body.results[0].lat, -8.893241);
   assert.equal(body.results[0].lng, 116.277504);
   assert.equal(body.results[0].name, 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia');
-  const sent = JSON.parse(requestedOptions.body);
-  assert.equal(sent.languageCode, 'en');
-  assert.equal(sent.regionCode, 'ID');
-  assert.equal(sent.locationRestriction.rectangle.low.latitude, -9.15);
 });
 
 test('geocode preserves the active language for Chinese searches', async () => {
-  let sent;
+  const requestedUrls = [];
   const response = await geocode({
     url: new URL('http://localhost/api/geocode?q=Kuta&lang=zh-cn'),
     getClientAddress: () => '203.0.113.14',
-    fetch: async (url, options) => {
-      sent = JSON.parse(options.body);
-      return new Response(JSON.stringify({ places: [] }), { status: 200 });
+    fetch: async (url) => {
+      requestedUrls.push(url);
+      return new Response(JSON.stringify({ features: [] }), { status: 200 });
     }
   });
   assert.equal(response.status, 200);
-  assert.equal(sent.languageCode, 'zh-CN');
+  assert.equal(new URL(requestedUrls[0]).searchParams.get('language'), 'zh-Hans');
   assert.deepEqual((await response.json()).results, []);
-});
-
-test('geocode switches to Mapbox when MAP_PROVIDER is mapbox', async () => {
-  const previousProvider = process.env.MAP_PROVIDER;
-  const previousToken = process.env.MAPBOX_SERVER_TOKEN;
-  process.env.MAP_PROVIDER = 'mapbox';
-  process.env.MAPBOX_SERVER_TOKEN = 'test-mapbox-token';
-  try {
-    let requestedUrl = '';
-    const response = await geocode({
-      url: new URL('http://localhost/api/geocode?q=Kuta&lang=en'),
-      getClientAddress: () => '203.0.113.15',
-      fetch: async (url) => {
-        requestedUrl = url;
-        return new Response(JSON.stringify({
-          features: [{
-            id: 'mb1',
-            text: 'Kuta',
-            place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia',
-            center: [116.277504, -8.893241]
-          }]
-        }), { status: 200 });
-      }
-    });
-
-    assert.equal(response.status, 200);
-    const url = new URL(requestedUrl);
-    assert.equal(url.pathname, '/geocoding/v5/mapbox.places/Kuta.json');
-    assert.equal(url.searchParams.get('access_token'), 'test-mapbox-token');
-    const body = await response.json();
-    assert.equal(body.results.length, 1);
-    assert.equal(body.results[0].placeId, 'mb1');
-  } finally {
-    if (previousProvider === undefined) delete process.env.MAP_PROVIDER;
-    else process.env.MAP_PROVIDER = previousProvider;
-    if (previousToken === undefined) delete process.env.MAPBOX_SERVER_TOKEN;
-    else process.env.MAPBOX_SERVER_TOKEN = previousToken;
-  }
 });
 
 test('geocode returns a localized outage instead of an empty success', async () => {
@@ -179,7 +149,7 @@ test('geocode distinguishes provider permission and quota failures', async () =>
   }
 });
 
-test('route retries one transient Google Routes outage', async () => {
+test('route retries one transient Mapbox Directions outage', async () => {
   let calls = 0;
   const response = await route({
     url: new URL('http://localhost/api/route?fromLat=-8.5&fromLng=116.1&toLat=-8.6&toLng=116.2&lang=en'),
@@ -202,8 +172,8 @@ test('route retries one transient Google Routes outage', async () => {
   assert.deepEqual(body.points, [[-8.5, 116.1], [-8.6, 116.2]]);
 });
 
-test('route posts exactly the pick-up and destination to Google Routes', async () => {
-  let sent;
+test('route sends exactly the pick-up and destination to Mapbox Directions', async () => {
+  let requestedUrl = '';
   const request = new Request('http://localhost/api/route', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -218,21 +188,21 @@ test('route posts exactly the pick-up and destination to Google Routes', async (
   const response = await multiStopRoute({
     request,
     getClientAddress: () => '203.0.113.20',
-    fetch: async (url, options) => {
-      sent = JSON.parse(options.body);
+    fetch: async (url) => {
+      requestedUrl = url;
       return new Response(JSON.stringify(airportSenggigiPayload), { status: 200 });
     }
   });
 
   assert.equal(response.status, 200);
-  assert.equal(sent.languageCode, 'fr');
-  assert.equal(sent.routeModifiers.avoidFerries, true);
-  assert.equal('intermediates' in sent, false);
-  assert.deepEqual(sent.origin.location.latLng, { latitude: -8.756283, longitude: 116.277145 });
-  assert.deepEqual(sent.destination.location.latLng, { latitude: -8.493705, longitude: 116.044691 });
+  const url = new URL(requestedUrl);
+  assert.equal(url.pathname, '/directions/v5/mapbox/driving/116.277145,-8.756283;116.044691,-8.493705');
+  assert.equal(url.searchParams.get('access_token'), 'test-server-token');
+  assert.equal(url.searchParams.get('exclude'), 'ferry');
+  assert.equal(url.searchParams.get('language'), 'fr');
 });
 
-test('route rejects duplicate, outside-Lombok, or excessive points before calling Google', async () => {
+test('route rejects duplicate, outside-Lombok, or excessive points before calling Mapbox', async () => {
   let calls = 0;
   const send = async (stops) => multiStopRoute({
     request: new Request('http://localhost/api/route', {
@@ -278,7 +248,7 @@ test('route rejects duplicate, outside-Lombok, or excessive points before callin
   assert.equal(calls, 0);
 });
 
-test('route rejects a Google route that snaps too far from the requested points', async () => {
+test('route rejects a Mapbox route that snaps too far from the requested points', async () => {
   const response = await route({
     url: new URL('http://localhost/api/route?fromLat=-8.756283&fromLng=116.277145&toLat=-8.493705&toLng=116.044691&lang=en'),
     getClientAddress: () => '203.0.113.23',
@@ -298,7 +268,7 @@ test('route rejects a ferry route as lacking road access', async () => {
   assert.equal((await response.json()).error, 'This route has no road access. Choose another point near a road.');
 });
 
-test('route reports a persistent Google Routes outage as a service error', async () => {
+test('route reports a persistent Mapbox Directions outage as a service error', async () => {
   let calls = 0;
   const response = await route({
     url: new URL('http://localhost/api/route?fromLat=-8.5&fromLng=116.1&toLat=-8.6&toLng=116.2&lang=en'),

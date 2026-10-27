@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
 import { destinationSlug, getCopy, getFormCopy, localeTag } from '../src/lib/i18n.js';
-import { googleMapsLanguage, mapboxLanguage } from '../src/lib/pickup.js';
+import { mapboxLanguage } from '../src/lib/pickup.js';
 import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 
 test('Chinese package details contain no Indonesian or English fallback content', () => {
@@ -45,11 +45,8 @@ test('map and GPS messages are complete for every supported locale', () => {
     const copy = getFormCopy(locale);
     required.forEach((key) => assert.ok(copy[key], `${locale}.${key}`));
     assert.ok(localeTag(locale));
-    assert.ok(googleMapsLanguage(locale));
     assert.ok(mapboxLanguage(locale));
   }
-  assert.equal(googleMapsLanguage('zh-cn'), 'zh-CN');
-  assert.equal(googleMapsLanguage('zh-tw'), 'zh-TW');
   assert.equal(mapboxLanguage('zh-cn'), 'zh-Hans');
   assert.equal(mapboxLanguage('zh-tw'), 'zh-Hant');
   assert.notEqual(getFormCopy('en').gpsDenied, getFormCopy('id').gpsDenied);

@@ -60,121 +60,27 @@ export function hasStableGpsFix(fixes, targetAccuracy = 20) {
   return coordinateDistanceMetres(recent[0], recent[1]) <= tolerance;
 }
 
-export function googlePlaceSearchBody(query, locale = 'en') {
-  return {
-    textQuery: String(query || '').trim(),
-    languageCode: googleMapsLanguage(locale),
-    regionCode: 'ID',
-    maxResultCount: 8,
-    locationRestriction: {
-      rectangle: {
-        low: { latitude: lombokBounds.south, longitude: lombokBounds.west },
-        high: { latitude: lombokBounds.north, longitude: lombokBounds.east }
-      }
-    }
-  };
-}
-
-export function readGooglePlaceResults(payload) {
-  const seen = new Set();
-  return (Array.isArray(payload?.places) ? payload.places : []).map((place) => {
-    const display = String(place?.displayName?.text || '').trim();
-    const formatted = String(place?.formattedAddress || '').trim();
-    const name = display && formatted && !formatted.toLocaleLowerCase('en').startsWith(display.toLocaleLowerCase('en'))
-      ? `${display}, ${formatted}`
-      : formatted || display;
-    const lat = Number(place?.location?.latitude);
-    const lng = Number(place?.location?.longitude);
-    return { name, lat, lng, placeId: place?.id ? String(place.id) : null };
-  }).filter((place) => {
-    const key = place.placeId || `${place.lat},${place.lng}`;
-    if (!place.name || !isInsideLombok(place.lat, place.lng) || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 8);
-}
-
-export function googleRouteBody(stops, locale = 'en') {
-  if (!Array.isArray(stops) || stops.length !== 2) throw new Error('A route needs exactly two points.');
-  const [origin, destination] = stops;
-  const point = (stop) => ({ location: { latLng: { latitude: stop.lat, longitude: stop.lng } } });
-  return {
-    origin: point(origin),
-    destination: point(destination),
-    travelMode: 'DRIVE',
-    routingPreference: 'TRAFFIC_UNAWARE',
-    routeModifiers: { avoidFerries: true },
-    polylineQuality: 'OVERVIEW',
-    languageCode: googleMapsLanguage(locale),
-    units: 'METRIC'
-  };
-}
-
-export function decodePolyline(encoded) {
-  const points = [];
-  let index = 0;
-  let latitude = 0;
-  let longitude = 0;
-  while (index < encoded.length) {
-    let result = 0;
-    let shift = 0;
-    let byte;
-    do {
-      if (index >= encoded.length) throw new Error('Invalid encoded polyline.');
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    latitude += (result & 1) ? ~(result >> 1) : (result >> 1);
-    result = 0;
-    shift = 0;
-    do {
-      if (index >= encoded.length) throw new Error('Invalid encoded polyline.');
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    longitude += (result & 1) ? ~(result >> 1) : (result >> 1);
-    points.push([latitude / 1e5, longitude / 1e5]);
-  }
-  return points;
-}
-
-export function readGoogleRoute(payload, notFoundMessage = 'Rute jalan tidak ditemukan.', stops = []) {
-  const route = payload?.routes?.[0];
-  const distanceMeters = Number(route?.distanceMeters);
-  const encoded = route?.polyline?.encodedPolyline;
-  if (!Number.isFinite(distanceMeters) || distanceMeters <= 0 || !encoded) throw new Error(notFoundMessage);
-  const points = decodePolyline(encoded);
-  const seconds = Number(String(route?.duration || '').replace(/s$/, ''));
-  const legs = Array.isArray(route?.legs) ? route.legs : [];
-  const steps = legs.flatMap((leg) => (Array.isArray(leg?.steps) ? leg.steps : []));
-  const roadAccess = steps.length > 0 && steps.every((step) => {
-    const maneuver = step?.navigationInstruction?.maneuver;
-    return step?.travelMode === 'DRIVE' && maneuver !== 'FERRY' && maneuver !== 'FERRY_TRAIN';
-  });
-  const latLng = (location) => {
-    const lat = Number(location?.latLng?.latitude);
-    const lng = Number(location?.latLng?.longitude);
-    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
-  };
-  const first = latLng(legs[0]?.startLocation)
-    ?? (points.length >= 2 ? { lat: points[0][0], lng: points[0][1] } : null);
-  const last = latLng(legs[legs.length - 1]?.endLocation)
-    ?? (points.length >= 2 ? { lat: points[points.length - 1][0], lng: points[points.length - 1][1] } : null);
-  const snapDistanceM = stops.length === 2 && first && last
-    ? Math.max(coordinateDistanceMetres(stops[0], first), coordinateDistanceMetres(stops[1], last))
-    : 0;
-  return {
-    distanceKm: Math.max(1, Math.ceil(distanceMeters / 1000)),
-    points,
-    durationMinutes: Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.ceil(seconds / 60)) : null,
-    snapDistanceM,
-    roadAccess
-  };
-}
+// Search Box indexes POIs and category terms ("kfc", "pantai") that the
+// Geocoding API does not cover. Geocoding is still used as a fallback for
+// street addresses that Search Box does not return.
+const mapboxSearchBoxTypes = 'poi,address,place,locality,neighborhood,street';
+const mapboxGeocodeTypes = 'poi,address,place,locality,neighborhood';
 
 export function mapboxPlaceSearchUrl(query, locale = 'en', token = '') {
+  const params = new URLSearchParams({
+    access_token: String(token || ''),
+    q: String(query || '').trim(),
+    country: 'id',
+    bbox: `${lombokBounds.west},${lombokBounds.south},${lombokBounds.east},${lombokBounds.north}`,
+    proximity: '116.17,-8.65',
+    language: mapboxLanguage(locale),
+    limit: '8',
+    types: mapboxSearchBoxTypes
+  });
+  return `https://api.mapbox.com/search/searchbox/v1/forward?${params.toString()}`;
+}
+
+export function mapboxGeocodePlaceSearchUrl(query, locale = 'en', token = '') {
   const params = new URLSearchParams({
     access_token: String(token || ''),
     autocomplete: 'true',
@@ -183,29 +89,59 @@ export function mapboxPlaceSearchUrl(query, locale = 'en', token = '') {
     proximity: '116.17,-8.65',
     language: mapboxLanguage(locale),
     limit: '8',
-    types: 'poi,address,place,locality,neighborhood'
+    types: mapboxGeocodeTypes
   });
   return `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(String(query || '').trim())}.json?${params.toString()}`;
 }
 
-export function readMapboxPlaceResults(payload) {
+function mapboxPlaceName(name, detail) {
+  const label = String(name || '').trim();
+  const formatted = String(detail || '').trim();
+  return label && formatted && !formatted.toLocaleLowerCase('en').startsWith(label.toLocaleLowerCase('en'))
+    ? `${label}, ${formatted}`
+    : formatted || label;
+}
+
+function uniqueMapboxPlaces(places) {
   const seen = new Set();
-  return (Array.isArray(payload?.features) ? payload.features : []).map((feature) => {
-    const text = String(feature?.text || '').trim();
-    const formatted = String(feature?.place_name || '').trim();
-    const name = text && formatted && !formatted.toLocaleLowerCase('en').startsWith(text.toLocaleLowerCase('en'))
-      ? `${text}, ${formatted}`
-      : formatted || text;
-    const center = Array.isArray(feature?.center) ? feature.center : feature?.geometry?.coordinates;
-    const lng = Number(center?.[0]);
-    const lat = Number(center?.[1]);
-    return { name, lat, lng, placeId: feature?.id ? String(feature.id) : null };
-  }).filter((place) => {
+  return places.filter((place) => {
     const key = place.placeId || `${place.lat},${place.lng}`;
-    if (!place.name || !isInsideLombok(place.lat, place.lng) || seen.has(key)) return false;
+    if (!place.name || !Number.isFinite(place.lat) || !Number.isFinite(place.lng)
+      || !isInsideLombok(place.lat, place.lng) || seen.has(key)) return false;
     seen.add(key);
     return true;
   }).slice(0, 8);
+}
+
+export function readMapboxPlaceResults(payload) {
+  const features = Array.isArray(payload?.features) ? payload.features : [];
+  return uniqueMapboxPlaces(features.map((feature) => {
+    const properties = feature?.properties || {};
+    const coordinates = Array.isArray(feature?.geometry?.coordinates) ? feature.geometry.coordinates : [];
+    const placeId = properties.mapbox_id || feature?.id;
+    return {
+      name: mapboxPlaceName(
+        properties.name_preferred || properties.name,
+        properties.full_address || properties.address
+      ),
+      lat: Number(coordinates[1] ?? properties.coordinates?.latitude),
+      lng: Number(coordinates[0] ?? properties.coordinates?.longitude),
+      placeId: placeId ? String(placeId) : null
+    };
+  }));
+}
+
+export function readMapboxGeocodePlaceResults(payload) {
+  const features = Array.isArray(payload?.features) ? payload.features : [];
+  return uniqueMapboxPlaces(features.map((feature) => {
+    const center = Array.isArray(feature?.center) ? feature.center : feature?.geometry?.coordinates;
+    return {
+      name: mapboxPlaceName(feature?.text, feature?.place_name),
+      lat: Number(center?.[1]),
+      lng: Number(center?.[0]),
+      placeId: feature?.id ? String(feature.id) : null
+    };
+  }));
 }
 
 export function mapboxRouteUrl(stops, locale = 'en', token = '') {
@@ -296,14 +232,6 @@ export function estimateLabel({ loading = false, error = '', ready = false, pric
   if (loading) return calculating;
   if (error || !ready) return '—';
   return format(price);
-}
-
-const googleLanguages = {
-  id: 'id', en: 'en', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW', nl: 'nl', fr: 'fr', de: 'de', ms: 'ms'
-};
-
-export function googleMapsLanguage(locale) {
-  return googleLanguages[locale] || 'en';
 }
 
 const mapboxLanguages = {

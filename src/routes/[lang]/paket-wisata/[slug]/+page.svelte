@@ -43,7 +43,7 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-<SiteHeader locale={data.locale} suffix={`/paket-wisata/${item.slug}`} />
+<SiteHeader locale={data.locale} suffix={`/paket-wisata/${item.slug}`} packages={data.catalog.packages} destinations={data.catalog.destinations} />
 <main class="tour-detail-page">
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`/${data.locale}/paket-wisata`}>{c.tours}</a></nav>
     <section class="tour-hero" data-whatsapp-float-avoid>

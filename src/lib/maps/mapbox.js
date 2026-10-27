@@ -2,6 +2,11 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { mapboxLanguage } from '../pickup.js';
 
+// Streets shows the richest set of places and POIs, which keeps the pick-up
+// planner useful at neighbourhood zoom. Swap this for another Mapbox style
+// (for example outdoors-v12) if the map should emphasize terrain instead.
+const MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
+const LOMBOK_CENTER = [116.17, -8.65];
 const EMPTY_FEATURE_COLLECTION = { type: 'FeatureCollection', features: [] };
 
 function adapterError(code) {
@@ -13,8 +18,12 @@ function adapterError(code) {
 function markerElement(className, text, title) {
   const element = document.createElement('div');
   element.className = className;
+  if (title) {
+    element.title = title;
+    element.setAttribute('aria-label', title);
+    element.setAttribute('role', 'img');
+  }
   if (text) element.textContent = text;
-  if (title) element.title = title;
   return element;
 }
 
@@ -43,14 +52,78 @@ function circleFeature(center, radiusMeters, steps = 64) {
   };
 }
 
+function routeData(points) {
+  if (!Array.isArray(points) || points.length < 2) return EMPTY_FEATURE_COLLECTION;
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: points.map(([lat, lng]) => [lng, lat])
+    }
+  };
+}
+
+function errorCode(event) {
+  const status = Number(event?.error?.status);
+  if (status === 401 || status === 403) return 'permission_denied';
+  if (status === 429) return 'quota_exceeded';
+  return 'network';
+}
+
+function waitForStyle(map) {
+  // `style.load` means the style JSON is parsed and sources/layers can be
+  // added. Waiting for `isStyleLoaded()` instead is too strict: it can remain
+  // false while tiles and glyphs finish loading, and the extra `styledata`
+  // events that would re-check it may never arrive. `load` is a fallback for
+  // the rare case where `style.load` fired before the listeners attached.
+  if (map.isStyleLoaded()) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let timeout;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      map.off('style.load', handleStyleReady);
+      map.off('load', handleLoad);
+      map.off('styledata', handleStyleData);
+      map.off('error', handleError);
+      callback(value);
+    };
+    const handleStyleReady = () => finish(resolve);
+    const handleLoad = () => finish(resolve);
+    const handleStyleData = () => {
+      if (map.isStyleLoaded()) finish(resolve);
+    };
+    const handleError = (event) => {
+      const code = errorCode(event);
+      // A single transient tile or sprite error must not discard a map whose
+      // style can still finish loading. Only credential and quota failures are
+      // fatal here; a style that never loads hits the timeout below.
+      if (code === 'permission_denied' || code === 'quota_exceeded') {
+        finish(reject, adapterError(code));
+      }
+    };
+    timeout = setTimeout(() => finish(reject, adapterError('network')), 20_000);
+    map.on('style.load', handleStyleReady);
+    map.on('load', handleLoad);
+    map.on('styledata', handleStyleData);
+    map.on('error', handleError);
+  });
+}
+
 export async function createMapboxMap({ element, token, locale = 'en', onPick, onAuthFailure }) {
+  if (!element) throw adapterError('not_configured');
   if (!token) throw adapterError('not_configured');
+
   mapboxgl.accessToken = token;
   const map = new mapboxgl.Map({
     container: element,
-    style: 'mapbox://styles/mapbox/outdoors-v12',
-    center: [116.17, -8.65],
+    style: MAPBOX_STYLE,
+    center: LOMBOK_CENTER,
     zoom: 9,
+    renderWorldCopies: false,
     cooperativeGestures: true,
     attributionControl: false,
     logoPosition: 'bottom-left',
@@ -58,38 +131,14 @@ export async function createMapboxMap({ element, token, locale = 'en', onPick, o
     pitchWithRotate: false,
     touchPitch: false
   });
-  map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
+  map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
 
-  await new Promise((resolve, reject) => {
-    let settled = false;
-    let timeout;
-    const finish = (callback, value) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      map.off('load', handleLoad);
-      map.off('error', handleLoadError);
-      callback(value);
-    };
-    const handleLoad = () => finish(resolve);
-    const handleLoadError = (event) => {
-      const status = Number(event?.error?.status);
-      if (status === 401 || status === 403) finish(reject, adapterError('permission_denied'));
-    };
-    timeout = setTimeout(() => finish(reject, adapterError('network')), 15_000);
-    map.on('load', handleLoad);
-    map.on('error', handleLoadError);
-  });
-
-  let authFailed = false;
-  const handleRuntimeError = (event) => {
-    const status = Number(event?.error?.status);
-    if (!authFailed && (status === 401 || status === 403)) {
-      authFailed = true;
-      onAuthFailure?.();
-    }
-  };
-  map.on('error', handleRuntimeError);
+  try {
+    await waitForStyle(map);
+  } catch (error) {
+    map.remove();
+    throw error;
+  }
 
   if (typeof map.setLanguage === 'function') {
     try {
@@ -99,25 +148,41 @@ export async function createMapboxMap({ element, token, locale = 'en', onPick, o
     }
   }
 
-  map.addSource('route', { type: 'geojson', data: EMPTY_FEATURE_COLLECTION });
+  let authFailed = false;
+  const handleRuntimeError = (event) => {
+    const code = errorCode(event);
+    if (authFailed || code === 'network') return;
+    authFailed = true;
+    onAuthFailure?.(code);
+  };
+  map.on('error', handleRuntimeError);
+
+  map.addSource('planner-route', { type: 'geojson', data: EMPTY_FEATURE_COLLECTION });
   map.addLayer({
-    id: 'route-line',
+    id: 'planner-route-casing',
     type: 'line',
-    source: 'route',
+    source: 'planner-route',
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#fffdf8', 'line-width': 7, 'line-opacity': 0.9 }
+  });
+  map.addLayer({
+    id: 'planner-route-line',
+    type: 'line',
+    source: 'planner-route',
     layout: { 'line-join': 'round', 'line-cap': 'round' },
     paint: { 'line-color': '#123f35', 'line-width': 4, 'line-opacity': 0.92 }
   });
-  map.addSource('gps-accuracy', { type: 'geojson', data: EMPTY_FEATURE_COLLECTION });
+  map.addSource('planner-gps-accuracy', { type: 'geojson', data: EMPTY_FEATURE_COLLECTION });
   map.addLayer({
-    id: 'gps-accuracy-fill',
+    id: 'planner-gps-accuracy-fill',
     type: 'fill',
-    source: 'gps-accuracy',
+    source: 'planner-gps-accuracy',
     paint: { 'fill-color': '#20a9bc', 'fill-opacity': 0.13 }
   });
   map.addLayer({
-    id: 'gps-accuracy-line',
+    id: 'planner-gps-accuracy-line',
     type: 'line',
-    source: 'gps-accuracy',
+    source: 'planner-gps-accuracy',
     paint: { 'line-color': '#08778c', 'line-width': 2 }
   });
 
@@ -133,47 +198,35 @@ export async function createMapboxMap({ element, token, locale = 'en', onPick, o
     clearMarkers();
     if (origin) {
       const title = `${labels.pickup || 'Pick-up'}: ${origin.name}`;
-      markers.push(new mapboxgl.Marker({ element: markerElement('mapbox-marker', '1', title) })
+      markers.push(new mapboxgl.Marker({ element: markerElement('mapbox-marker', '1', title), anchor: 'center' })
         .setLngLat([origin.lng, origin.lat])
         .addTo(map));
     }
     if (destination) {
       const title = `${labels.destination || 'Destination'}: ${destination.name}`;
-      markers.push(new mapboxgl.Marker({ element: markerElement('mapbox-marker', '2', title) })
+      markers.push(new mapboxgl.Marker({ element: markerElement('mapbox-marker', '2', title), anchor: 'center' })
         .setLngLat([destination.lng, destination.lat])
         .addTo(map));
     }
   }
 
-  function routeData(points) {
-    if (!Array.isArray(points) || points.length < 2) return EMPTY_FEATURE_COLLECTION;
-    return {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: points.map(([lat, lng]) => [lng, lat])
-      }
-    };
-  }
-
   function setRoute(points) {
-    map.getSource('route')?.setData(routeData(points));
+    map.getSource('planner-route')?.setData(routeData(points));
   }
 
   function clearRoute() {
-    map.getSource('route')?.setData(EMPTY_FEATURE_COLLECTION);
+    map.getSource('planner-route')?.setData(EMPTY_FEATURE_COLLECTION);
   }
 
   function fitRoute(points) {
     if (!Array.isArray(points) || !points.length) return;
     const bounds = new mapboxgl.LngLatBounds();
     points.forEach(([lat, lng]) => bounds.extend([lng, lat]));
-    map.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 0 });
+    map.fitBounds(bounds, { padding: 56, maxZoom: 14, duration: 0 });
   }
 
   function clearGpsPreview() {
-    map.getSource('gps-accuracy')?.setData(EMPTY_FEATURE_COLLECTION);
+    map.getSource('planner-gps-accuracy')?.setData(EMPTY_FEATURE_COLLECTION);
     gpsMarker?.remove();
     gpsMarker = null;
   }
@@ -181,8 +234,8 @@ export async function createMapboxMap({ element, token, locale = 'en', onPick, o
   function showGpsPreview(fix, title = 'Current location') {
     clearGpsPreview();
     if (!fix) return;
-    map.getSource('gps-accuracy')?.setData(circleFeature(fix, Math.max(1, Number(fix.accuracy) || 1)));
-    gpsMarker = new mapboxgl.Marker({ element: markerElement('mapbox-gps-marker', '', title) })
+    map.getSource('planner-gps-accuracy')?.setData(circleFeature(fix, Math.max(1, Number(fix.accuracy) || 1)));
+    gpsMarker = new mapboxgl.Marker({ element: markerElement('mapbox-gps-marker', '', title), anchor: 'center' })
       .setLngLat([fix.lng, fix.lat])
       .addTo(map);
   }

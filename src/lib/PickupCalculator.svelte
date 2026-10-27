@@ -23,8 +23,6 @@
   export let rate = 10_000;
   export let whatsapp = '6281916550731';
   export let locale = 'id';
-  export let googleMapsKey = '';
-  export let mapProvider = 'google';
   export let mapboxToken = '';
   $: t = getFormCopy(locale);
   $: availablePlaces = localizedPlaces(locale);
@@ -49,16 +47,17 @@
   const fieldLabel = (target) => target === 'origin' ? t.pickup : t.destination;
   const currentQuery = (target) => (target === 'origin' ? originQuery : destinationQuery).trim();
 
-  function authFailure() {
-    mapError = t.mapPermissionDenied;
-    mapLoading = false;
-  }
-
   function mapErrorFor(error) {
     const code = error?.code || error?.message;
     if (code === 'not_configured') return t.mapNotConfigured;
     if (code === 'permission_denied') return t.mapPermissionDenied;
+    if (code === 'quota_exceeded') return t.mapQuotaExceeded;
     return t.mapNetworkError;
+  }
+
+  function authFailure(code) {
+    mapError = mapErrorFor({ code });
+    mapLoading = false;
   }
 
   onMount(async () => {
@@ -66,8 +65,6 @@
     try {
       const adapter = await createMap({
         element: mapElement,
-        provider: mapProvider,
-        apiKey: googleMapsKey,
         token: mapboxToken,
         locale,
         onPick: (point) => setLocation(mapTarget, {
@@ -539,7 +536,7 @@
           {#if searchTarget === 'origin' && searchResults.length}
             <div id="planner-origin-results" class="place-suggestions" role="listbox" aria-label={t.searchResultsPickup}>
               {#each searchResults as place, index}
-                <button id={`planner-origin-result-${index}`} type="button" role="option" tabindex="-1" aria-selected={searchActiveIndex === index} on:mouseenter={() => { if (searchTarget === 'origin') searchActiveIndex = index; }} on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>
+                <button id={`planner-origin-result-${index}`} type="button" role="option" tabindex="-1" aria-selected={searchActiveIndex === index} on:pointerdown|preventDefault={() => {}} on:mouseenter={() => { if (searchTarget === 'origin') searchActiveIndex = index; }} on:click={() => chooseSearchResult('origin', place)}>{place.name}</button>
               {/each}
             </div>
           {/if}
@@ -580,7 +577,7 @@
           {#if searchTarget === 'destination' && searchResults.length}
             <div id="planner-destination-results" class="place-suggestions" role="listbox" aria-label={t.searchResultsDestination}>
               {#each searchResults as place, index}
-                <button id={`planner-destination-result-${index}`} type="button" role="option" tabindex="-1" aria-selected={searchActiveIndex === index} on:mouseenter={() => { if (searchTarget === 'destination') searchActiveIndex = index; }} on:click={() => chooseSearchResult('destination', place)}>{place.name}</button>
+                <button id={`planner-destination-result-${index}`} type="button" role="option" tabindex="-1" aria-selected={searchActiveIndex === index} on:pointerdown|preventDefault={() => {}} on:mouseenter={() => { if (searchTarget === 'destination') searchActiveIndex = index; }} on:click={() => chooseSearchResult('destination', place)}>{place.name}</button>
               {/each}
             </div>
           {/if}
@@ -599,8 +596,12 @@
       <div class="map" bind:this={mapElement} role="region" aria-label={t.interactiveMap}></div>
       {#if !mapError && !mapLoading}
         <div class="map-controls">
-          <button type="button" aria-label={t.zoomIn} on:click={zoomIn}>+</button>
-          <button type="button" aria-label={t.zoomOut} on:click={zoomOut}>−</button>
+          <button type="button" aria-label={t.zoomIn} on:click={zoomIn}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          </button>
+          <button type="button" aria-label={t.zoomOut} on:click={zoomOut}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+          </button>
         </div>
       {/if}
       {#if mapLoading}<div class="map-state" role="status"><span class="spinner"></span>{t.loadingMap}</div>
