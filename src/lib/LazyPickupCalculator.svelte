@@ -5,6 +5,7 @@
   export let rate;
   export let whatsapp;
   export let locale;
+  export let mapboxToken = '';
 
   let host;
   let Calculator;
@@ -29,7 +30,7 @@
 
 <div bind:this={host}>
   {#if Calculator}
-    <svelte:component this={Calculator} {rate} {whatsapp} {locale} />
+    <svelte:component this={Calculator} {rate} {whatsapp} {locale} {mapboxToken} />
   {:else}
     <div class="calculator-placeholder" role="status"><span class="spinner" aria-hidden="true"></span><p>{loadingCopy.loadingMap}</p></div>
   {/if}

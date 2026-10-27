@@ -12,7 +12,13 @@ export async function PATCH({ locals, params, request }) {
   try { ({ status } = await request.json()); } catch { return json({ error: 'Format JSON tidak valid.' }, { status: 400 }); }
   if (!/^[a-zA-Z0-9_-]{8,128}$/.test(params.id)) return json({ error: 'ID pemesanan tidak valid.' }, { status: 400 });
   if (!['baru', 'dikonfirmasi', 'selesai', 'dibatalkan'].includes(status)) return json({ error: 'Status tidak valid.' }, { status: 400 });
-  return await updateBookingStatus(params.id, status) ? json({ ok: true }) : json({ error: 'Pemesanan tidak ditemukan.' }, { status: 404 });
+  try {
+    const updated = await updateBookingStatus(params.id, status);
+    return updated ? json({ ok: true }) : json({ error: 'Pemesanan tidak ditemukan.' }, { status: 404 });
+  } catch (cause) {
+    logServerError('booking_status_failed', cause, { operation: 'admin_booking_status' });
+    return json({ error: 'Status pemesanan gagal diperbarui.' }, { status: 503 });
+  }
 }
 
 export async function DELETE({ locals, params }) {

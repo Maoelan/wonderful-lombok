@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
 import { CATALOG_SCHEMA_VERSION } from '../src/lib/catalog-schema.js';
-import { validateCatalog, validImage, validSlug } from '../src/lib/server/catalog-validation.js';
+import { isLocalConvexUrl, validateCatalog, validImage, validSlug } from '../src/lib/server/catalog-validation.js';
 
 test('slug validation accepts only nonempty ASCII words separated by single hyphens', () => {
   for (const slug of ['a', 'a1', 'kuta-mandalika', 'a-1-b']) assert.equal(validSlug(slug), true, slug);
@@ -35,6 +35,28 @@ test('catalog rejects unsafe and malformed image URLs', () => {
   assert.equal(validImage('https://images.example/photo.jpg'), false);
   assert.equal(validImage('javascript:alert(1)'), false);
   assert.equal(validImage("https://images.example/x');color:red"), false);
+});
+
+test('catalog accepts local Convex storage uploads only when the backend is local', () => {
+  const localUrl = 'http://127.0.0.1:3210/api/storage/abc_123-XYZ';
+  assert.equal(validImage(localUrl), false);
+  assert.equal(validImage(localUrl, { allowLocalConvexStorage: true }), true);
+  assert.equal(validImage('http://localhost:3210/api/storage/abc_123-XYZ', { allowLocalConvexStorage: true }), true);
+  assert.equal(validImage('http://127.0.0.1:3210/api/storage/../secret', { allowLocalConvexStorage: true }), false);
+  assert.equal(validImage('http://127.0.0.1:3210/api/storage/file?download=1', { allowLocalConvexStorage: true }), false);
+  assert.equal(validImage('http://127.0.0.1:3210/other/file', { allowLocalConvexStorage: true }), false);
+  assert.equal(validImage('http://example.com:3210/api/storage/file', { allowLocalConvexStorage: true }), false);
+
+  const catalog = structuredClone(defaultCatalog);
+  catalog.packages[0].image = localUrl;
+  assert.equal(validateCatalog(catalog), 'Data Paket Wisata tidak valid.');
+  assert.equal(validateCatalog(catalog, { allowLocalConvexStorage: true }), null);
+
+  assert.equal(isLocalConvexUrl('http://127.0.0.1:3210'), true);
+  assert.equal(isLocalConvexUrl('http://localhost:3210'), true);
+  assert.equal(isLocalConvexUrl('https://127.0.0.1:3210'), false);
+  assert.equal(isLocalConvexUrl('http://example.com:3210'), false);
+  assert.equal(isLocalConvexUrl('https://example.convex.cloud'), false);
 });
 
 test('catalog rejects unsafe public background images', () => {

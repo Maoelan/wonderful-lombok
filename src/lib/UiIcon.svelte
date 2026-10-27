@@ -11,6 +11,8 @@
     <path d="m3 19 6-11 4 6 3-4 5 9H3Z M9 8l2-4 3 5" />
   {:else if name === 'travel'}
     <path d="m5 10 2-5h10l2 5 M4 10h16v8H4z M7 18v2 M17 18v2 M7 14h1 M16 14h1" />
+  {:else if name === 'rental'}
+    <path d="M4 16V9l2-4h12l2 4v7 M4 12h16 M7 16h.01 M17 16h.01" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" />
   {:else if name === 'pin'}
     <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2.5" />
   {:else if name === 'clock'}

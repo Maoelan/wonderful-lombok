@@ -48,7 +48,7 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-<SiteHeader locale={data.locale} suffix="/paket-wisata" />
+<SiteHeader locale={data.locale} suffix="/paket-wisata" packages={data.catalog.packages} destinations={data.catalog.destinations} />
   <main class="catalog-page" data-whatsapp-float-avoid>
   <section class="catalog-intro"><p class="label">Wonderful Lombok</p><h1>{c.catalogTitle}</h1><p>{c.catalogIntro}</p></section>
   <section class="tour-catalog" aria-label={c.catalogTitle}>

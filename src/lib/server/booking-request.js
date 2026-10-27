@@ -1,6 +1,7 @@
 import {
   BookingValidationError,
   isValidIdempotencyKey,
+  isValidPickupDateTime,
   isValidTravelDate,
   normalizeBookingDetails,
   normalizeWhatsApp,
@@ -19,6 +20,7 @@ export async function createBookingRequest({
   body,
   idempotencyKey,
   fetchImpl = globalThis.fetch,
+  mapboxToken = process.env.MAPBOX_SERVER_TOKEN || process.env.PUBLIC_MAPBOX_TOKEN,
   loadCatalog,
   saveBooking,
   rentalEnabled = false,
@@ -46,20 +48,30 @@ export async function createBookingRequest({
   let details;
   try { details = normalizeBookingDetails(body.serviceType, body.details); } catch (error) { return bookingFailure(error); }
 
+  if (body.serviceType === 'travel' && !isValidPickupDateTime(body.travelDate, details.pickupTime, now)) {
+    return failure('Jam jemput sudah lewat. Pilih waktu lain.');
+  }
+
   if (body.serviceType === 'travel') {
     let quote;
     try {
       const catalog = await loadCatalog();
-      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl });
+      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl, token: mapboxToken });
       verifyTravelQuote(details, quote);
     } catch (error) {
       return bookingFailure(error);
     }
-    details = { ...details, distanceKm: quote.distanceKm, estimatedPrice: quote.estimatedPrice, travelRate: quote.travelRate };
+    details = {
+      ...details,
+      distanceKm: quote.distanceKm,
+      durationMinutes: quote.durationMinutes,
+      estimatedPrice: quote.estimatedPrice,
+      travelRate: quote.travelRate
+    };
   }
 
   try {
-    const code = await saveBooking({
+    const saved = await saveBooking({
       serviceType: body.serviceType,
       serviceName,
       travelDate: body.travelDate,
@@ -69,6 +81,9 @@ export async function createBookingRequest({
       details,
       idempotencyKey
     });
+    if (saved?.conflict) return failure('Permintaan pemesanan tidak konsisten. Silakan coba lagi.', 409);
+    const code = typeof saved === 'string' ? saved : saved?.code;
+    if (!code) return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);
     return { status: 201, body: { code } };
   } catch {
     return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);

@@ -13,7 +13,11 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Run `npm run scan:secrets`; CI runs the same high-confidence tracked-file scan. Keep repository secret scanning and push protection enabled where available.
 - [ ] Set `PUBLIC_SITE_URL` to the final HTTPS origin, without a trailing slash.
 - [ ] Confirm `PUBLIC_RENTAL_ENABLED=false` unless the owner has explicitly approved rentals for this release.
-- [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT` are configured in the hosting provider, not in the repository.
+- [ ] Confirm `PUBLIC_CONVEX_URL`, `CONVEX_SERVER_SECRET`, and `BODY_SIZE_LIMIT=4.5M` are configured in the hosting provider, not in the repository. Uploads are capped at 4 MB per file and 4.4 MB per multipart request.
+- [ ] Configure and record the production abuse-control gate: either platform rate-limit rules (for example Vercel Firewall/WAF) for login, booking, geocoding, routing, upload, and admin mutations, or a shared limiter backed by Redis/Convex. Use at least the limits in [SECURITY.md](SECURITY.md#rate-limits-and-abuse-controls). The bundled in-memory limiter is acceptable for the current showcase only; it is not a substitute for this gate in multi-instance production.
+- [ ] Confirm the Mapbox server credential is configured. Prefer `MAPBOX_SERVER_TOKEN` as a secret token scoped to Search Box, Geocoding (fallback), and Directions; if using `PUBLIC_MAPBOX_TOKEN`, treat it as public and apply URL/scope restrictions. Never put a secret token in a `PUBLIC_*` variable.
+- [ ] Confirm the browser map loads Mapbox GL JS with `PUBLIC_MAPBOX_TOKEN`, that style and tile requests reach Mapbox, and that Mapbox/OpenStreetMap attribution is visible. A missing, rejected, or over-quota token must show a clear provider-neutral message instead of a broken map.
+- [ ] Confirm Mapbox usage limits and budget alerts are enabled, and that the server token is absent from the built client files and source maps.
 - [ ] Confirm no `.env` file, deploy key, database export, upload archive, or backup is included in the release artifact.
 - [ ] Confirm the admin account and revocation path are ready; remove demo or shared admin credentials.
 - [ ] Take a Convex backup/export and record the currently deployed application SHA for rollback.
@@ -48,6 +52,10 @@ Then verify manually, still read-only:
 - [ ] `/admin` redirects to `/login` without a session; `/api/admin/bookings` returns `401` or `403`.
 - [ ] `/admin`, `/login`, and `/api/` responses are not indexable.
 - [ ] Security headers are present, including HSTS on HTTPS.
+- [ ] The public planner map loads with Mapbox GL JS and the Mapbox Streets style, and place search returns Lombok results in Indonesian and one non-Indonesian locale using the active server-side provider.
+- [ ] A pick-up and destination route renders distance, duration, and a polyline; changing or swapping either point recalculates it.
+- [ ] Missing, permission-denied, quota-exhausted, and network-error states show a clear provider-neutral message instead of a broken map or silent search.
+- [ ] If a WAF/shared limiter was configured, verify on staging that an over-limit login or booking request returns `429` with `Retry-After`; do not run destructive or lockout tests against production.
 - [ ] An unknown route returns `404`.
 - [ ] Configure the hosting uptime monitor to poll `/api/health` and alert on a non-`200` response; alert on `/api/ready` returning `503`.
 - [ ] Do **not** create a booking, upload a file, change catalog data, or run destructive authentication tests on production.
@@ -76,7 +84,9 @@ Attach the smoke output, commit SHA, deployment URL, and any residual risks to t
 ## Known residual risks
 
 - If Convex is unavailable, public catalog pages return a localized `503` maintenance page and the sitemap returns `503`. Login remains available, but catalog and booking operations require Convex.
-- Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances.
+- Map rendering, place search, route distance, and booking quote verification depend on Mapbox availability, billing, quotas, and correct token restrictions.
+- Rate limiting is in process memory. It is suitable for this showcase/single-instance deployment but is not a shared counter across serverless instances. Production traffic must not be enabled until the platform WAF/shared-store gate above is recorded as complete.
+- Uploads abandoned before a catalog save are not automatically cleaned up; the monthly manual review in [PRIVACY.md](PRIVACY.md) remains a residual risk until scheduled cleanup is added.
 - No dedicated staging environment is currently available for destructive QA; live production verification must remain read-only.
 - Final canonical-domain work depends on the client's domain decision.
 - The CI secret scan is a high-confidence tracked-file check, not full-history scanning. GitHub-native push protection and full-history scanning still need repository-owner setup.

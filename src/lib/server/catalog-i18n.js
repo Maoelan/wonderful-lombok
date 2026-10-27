@@ -3,30 +3,51 @@ import { destinationSlug, localeTag, slugify } from '../i18n.js';
 
 const hasText = (value) => typeof value === 'string' ? value.trim().length > 0 : value !== undefined && value !== null;
 const hasItems = (value) => Array.isArray(value) && value.length > 0;
+const sameValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 
-// English is the only locale with stored field-level catalog translations.
-// Other locales use the bundled locale copy for display fields, but that copy
-// must not replace admin-owned values such as package or price-tier amounts.
-const localizedField = (item, field, locale, fallback) => {
-  if (locale === 'id') return item?.[field];
+// Admin base content is canonical. Bundled translations are used only while
+// the corresponding base field is unchanged; once an admin edits it, every
+// locale falls back to the edited base until an explicit English translation
+// is saved. This prevents stale bundled copy from hiding CMS changes.
+const baseWasEdited = (item, field, defaultItem) => Boolean(defaultItem) && !sameValue(item?.[field], defaultItem?.[field]);
+const englishWasEdited = (item, field, defaultItem) => Boolean(defaultItem) && !sameValue(item?.[`${field}En`], defaultItem?.[`${field}En`]);
+
+const localizedField = (item, field, locale, fallback, defaultItem) => {
+  const base = item?.[field];
   const english = item?.[`${field}En`];
-  if (locale === 'en') return hasText(english) ? english : item?.[field];
+  if (locale === 'id') return base;
+  const baseEdited = baseWasEdited(item, field, defaultItem);
+  const englishEdited = englishWasEdited(item, field, defaultItem);
+  if (locale === 'en') {
+    if (hasText(english) && (!baseEdited || englishEdited)) return english;
+    return hasText(base) ? base : hasText(english) ? english : fallback;
+  }
+  if (baseEdited) return base;
   if (hasText(fallback)) return fallback;
-  return hasText(english) ? english : item?.[field];
+  if (hasText(english)) return english;
+  return base;
 };
 
-const localizedList = (item, field, locale, fallback) => {
-  if (locale === 'id') return item?.[field] || [];
-  const english = item?.[`${field}En`];
-  if (locale === 'en') return hasItems(english) ? english : item?.[field] || [];
+const localizedList = (item, field, locale, fallback, defaultItem) => {
+  const base = item?.[field] || [];
+  const english = item?.[`${field}En`] || [];
+  if (locale === 'id') return base;
+  const baseEdited = baseWasEdited(item, field, defaultItem);
+  const englishEdited = englishWasEdited(item, field, defaultItem);
+  if (locale === 'en') {
+    if (hasItems(english) && (!baseEdited || englishEdited)) return english;
+    return hasItems(base) ? base : hasItems(english) ? english : [];
+  }
+  if (baseEdited) return base;
   if (hasItems(fallback)) return fallback;
-  return hasItems(english) ? english : item?.[field] || [];
+  if (hasItems(english)) return english;
+  return base;
 };
 
-const localizedTier = (tier, locale, fallback = {}) => ({
+const localizedTier = (tier, locale, fallback = {}, defaultItem) => ({
   ...tier,
-  guests: localizedField(tier, 'guests', locale, fallback.guests),
-  note: localizedField(tier, 'note', locale, fallback.note)
+  guests: localizedField(tier, 'guests', locale, fallback.guests, defaultItem),
+  note: localizedField(tier, 'note', locale, fallback.note, defaultItem)
 });
 
 const localizedSettings = {
@@ -325,10 +346,12 @@ const tierTranslationsByLocale = Object.fromEntries(Object.entries(packageDetail
 const defaultsBySlug = (items) => new Map(items.map((item) => [item.slug || slugify(item.name || item.question), item]));
 const defaultRentals = defaultsBySlug(defaultCatalog.rentals);
 const defaultFaqs = defaultsBySlug(defaultCatalog.faqs);
+const defaultPackages = new Map(defaultCatalog.packages.map((item) => [item.slug, item]));
+const defaultDestinations = new Map(defaultCatalog.destinations.map((item) => [destinationSlug(item), item]));
 const itemKey = (item, field = 'name') => item?.slug || slugify(item?.[field]);
 
 function localizedRentalPrice(item, locale, fallback, defaultItem) {
-  const edited = !defaultItem || item.price !== defaultItem.price;
+  const edited = Boolean(defaultItem) && item.price !== defaultItem.price;
   if (locale === 'id') return item.price;
   if (locale === 'en') return edited ? item.price : hasText(item.priceEn) ? item.priceEn : item.price;
   if (edited) return item.price;
@@ -341,14 +364,9 @@ function replaceTravelRate(value, rate, locale) {
 }
 
 function localizedFaqField(item, field, locale, fallback, defaultItem, travelRate) {
-  const english = item?.[`${field}En`];
-  let value;
-  if (locale === 'id') value = item?.[field];
-  else if (defaultItem && item?.[field] !== defaultItem[field]) value = item?.[field];
-  else if (locale === 'en') value = hasText(english) ? english : item?.[field];
-  else value = hasText(fallback[field]) ? fallback[field] : hasText(english) ? english : item?.[field];
+  let value = localizedField(item, field, locale, fallback[field], defaultItem);
 
-  if (field === 'answer' && defaultItem && item.answer === defaultItem.answer && Number(travelRate) !== Number(defaultCatalog.travelRate)) {
+  if (field === 'answer' && defaultItem && sameValue(item.answer, defaultItem.answer) && Number(travelRate) !== Number(defaultCatalog.travelRate)) {
     value = replaceTravelRate(value, travelRate, locale);
   }
   return value;
@@ -357,37 +375,45 @@ function localizedFaqField(item, field, locale, fallback, defaultItem, travelRat
 export function localizeCatalog(catalog, locale) {
   const settings = { ...(catalog.settings || {}) };
   const settingsFallback = localizedSettings[locale] || {};
-  for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedField(settings, field, locale, settingsFallback[field]);
+  for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedField(settings, field, locale, settingsFallback[field], defaultCatalog.settings);
 
   const localizedCatalog = {
     ...catalog,
     settings,
     packages: (catalog.packages || []).map((item) => {
-      const packageFallback = translationsByLocale[locale]?.packages?.get(itemKey(item)) || {};
-      const detailFallback = detailsByLocale[locale]?.get(itemKey(item)) || {};
-      const tierFallbacks = tierTranslationsByLocale[locale]?.get(itemKey(item));
+      const key = itemKey(item);
+      const defaultItem = defaultPackages.get(key);
+      const packageFallback = translationsByLocale[locale]?.packages?.get(key) || {};
+      const detailFallback = detailsByLocale[locale]?.get(key) || {};
+      const tierFallbacks = tierTranslationsByLocale[locale]?.get(key);
       return {
         ...item,
         slug: item.slug || slugify(item.name),
-        name: localizedField(item, 'name', locale, packageFallback.name),
-        route: localizedField(item, 'route', locale, packageFallback.route),
-        detail: localizedField(item, 'detail', locale, packageFallback.detail),
-        category: localizedField(item, 'category', locale, packageFallback.category),
-        duration: localizedField(item, 'duration', locale, packageFallback.duration),
-        unit: localizedField(item, 'unit', locale, packageFallback.unit),
-        itinerary: localizedList(item, 'itinerary', locale, detailFallback.itinerary),
-        includes: localizedList(item, 'includes', locale, detailFallback.includes),
-        excludes: localizedList(item, 'excludes', locale, detailFallback.excludes),
-        priceTiers: (item.priceTiers || []).map((tier, tierIndex) => localizedTier(tier, locale, tierFallbacks?.get(tier.key || slugify(tier.guests)) || detailFallback.priceTiers?.[tierIndex]))
+        name: localizedField(item, 'name', locale, packageFallback.name, defaultItem),
+        route: localizedField(item, 'route', locale, packageFallback.route, defaultItem),
+        detail: localizedField(item, 'detail', locale, packageFallback.detail, defaultItem),
+        category: localizedField(item, 'category', locale, packageFallback.category, defaultItem),
+        duration: localizedField(item, 'duration', locale, packageFallback.duration, defaultItem),
+        unit: localizedField(item, 'unit', locale, packageFallback.unit, defaultItem),
+        itinerary: localizedList(item, 'itinerary', locale, detailFallback.itinerary, defaultItem),
+        includes: localizedList(item, 'includes', locale, detailFallback.includes, defaultItem),
+        excludes: localizedList(item, 'excludes', locale, detailFallback.excludes, defaultItem),
+        priceTiers: (item.priceTiers || []).map((tier) => {
+          const tierKey = tier.key || slugify(tier.guests);
+          const defaultTier = defaultItem?.priceTiers?.find((candidate) => (candidate.key || slugify(candidate.guests)) === tierKey);
+          return localizedTier(tier, locale, tierFallbacks?.get(tierKey), defaultTier || (defaultItem ? {} : undefined));
+        })
       };
     }),
     destinations: (catalog.destinations || []).map((item) => {
-      const fallback = translationsByLocale[locale]?.destinations?.get(destinationSlug(item)) || {};
+      const key = destinationSlug(item);
+      const defaultItem = defaultDestinations.get(key);
+      const fallback = translationsByLocale[locale]?.destinations?.get(key) || {};
       return {
         ...item,
-        name: localizedField(item, 'name', locale, fallback.name),
-        note: localizedField(item, 'note', locale, fallback.note),
-        detail: localizedField(item, 'detail', locale, fallback.detail)
+        name: localizedField(item, 'name', locale, fallback.name, defaultItem),
+        note: localizedField(item, 'note', locale, fallback.note, defaultItem),
+        detail: localizedField(item, 'detail', locale, fallback.detail, defaultItem)
       };
     }),
     faqs: (catalog.faqs || []).map((item) => {
@@ -396,7 +422,7 @@ export function localizeCatalog(catalog, locale) {
       const defaultItem = defaultFaqs.get(key);
       return {
         ...item,
-        question: localizedField(item, 'question', locale, fallback.question),
+        question: localizedField(item, 'question', locale, fallback.question, defaultItem),
         answer: localizedFaqField(item, 'answer', locale, fallback, defaultItem, catalog.travelRate)
       };
     })
@@ -404,12 +430,13 @@ export function localizeCatalog(catalog, locale) {
   if (catalog.rentals) {
     localizedCatalog.rentals = catalog.rentals.map((item) => {
       const key = itemKey(item);
+      const defaultItem = defaultRentals.get(key);
       const fallback = translationsByLocale[locale]?.rentals?.get(key) || {};
       return {
         ...item,
-        name: localizedField(item, 'name', locale, fallback.name),
-        detail: localizedField(item, 'detail', locale, fallback.detail),
-        price: localizedRentalPrice(item, locale, fallback, defaultRentals.get(key))
+        name: localizedField(item, 'name', locale, fallback.name, defaultItem),
+        detail: localizedField(item, 'detail', locale, fallback.detail, defaultItem),
+        price: localizedRentalPrice(item, locale, fallback, defaultItem)
       };
     });
   }
