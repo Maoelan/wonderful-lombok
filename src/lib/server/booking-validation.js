@@ -18,14 +18,15 @@ const COMMON_DETAIL_KEYS = new Set(['notes']);
 const ORIGIN_SOURCES = new Set(['search', 'map', 'gps', 'preset']);
 
 export class BookingValidationError extends Error {
-  constructor(message, status = 400) {
+  constructor(message, status = 400, code = 'invalid') {
     super(message);
     this.name = 'BookingValidationError';
     this.status = status;
+    this.code = code;
   }
 }
 
-const fail = (message, status = 400) => { throw new BookingValidationError(message, status); };
+const fail = (message, status = 400, code = 'invalid') => { throw new BookingValidationError(message, status, code); };
 
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -86,14 +87,18 @@ export function isValidPickupDateTime(date, time, now = Date.now()) {
 }
 
 export function normalizeWhatsApp(value) {
+  const invalid = () => fail('Nama dan nomor WhatsApp belum valid.', 400, 'contact');
   const textValue = typeof value === 'string' ? value.trim() : '';
-  if (!textValue || !/^\+?[\d\s().-]+$/.test(textValue)) {
-    fail('Nama dan nomor WhatsApp belum valid.');
-  }
+  if (!textValue || !/^\+?[\d\s().-]+$/.test(textValue)) invalid();
   const digits = textValue.replace(/\D/g, '');
-  if (digits.startsWith('00')) fail('Nama dan nomor WhatsApp belum valid.');
-  const normalized = digits.startsWith('62') ? digits : digits.startsWith('0') ? `62${digits.slice(1)}` : '';
-  if (!/^628\d{7,12}$/.test(normalized)) fail('Nama dan nomor WhatsApp belum valid.');
+  if (digits.startsWith('00')) invalid();
+  const normalized = textValue.startsWith('+') || digits.startsWith('62')
+    ? digits
+    : digits.startsWith('0') ? `62${digits.slice(1)}`
+    : digits.startsWith('8') ? `62${digits}`
+    : '';
+  const valid = normalized.startsWith('62') ? /^628\d{7,12}$/.test(normalized) : /^[1-9]\d{7,14}$/.test(normalized);
+  if (!valid) invalid();
   return normalized;
 }
 
@@ -183,6 +188,6 @@ export function normalizeBookingDetails(serviceType, details) {
 
 export function verifyTravelQuote(details, quote) {
   if (!quote || details.distanceKm !== quote.distanceKm || details.estimatedPrice !== quote.estimatedPrice) {
-    fail('Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', 409);
+    fail('Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', 409, 'conflict');
   }
 }

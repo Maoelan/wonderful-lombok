@@ -270,7 +270,34 @@ const routePlannerCopy = {
   }
 };
 
+const bookingErrorCopy = {
+  id: { invalid: 'Data pemesanan belum lengkap atau tidak valid.', contact: 'Nama dan nomor WhatsApp belum valid.', date: 'Tanggal perjalanan tidak valid.', time: 'Jam jemput sudah lewat. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', route: 'Rute perjalanan tidak ditemukan. Periksa titik jemput dan tujuan.', service: 'Layanan peta sedang tidak tersedia. Coba lagi sebentar.', busy: 'Pemesanan belum dapat disimpan. Coba lagi nanti.' },
+  en: { invalid: 'The booking details are incomplete or invalid.', contact: 'Please check your name and WhatsApp number.', date: 'The travel date is invalid.', time: 'The pick-up time has passed. Choose another time.', conflict: 'The price or travel distance has changed. Please recalculate.', route: 'No travel route was found. Check the pick-up and destination points.', service: 'The map service is unavailable right now. Please try again shortly.', busy: 'The booking could not be saved. Please try again later.' },
+  'zh-cn': { invalid: '预订信息不完整或无效。', contact: '姓名和 WhatsApp 号码无效。', date: '旅行日期无效。', time: '接送时间已过，请选择其他时间。', conflict: '价格或行程距离已变化，请重新计算。', route: '未找到行程路线，请检查接送地点和目的地。', service: '地图服务暂时不可用，请稍后重试。', busy: '预订暂时无法保存，请稍后再试。' },
+  'zh-tw': { invalid: '預訂資訊不完整或無效。', contact: '姓名和 WhatsApp 號碼無效。', date: '旅行日期無效。', time: '接送時間已過，請選擇其他時間。', conflict: '價格或行程距離已變更，請重新計算。', route: '找不到行程路線，請檢查接送地點和目的地。', service: '地圖服務暫時無法使用，請稍後再試。', busy: '預訂暫時無法儲存，請稍後再試。' },
+  nl: { invalid: 'De boekingsgegevens zijn onvolledig of ongeldig.', contact: 'Controleer je naam en WhatsApp-nummer.', date: 'De reisdatum is ongeldig.', time: 'De ophaaltijd is verstreken. Kies een ander tijdstip.', conflict: 'De prijs of reisafstand is gewijzigd. Bereken opnieuw.', route: 'Geen reisroute gevonden. Controleer het ophaalpunt en de bestemming.', service: 'De kaartdienst is nu niet beschikbaar. Probeer het zo opnieuw.', busy: 'De boeking kon niet worden opgeslagen. Probeer het later opnieuw.' },
+  fr: { invalid: 'Les informations de réservation sont incomplètes ou invalides.', contact: 'Vérifiez votre nom et votre numéro WhatsApp.', date: 'La date du voyage est invalide.', time: 'L’heure de prise en charge est passée. Choisissez un autre horaire.', conflict: 'Le prix ou la distance du trajet a changé. Recalculez.', route: 'Aucun itinéraire trouvé. Vérifiez le départ et la destination.', service: 'Le service de cartes est indisponible pour le moment. Réessayez dans un instant.', busy: 'La réservation n’a pas pu être enregistrée. Réessayez plus tard.' },
+  de: { invalid: 'Die Buchungsdaten sind unvollständig oder ungültig.', contact: 'Bitte prüfen Sie Name und WhatsApp-Nummer.', date: 'Das Reisedatum ist ungültig.', time: 'Die Abholzeit ist vorbei. Wählen Sie eine andere Uhrzeit.', conflict: 'Preis oder Fahrstrecke haben sich geändert. Bitte neu berechnen.', route: 'Keine Reiseroute gefunden. Prüfen Sie Abholort und Ziel.', service: 'Der Kartendienst ist derzeit nicht verfügbar. Versuchen Sie es gleich noch einmal.', busy: 'Die Buchung konnte nicht gespeichert werden. Versuchen Sie es später erneut.' },
+  ms: { invalid: 'Butiran tempahan tidak lengkap atau tidak sah.', contact: 'Nama dan nombor WhatsApp belum sah.', date: 'Tarikh perjalanan tidak sah.', time: 'Waktu jemput telah berlalu. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan telah berubah. Sila kira semula.', route: 'Laluan perjalanan tidak ditemui. Semak lokasi jemput dan destinasi.', service: 'Perkhidmatan peta tidak tersedia buat masa ini. Cuba lagi sebentar.', busy: 'Tempahan tidak dapat disimpan. Cuba lagi kemudian.' }
+};
+
+const bookingErrorAliases = {
+  route_unavailable: 'service',
+  not_configured: 'service',
+  permission_denied: 'service',
+  quota_exceeded: 'service',
+  network: 'service',
+  search_failed: 'service',
+  not_found: 'route',
+  no_road_access: 'route',
+  invalid_points: 'route'
+};
+
+export function bookingErrorMessage(copy, code, fallback = '') {
+  return copy?.bookingErrors?.[bookingErrorAliases[code] || code] || fallback;
+}
+
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en) };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
 }

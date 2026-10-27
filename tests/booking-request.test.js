@@ -105,6 +105,7 @@ test('booking request rejects duplicate or excessive stops before calling Mapbox
   });
 
   assert.equal(duplicate.status, 400);
+  assert.equal(duplicate.body.code, 'invalid');
   assert.match(duplicate.body.error, /harus berbeda/);
   assert.equal(calls, 0);
 
@@ -145,6 +146,7 @@ test('booking request reports a Mapbox permission failure as retryable', async (
   });
 
   assert.equal(result.status, 503);
+  assert.equal(result.body.code, 'permission_denied');
   assert.match(result.body.error, /belum dikonfigurasi/);
 });
 
@@ -160,6 +162,7 @@ test('booking request rejects a tampered price or distance with 409', async () =
   });
 
   assert.equal(result.status, 409);
+  assert.equal(result.body.code, 'conflict');
   assert.match(result.body.error, /hitung ulang/);
   assert.equal(saved.length, 0);
 });
@@ -242,6 +245,21 @@ test('booking request rejects arbitrary detail objects and missing idempotency k
   assert.equal(missingKey.status, 400);
 });
 
+test('booking request returns a contact code for an unusable WhatsApp number', async () => {
+  const result = await createBookingRequest({
+    body: travelBody({ whatsapp: '12345' }),
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174015',
+    now,
+    fetchImpl: quoteFetch(),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async () => 'WL-TEST-PHONE'
+  });
+
+  assert.equal(result.status, 400);
+  assert.equal(result.body.code, 'contact');
+  assert.match(result.body.error, /belum valid/);
+});
+
 test('booking request rejects a pickup time that has already passed', async () => {
   const saved = [];
   const body = travelBody({ travelDate: '2026-10-20' });
@@ -256,6 +274,7 @@ test('booking request rejects a pickup time that has already passed', async () =
   });
 
   assert.equal(result.status, 400);
+  assert.equal(result.body.code, 'time');
   assert.match(result.body.error, /sudah lewat/);
   assert.equal(saved.length, 0);
 });
@@ -270,6 +289,7 @@ test('booking request enforces the WITA date and rental flag', async () => {
     saveBooking: async () => 'WL-TEST-6'
   });
   assert.equal(yesterday.status, 400);
+  assert.equal(yesterday.body.code, 'date');
 
   const rentalBody = {
     name: 'Siti',
@@ -324,6 +344,7 @@ test('booking request rejects a reused key with a different payload', async () =
   });
 
   assert.equal(result.status, 409);
+  assert.equal(result.body.code, 'conflict');
   assert.match(result.body.error, /tidak konsisten/);
 });
 
@@ -338,5 +359,6 @@ test('booking request returns a retryable 503 when persistence fails', async () 
   });
 
   assert.equal(result.status, 503);
+  assert.equal(result.body.code, 'busy');
   assert.match(result.body.error, /Coba lagi/);
 });

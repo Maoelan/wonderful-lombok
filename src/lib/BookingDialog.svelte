@@ -3,13 +3,14 @@
   import { createWhatsAppUrl } from './whatsapp.js';
   import { createIdempotencyKey } from './idempotency.js';
   import { todayInWita } from './date.js';
-  import { getFormCopy } from './i18n.js';
+  import { bookingErrorMessage, getFormCopy } from './i18n.js';
   export let booking = null;
   export let whatsapp = '';
   export let locale = 'id';
   $: t = getFormCopy(locale);
   let name = '', phone = '', travelDate = '', people = 1, notes = '', error = '', loading = false, idempotencyKey = '', lastBookingFingerprint = '', website = '';
-  const today = todayInWita();
+  let today = todayInWita();
+  $: if (booking) today = todayInWita();
   let bodyLocked = false, lockedScrollY = 0, savedBodyStyle = '';
 
   $: if (booking) lockBodyScroll();
@@ -58,7 +59,10 @@
     return { destroy() { node.removeEventListener('keydown', handleKey); if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus(); } };
   }
   async function submit() {
-    error = ''; loading = true;
+    error = '';
+    today = todayInWita();
+    if (travelDate && travelDate < today) { error = bookingErrorMessage(t, 'date'); return; }
+    loading = true;
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
     try {
@@ -79,7 +83,8 @@
       const result = await response.json();
       if (!response.ok) {
         if (response.status === 409) { idempotencyKey = ''; lastBookingFingerprint = ''; }
-        throw new Error(result.error);
+        const code = result.code || (response.status === 429 || response.status === 503 ? 'busy' : '');
+        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed));
       }
       const message = locale !== 'id' ? `Hello Wonderful Lombok, I have submitted a booking for ${booking.name}.\nCode: ${result.code}\nName: ${name}\nDate: ${travelDate}\nGuests: ${people}` : `Halo Wonderful Lombok, saya sudah membuat pemesanan ${booking.name}.\nKode: ${result.code}\nNama: ${name}\nTanggal: ${travelDate}\nPeserta: ${people} orang`;
       if (whatsappWindow) whatsappWindow.location.href = createWhatsAppUrl(message, whatsapp);
@@ -103,8 +108,8 @@
         <form on:submit|preventDefault={submit}>
           <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
           <label><span>{t.fullName}</span><input bind:value={name} autocomplete="name" required /></label>
-          <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" placeholder="0812 3456 7890" required /></label>
-          <div class="form-row"><label><span>{t.travelDate}</span><input bind:value={travelDate} type="date" min={today} required /></label><label><span>{t.guests}</span><input bind:value={people} type="number" min="1" max="50" required /></label></div>
+          <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" required /></label>
+          <div class="form-row"><label><span>{t.travelDate}</span><input bind:value={travelDate} type="date" min={today} on:focus={() => (today = todayInWita())} required /></label><label><span>{t.guests}</span><input bind:value={people} type="number" min="1" max="50" required /></label></div>
           <label><span>{t.notes}</span><textarea bind:value={notes} rows="3" placeholder={t.notesPlaceholder}></textarea></label>
           {#if error}<p class="form-message error" role="alert">{error}</p>{/if}
           <button class="submit" disabled={loading}>{loading ? t.saving : t.saveContinue}</button>

@@ -43,15 +43,26 @@ test('pickup times must be in the WITA future', () => {
   assert.equal(isValidPickupDateTime('2026-02-31', '10:00', now), false);
 });
 
-test('WhatsApp numbers normalize to one Indonesian mobile format', () => {
+test('WhatsApp numbers normalize to international format', () => {
   assert.equal(normalizeWhatsApp('0812 3456 7890'), '6281234567890');
   assert.equal(normalizeWhatsApp('6281234567890'), '6281234567890');
   assert.equal(normalizeWhatsApp('+62 812-3456-7890'), '6281234567890');
+  assert.equal(normalizeWhatsApp('812 3456 7890'), '6281234567890');
+  assert.equal(normalizeWhatsApp('+1 415 555 2671'), '14155552671');
   assert.throws(() => normalizeWhatsApp('00628123456789'), /belum valid/);
   assert.throws(() => normalizeWhatsApp('62081234567890'), /belum valid/);
   assert.throws(() => normalizeWhatsApp('abc081234567890'), /belum valid/);
   assert.throws(() => normalizeWhatsApp('0812'), /belum valid/);
   assert.throws(() => normalizeWhatsApp('081234567890123456'), /belum valid/);
+  assert.throws(() => normalizeWhatsApp('4155552671'), /belum valid/);
+  assert.throws(() => normalizeWhatsApp('+1234'), /belum valid/);
+  assert.throws(() => normalizeWhatsApp('+081234567890'), /belum valid/);
+});
+
+test('validation errors carry a stable code for client-side translation', () => {
+  assert.equal(new BookingValidationError('x').code, 'invalid');
+  assert.throws(() => normalizeWhatsApp('0812'), (error) => error.code === 'contact');
+  assert.throws(() => verifyTravelQuote(travelDetails, { distanceKm: 31, estimatedPrice: 1 }), (error) => error.code === 'conflict');
 });
 
 test('idempotency keys are bounded and URL-safe', () => {

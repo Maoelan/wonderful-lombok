@@ -5,7 +5,7 @@
   import { createWhatsAppUrl } from './whatsapp.js';
   import { createIdempotencyKey } from './idempotency.js';
   import { currentTimeInWita, todayInWita } from './date.js';
-  import { getFormCopy, localeTag } from './i18n.js';
+  import { bookingErrorMessage, getFormCopy, localeTag } from './i18n.js';
 
   let mapElement;
   let map = null;
@@ -26,7 +26,7 @@
   export let mapboxToken = '';
   $: t = getFormCopy(locale);
   $: availablePlaces = localizedPlaces(locale);
-  const today = todayInWita();
+  let today = todayInWita();
   $: minimumPickupTime = pickupDate === today ? currentTimeInWita() : '';
   $: rupiah = new Intl.NumberFormat(localeTag(locale), { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   $: price = calculatePickupPrice(distance, rate);
@@ -429,6 +429,11 @@
     if (!routeReady) { formError = t.chooseDifferent; return; }
     if (routeLoading || routeError || !distance) { formError = t.waitForRoute; return; }
     if (!customerName.trim() || !phone.trim() || !pickupDate || !pickupTime) { formError = t.completeBooking; return; }
+    const currentToday = todayInWita();
+    today = currentToday;
+    if (pickupDate < currentToday) { formError = bookingErrorMessage(t, 'date'); return; }
+    const minimumTime = pickupDate === currentToday ? currentTimeInWita() : '';
+    if (minimumTime && pickupTime < minimumTime) { formError = bookingErrorMessage(t, 'time'); return; }
     submitting = true;
     const whatsappWindow = window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
@@ -473,7 +478,8 @@
       const result = await response.json();
       if (!response.ok) {
         if (response.status === 409) { idempotencyKey = ''; lastBookingFingerprint = ''; }
-        throw new Error(result.error);
+        const code = result.code || (response.status === 429 || response.status === 503 ? 'busy' : '');
+        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed));
       }
       submitted = true;
       idempotencyKey = '';
@@ -623,8 +629,8 @@
       <div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div>
     </div>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>
-    <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="0812 3456 7890" /></label>
-    <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" min={minimumPickupTime || undefined} /></label></div>
+    <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" /></label>
+    <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} on:focus={() => (today = todayInWita())} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" min={minimumPickupTime || undefined} /></label></div>
     <label><span>{t.passengers}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
     {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{t.bookingOpened}</p>{/if}
     <button class="submit" type="submit" disabled={submitting}>{submitting ? t.saving : t.bookTravel}</button>
