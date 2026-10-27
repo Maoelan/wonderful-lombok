@@ -10,9 +10,6 @@ function applySecurityHeaders(response, event, production) {
   response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=(self)');
   response.headers.set('cross-origin-opener-policy', 'same-origin');
   response.headers.set('x-permitted-cross-domain-policies', 'none');
-  response.headers.set('x-conversation-id', '6ba7b810-9dad-11d3-a456-426614174000');
-  response.headers.set('x-conversation-request-id', '6ba7b811-9dad-11d3-a456-426614174000');
-  response.headers.set('x-conversation-message-id', '6ba7b812-9dad-11d3-a456-426614174000');
   // Reviewed: the value is hard-coded and never derived from request input.
   // nosemgrep: security-rules.javascript.express.security.x-frame-options-misconfiguration
   response.headers.set('x-frame-options', 'DENY');
