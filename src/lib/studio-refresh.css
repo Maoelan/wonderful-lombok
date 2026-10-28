@@ -81,6 +81,7 @@ body .admin-header h1 { margin: 0; font-size: 28px; }
 body .admin-header p { margin-top: 10px; max-width: 80ch; }
 body .admin-section { padding-top: 28px; }
 body .admin-section-heading { margin-bottom: 20px; }
+body .admin-section.editing > .admin-section-heading { display: none; }
 body .admin-section-heading h3 { font-size: 18px; }
 body .admin-section-heading .admin-kicker, body .admin-catalog-workspace .admin-editor-summary, body .admin-section > .admin-kicker { display: none; }
 body .admin-secondary { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 40px; border-radius: 6px; font-size: 13px; }
@@ -141,7 +142,7 @@ body .admin-rate-example p { margin-block: 12px; }
 body .admin-rate-example small { color: #52676c; line-height: 1.6; }
 body .admin-settings-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 body .admin-settings-column { display: grid; gap: 24px; min-width: 0; }
-body .admin-settings-column fieldset { padding: 24px; background: white; border: 1px solid #e1e7e6; border-radius: 12px; }
+body .admin-settings-column fieldset { grid-row: auto; padding: 24px; background: white; border: 1px solid #e1e7e6; border-radius: 12px; }
 body .admin-shell .booking-admin-list > article { border: 1px solid #e1e7e6; border-radius: 12px; padding: 24px; box-shadow: none; background: white; }
 body .admin-shell .booking-admin-list .booking-code { border-bottom: 1px solid #e8eceb; padding-bottom: 14px; }
 body .admin-shell .booking-details { background: #f5f8f7; padding: 16px; border-radius: 8px; }
@@ -191,7 +192,7 @@ body .admin-shell .booking-details { background: #f5f8f7; padding: 16px; border-
   body .admin-sidebar { padding-inline: 16px; }
   body .admin-save-bar { margin-inline: -16px; padding: 10px 16px; gap: 12px; }
   body .admin-save-bar > span { max-width: 42%; font-size: 12px; line-height: 1.5; }
-  body .admin-actions > span { display: none; }
+  body .admin-actions > span { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   body .admin-actions { width: auto; flex: none; }
   body .admin-save { min-height: 44px; font-size: 12px; padding: 10px 12px; }
   body .admin-header { padding-top: 24px; }

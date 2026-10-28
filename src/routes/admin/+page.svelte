@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { beforeNavigate } from '$app/navigation';
   import { slugify } from '#lib/i18n.js';
   import { createUnsavedChangesGuard } from '#lib/unsaved-changes.js';
@@ -43,9 +43,16 @@
   function openEditor(kind, index) {
     if (kind === 'packages') { selectedPackage = index; packageEditorOpen = true; }
     else { selectedDestination = index; destinationEditorOpen = true; }
+    revealAdminHeading();
   }
   function changeView(view) {
     active = view; packageEditorOpen = false; destinationEditorOpen = false; adminMenuOpen = false;
+    revealAdminHeading();
+  }
+  async function revealAdminHeading() {
+    await tick();
+    document.querySelector('.admin-header h1')?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
   }
   $: pageInfo = ({
     overview: ['Ringkasan', 'Pilih pekerjaan yang ingin dilakukan hari ini.'],
@@ -382,9 +389,9 @@
   <main class="admin-main" on:input={markDirty} on:change={markDirty}>
     <div class="admin-save-bar"><span>Admin <span aria-hidden="true">/</span> {editing ? active === 'packages' ? 'Edit paket wisata' : 'Edit destinasi' : pageInfo[0]}</span><div class="admin-actions"><span class:saved aria-live="polite">{saved ? 'Perubahan tersimpan' : dirty ? 'Ada perubahan belum disimpan' : 'Semua sudah tersimpan'}</span><button class="admin-save" on:click={persist} disabled={!dirty || saving || Boolean(uploading)} aria-busy={saving || Boolean(uploading)}>{saving ? 'Menyimpan...' : uploading ? 'Menunggu unggahan...' : 'Simpan perubahan'}</button></div></div>
     <header class="admin-header">
-      <div><h1>{editing ? active === 'packages' ? 'Edit paket wisata' : 'Edit destinasi' : pageInfo[0]}</h1><p>{pageInfo[1]}</p></div>
+      <div><h1 tabindex="-1">{editing ? active === 'packages' ? 'Edit paket wisata' : 'Edit destinasi' : pageInfo[0]}</h1><p>{pageInfo[1]}</p></div>
     </header>
-    {#if editing && selectedObject}<div class="admin-editor-links"><button type="button" class="admin-text-button" on:click={() => { packageEditorOpen = false; destinationEditorOpen = false; }}>← {active === 'packages' ? 'Semua paket' : 'Semua destinasi'}</button><a href={`/id/${active === 'packages' ? 'paket-wisata' : 'destinasi'}/${selectedObject.slug}`} target="_blank" rel="noreferrer">Lihat halaman publik <UiIcon /></a></div>{/if}
+    {#if editing && selectedObject}<div class="admin-editor-links"><button type="button" class="admin-text-button" on:click={() => { packageEditorOpen = false; destinationEditorOpen = false; revealAdminHeading(); }}>← {active === 'packages' ? 'Semua paket' : 'Semua destinasi'}</button><a href={`/id/${active === 'packages' ? 'paket-wisata' : 'destinasi'}/${selectedObject.slug}`} target="_blank" rel="noreferrer">Lihat halaman publik <UiIcon /></a></div>{/if}
 
     {#if saveError}<p class="admin-error" role="alert">{saveError}</p>{/if}
 
@@ -429,7 +436,7 @@
         {:else}<div class="admin-empty"><strong>Belum ada pemesanan</strong><p>Pesanan yang dibuat pelanggan akan muncul otomatis di halaman ini.</p></div>{/if}
       </section>
     {:else if active === 'packages'}
-      <section class="admin-section" aria-labelledby="admin-packages-title">
+      <section class="admin-section" class:editing={packageEditorOpen} aria-labelledby="admin-packages-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Katalog</p><h3 id="admin-packages-title">Paket Wisata</h3></div><button class="admin-secondary" on:click={addPackage}>Tambah paket</button></div>
         {#if !packageEditorOpen}<div class="admin-catalog-table"><table><caption class="sr-only">Daftar paket wisata</caption><thead><tr><th>Paket wisata</th><th>Durasi</th><th>Harga mulai</th><th><span class="sr-only">Tindakan</span></th></tr></thead><tbody>{#each catalog.packages as item, index}<tr><td><div class="admin-row-identity">{#if item.image}<img src={item.image} alt="" loading="lazy" width="72" height="54" />{/if}<span><b>{item.name}</b><small>{item.category}</small></span></div></td><td data-label="Durasi">{item.duration}</td><td data-label="Harga mulai"><b>{item.price}</b><small>{item.unit}</small></td><td><button class="admin-secondary" type="button" on:click={() => openEditor('packages', index)} aria-label={`Edit paket ${item.name}`}>Edit paket <UiIcon /></button></td></tr>{/each}</tbody></table>{#if !catalog.packages.length}<div class="admin-empty"><strong>Belum ada paket wisata</strong><p>Tambahkan paket untuk mulai mengisi katalog.</p></div>{/if}</div>
         {:else}<div class="admin-catalog-workspace">
@@ -439,9 +446,8 @@
             <details class="admin-editor-card" class:selected={index === Math.min(selectedPackage, catalog.packages.length - 1)} open={index === Math.min(selectedPackage, catalog.packages.length - 1)}>
               <summary class="admin-editor-summary"><span class="admin-card-number">{String(index + 1).padStart(2, '0')}</span>{#if item.image}<img src={item.image} alt="" />{/if}<span class="admin-item-summary"><b>{item.name}</b><small>{item.duration} · {item.price}</small></span><span class="admin-editor-toggle">Edit</span></summary>
               <div class="admin-editor-body"><div class="admin-fields"><section class="admin-form-panel" id="package-info"><h4>Informasi utama</h4>
-                <details class="admin-advanced"><summary>Pengaturan alamat halaman</summary><label><span>Alamat halaman</span><input value={item.slug} on:input={(event) => updatePackage(index, 'slug', slugify(event.currentTarget.value))} /><small>Biasanya tidak perlu diubah setelah paket dipublikasikan.</small></label></details>
-                <div class="admin-field-row"><label><span>Durasi</span><input value={item.duration} on:input={(event) => updatePackage(index, 'duration', event.currentTarget.value)} placeholder="Contoh: 2 hari 1 malam" /></label><label><span>Kategori</span><input value={item.category} on:input={(event) => updatePackage(index, 'category', event.currentTarget.value)} placeholder="Contoh: Private tour" /></label></div>
                 <label><span>Nama paket</span><input value={item.name} on:input={(event) => updatePackage(index, 'name', event.currentTarget.value)} /></label>
+                <div class="admin-field-row"><label><span>Durasi</span><input value={item.duration} on:input={(event) => updatePackage(index, 'duration', event.currentTarget.value)} placeholder="Contoh: 2 hari 1 malam" /></label><label><span>Kategori</span><input value={item.category} on:input={(event) => updatePackage(index, 'category', event.currentTarget.value)} placeholder="Contoh: Private tour" /></label></div>
                 <label><span>Destinasi dan aktivitas</span><textarea rows="2" value={item.route} on:input={(event) => updatePackage(index, 'route', event.currentTarget.value)}></textarea></label>
                 <fieldset class="admin-subsection admin-destination-picker"><legend>Destinasi dalam paket</legend><p>Pilih destinasi yang benar-benar dikunjungi. Paket ini akan otomatis tampil pada halaman destinasi yang dipilih.</p>{#if catalog.destinations.length}<div class="admin-checkbox-list">{#each catalog.destinations as destination}<label class:selected={(item.destinationSlugs || []).includes(destination.slug)}><input type="checkbox" checked={(item.destinationSlugs || []).includes(destination.slug)} on:change={(event) => setPackageDestination(index, destination.slug, event.currentTarget.checked)} /><span><strong>{destination.name}</strong><small>{destination.note}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada destinasi. Tambahkan destinasi terlebih dahulu.</p>{/if}</fieldset>
                 <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
@@ -470,6 +476,7 @@
                 {#if item.images?.length}<div class="admin-gallery-preview">{#each item.images as image, imageIndex}<figure><img src={image} alt="Galeri {item.name} {imageIndex + 1}" /><button class="admin-image-trash" type="button" on:click={() => removeGalleryImage(item.images, imageIndex, (images) => updatePackage(index, 'images', images))} aria-label="Hapus gambar galeri {imageIndex + 1} dari {item.name}"><TrashIcon /></button></figure>{/each}</div>{/if}
                 <label><span>Tambah gambar galeri</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={Boolean(uploading)} on:change={(event) => uploadImage(event.currentTarget.files?.[0], (url) => updatePackage(index, 'images', [...(item.images || []), url]), `gallery-${index}`, event.currentTarget)} /><small>{uploading === `gallery-${index}` ? 'Mengunggah…' : 'Gambar akan ditambahkan ke galeri.'}</small></label>
                 </section>
+                <details class="admin-advanced"><summary>Pengaturan alamat halaman</summary><label><span>Alamat halaman</span><input value={item.slug} on:input={(event) => updatePackage(index, 'slug', slugify(event.currentTarget.value))} /><small>Biasanya tidak perlu diubah setelah paket dipublikasikan.</small></label></details>
               </div><button class="admin-delete" on:click={() => removePackage(index)} aria-label="Hapus paket {item.name}"><TrashIcon />Hapus paket</button></div>
             </details>
             {/if}
@@ -477,7 +484,7 @@
         </div><aside class="admin-preview-rail" aria-label="Pratinjau paket">{#if selectedObject}<h3>Pratinjau singkat</h3>{#if selectedObject.image}<img src={selectedObject.image} alt="" width="360" height="270" />{/if}<h4>{selectedObject.name}</h4><p>{selectedObject.duration}</p><strong>{selectedObject.price}</strong><small>{selectedObject.unit}</small><nav aria-label="Bagian editor paket"><a href="#package-info">Informasi utama</a><a href="#package-pricing">Harga dan peserta</a><a href="#package-itinerary">Itinerary dan fasilitas</a><a href="#package-gallery">Galeri foto</a></nav>{/if}</aside></div>{/if}
       </section>
     {:else if active === 'destinations'}
-      <section class="admin-section" aria-labelledby="admin-destinations-title">
+      <section class="admin-section" class:editing={destinationEditorOpen} aria-labelledby="admin-destinations-title">
         <div class="admin-section-heading"><div><p class="admin-kicker">Inspirasi perjalanan</p><h3 id="admin-destinations-title">Destinasi</h3></div><button class="admin-secondary" on:click={addDestination}>Tambah destinasi</button></div>
         {#if !destinationEditorOpen}<div class="admin-catalog-table"><table><caption class="sr-only">Daftar destinasi</caption><thead><tr><th>Destinasi</th><th>Keterangan</th><th>Paket terkait</th><th><span class="sr-only">Tindakan</span></th></tr></thead><tbody>{#each catalog.destinations as item, index}<tr><td><div class="admin-row-identity">{#if item.image}<img src={item.image} alt="" loading="lazy" width="72" height="54" />{/if}<b>{item.name}</b></div></td><td>{item.note}</td><td data-label="Paket terkait">{catalog.packages.filter(pack => (pack.destinationSlugs || []).includes(item.slug)).length} paket</td><td><button class="admin-secondary" type="button" on:click={() => openEditor('destinations', index)} aria-label={`Edit destinasi ${item.name}`}>Edit destinasi <UiIcon /></button></td></tr>{/each}</tbody></table>{#if !catalog.destinations.length}<div class="admin-empty"><strong>Belum ada destinasi</strong><p>Tambahkan tempat wisata yang ingin ditampilkan.</p></div>{/if}</div>
         {:else}<div class="admin-catalog-workspace">
