@@ -97,7 +97,7 @@ body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 
 @media (max-width: 760px) {
   body .site-theme .section { width: calc(100% - 32px); }
   body .site-theme .site-header { min-height: 72px; }
-  body .site-theme .hero { min-height: 410px; align-items: end; }
+  body .site-theme .hero { min-height: 410px; align-items: center; justify-content: flex-end; }
   body .site-theme .hero .hero-copy { width: calc(100% - 40px); padding: 34px 0 28px; }
   body .site-theme .hero .hero-image img { object-position: 67% center; }
   body .site-theme .hero .hero-shade { background: linear-gradient(0deg, #000c, #0005 68%, #0001); }
@@ -130,4 +130,8 @@ body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 
   body .site-theme .booking-body { padding: 22px 18px; }
   body .site-theme .booking-dialog h2 { font-size: 23px; }
   body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+}
+@media (max-width: 360px) {
+  /* Native date segments need a full row on narrow phones. */
+  body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr); }
 }

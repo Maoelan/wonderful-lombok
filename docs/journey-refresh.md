@@ -27,3 +27,25 @@ Only exact bundled legacy seed image URLs and unchanged legacy hero copy are ref
 ## Release boundary
 
 Implement and verify on `develop`, with Vercel Preview. No main merge, production deployment, production CMS writes, Convex migration or new paid service is authorized by this refresh.
+
+## Verification and visual review
+
+- 258 automated tests pass; production build and tracked-file secret scan pass.
+- Live Preview checked in all eight locales at 320 px, plus Indonesian at 390, 768 and 1440 px. No document horizontal overflow. All 33 package-dialog open/close checks pass, including focus entry and Escape dismissal.
+- The homepage calculator renders a map canvas and one introduction. Mobile destination and package detail pages show the new media and retain their content and navigation.
+- Screenshot review identified excess space under the mobile hero actions and cramped native date segments at 320 px. The hero now bottom-aligns its content; the booking date and participant fields stack below 361 px.
+- Local browser captures redirected by a stale local canonical URL were excluded. Evidence uses the actual `develop` Vercel Preview, not those captures.
+
+ROUND 1
+Seen in one second: a south-coast bay and a concrete Lombok trip invitation.
+Idea (one sentence): compare three local tour experiences, then check a transfer without leaving the homepage.
+Live thing: destination navigation, package booking dialogs and the transfer calculator.
+Layout words by section: hero=full-bleed / packages=equal-grid / destinations=photo-strip / transfer=working-form / about=split / FAQ=disclosure-list.
+Scores: design 7 · usability 8 · creativity 6 · content 7 → overall 6.0 (capped).
+Caps applied: the strict visual inspector still reports shadow and eyebrow heuristics; no clean inspector pass is claimed. The approach remains a familiar travel-operator layout, not a novel editorial concept.
+Top three problems (most visible first), each with the screenshot it shows in and the fix:
+1. `home-390.jpg`: unused dark area below the hero actions. Fixed by setting the mobile flex main-axis alignment explicitly.
+2. `booking-320.jpg`: narrow native date segments. Fixed by stacking the form row on narrow phones, retaining dialog scrolling.
+3. `preview-round-1/desktop-page-01.jpg`: the map is blank in the early full-page capture because it had not loaded. The dedicated calculator check scrolls it into view and confirms the rendered map canvas. No blank-map image substitutes for the interactive map.
+
+Remaining limitations: images are illustrative rather than location-verified; replace them before a commercial launch. Floating navigation overlays and functional labels trigger the skill's generic design heuristics. This is not a new Lighthouse or accessibility certification, and booking submissions were not sent to the operator during read-only visual QA.

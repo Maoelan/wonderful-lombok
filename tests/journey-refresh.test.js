@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { defaultCatalog } from '../src/lib/catalog.js';
 import { demoImage, demoImageKeys, isDemoImage, refreshDemoImages } from '../src/lib/demo-images.js';
 import { imageSrcset, imageUrl } from '../src/lib/image.js';
