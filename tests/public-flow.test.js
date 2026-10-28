@@ -51,7 +51,7 @@ test('legacy rich-text paragraph wrappers update but partially edited fields rem
 
 test('package booking context keeps displayed price units and duration, never a computed total', () => {
   for (const item of defaultCatalog.packages) {
-    assert.deepEqual(packageBooking(item),{type:'wisata',name:item.name,price:item.price,unit:item.unit,duration:item.duration});
+    assert.deepEqual(packageBooking(item),{type:'wisata',name:item.name,price:item.price,unit:item.unit,duration:item.duration,image:item.image,route:item.route});
   }
   const context = packageBooking({name:'Custom package',price:'Contact us',unit:'per group',duration:'2 days',people:10,estimatedPrice:1});
   assert.equal(context.price,'Contact us');
@@ -73,7 +73,8 @@ test('every package booking entry point supplies price context to the shared dia
 test('homepage keeps all package cards without a redundant section-level catalogue action', () => {
   const source=readFileSync(new URL('../src/routes/+page.svelte',import.meta.url),'utf8');
   const section=source.slice(source.indexOf('<section class="packages section"'),source.indexOf('<section class="destinations"'));
-  assert.match(section, /\{#each packages as item, index\}/);
+  assert.match(section, /\{#each packages as item\}/);
+  assert.match(section, /<TourCard \{item\}/);
   assert.doesNotMatch(section, /c\.allTours|packages\.slice/);
   assert.match(source, /class="nav-dropdown-all" href=\{`\/\$\{locale\}\/paket-wisata`\}/);
 });

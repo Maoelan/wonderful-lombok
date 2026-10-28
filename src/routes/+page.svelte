@@ -10,7 +10,8 @@
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
   import SiteFooter from '../lib/SiteFooter.svelte';
-  import PhotoGallery from '../lib/PhotoGallery.svelte';
+  import TourCard from '../lib/TourCard.svelte';
+  import FaqSection from '../lib/FaqSection.svelte';
 
   export let data;
   let menuOpen = false;
@@ -37,10 +38,6 @@
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
-  const packageGallery = (item) => {
-    const images = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
-    return images.length ? images : [fallbackImage];
-  };
   function closeMenu() {
     menuOpen = false;
     if (tourMenu) tourMenu.open = false;
@@ -135,6 +132,7 @@
       <h1 id="hero-title">{settings.heroTitle}</h1>
       <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
       <div class="hero-actions"><a class="button primary" href="#paket">{c.heroPrimary}</a><a class="button secondary" href="#hitung-travel">{formCopy.checkTransferFare}</a></div>
+      <ul class="hero-benefits">{#each c.benefits.slice(0, 3) as benefit}<li>{benefit}</li>{/each}</ul>
     </div>
   </section>
 
@@ -151,19 +149,7 @@
     <div class="section-heading"><div><h2 id="packages-title">{c.tourHeading}</h2><p>{c.tourIntro}</p></div></div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
-      {#each packages as item, index}
-        {@const gallery = packageGallery(item)}
-        <article class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
-          <PhotoGallery images={gallery} name={item.name} {locale} href={`/${locale}/paket-wisata/${item.slug}`} compact />
-          <div class="package-body">
-            <h3 itemprop="name">{item.name}</h3>
-            <div class="package-facts"><span>{item.category}</span><span><UiIcon name="clock" />{item.duration}</span></div>
-            <p class="package-route" itemprop="description"><UiIcon name="pin" />{item.route}</p>
-            <div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div>
-            <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = packageBooking(item)}>{c.bookTour}</button></div>
-          </div>
-        </article>
-      {/each}
+      {#each packages as item}<TourCard {item} {locale} onBook={() => booking = packageBooking(item)} />{/each}
     </div>
   </section>
 
@@ -199,10 +185,7 @@
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
-  <section class="faq section" id="faq" aria-labelledby="faq-title" data-whatsapp-float-avoid use:reveal itemscope itemtype="https://schema.org/FAQPage">
-    <h2 id="faq-title">{c.faqHeading}</h2>
-    <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
-  </section>
+  <FaqSection {faqs} {locale} />
 </main>
 
 <SiteFooter {settings} {locale} {rentalEnabled} homepage />

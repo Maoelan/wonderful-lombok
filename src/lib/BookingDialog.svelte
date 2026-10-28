@@ -4,6 +4,7 @@
   import { createIdempotencyKey } from './idempotency.js';
   import { todayInWita } from './date.js';
   import { bookingErrorMessage, getFormCopy } from './i18n.js';
+  import { imageSrcset, imageUrl } from './image.js';
   export let booking = null;
   export let whatsapp = '';
   export let locale = 'id';
@@ -103,8 +104,11 @@
     <div class="booking-dialog" use:focusDialog role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
       <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
       <div class="booking-body">
+        <div class="booking-context">
+        {#if booking.image}<img class="booking-photo" src={imageUrl(booking.image, 640)} srcset={imageSrcset(booking.image, [480,640,800])} sizes="(max-width: 760px) 90vw, 300px" alt="" width="640" height="480" />{/if}
         <p class="label">{t.booking}</p><h2 id="booking-title">{booking.name}</h2>
         <p>{t.bookingIntro}</p>
+        {#if booking.route}<p class="booking-route">{booking.route}</p>{/if}
         {#if booking.duration || booking.price}
           <dl class="booking-summary">
             {#if booking.duration}<div><dt>{t.packageDuration}</dt><dd>{booking.duration}</dd></div>{/if}
@@ -112,7 +116,9 @@
           </dl>
           {#if booking.price}<p class="booking-price-notice">{t.priceConfirmation}</p>{/if}
         {/if}
+        </div>
         <form on:submit|preventDefault={submit}>
+          <h3>{t.customerDetails}</h3>
           <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
           <label><span>{t.fullName}</span><input bind:value={name} autocomplete="name" required /></label>
           <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" required /></label>
