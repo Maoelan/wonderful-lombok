@@ -1,0 +1,133 @@
+/* Owner-approved travel refresh: photo-led public pages, unchanged service contracts. */
+body .site-theme, body .admin-shell, body .login-page {
+  --color-ink: #182b33;
+  --color-body: #52616b;
+  --color-surface: #fff;
+  --color-surface-muted: #faf8f4;
+  --color-accent-tint: #f2eadf;
+  --color-accent: #b99a68;
+  --color-border: #e3e7e7;
+  --color-control: #86969c;
+}
+body .site-theme.theme-ocean, body .admin-shell.theme-ocean, body .login-page.theme-ocean {
+  --color-primary: #0b5263;
+  --color-primary-deep: #073e4b;
+}
+body .site-theme { background: var(--color-surface); color: var(--color-ink); }
+body .site-theme .section { width: min(1200px, calc(100% - 64px)); }
+body .site-theme .site-header { min-height: 80px; padding-block: 6px; }
+body .site-theme .brand-logo { height: 64px; }
+body .site-theme .language-picker summary { min-width: 66px; min-height: 44px; padding: 8px 28px 8px 12px; gap: 0; background: transparent; }
+body .site-theme .language-picker summary > img, body .site-theme .language-name { display: none; }
+body .site-theme .language-code { font-size: 13px; font-weight: 650; }
+body .site-theme .language-menu a img { display: block; }
+body .site-theme .hero { display: flex; align-items: center; width: 100%; min-height: 440px; padding: 0; margin: 0; border-radius: 0; background: #102b30; color: white; }
+body .site-theme .hero .hero-image { inset: 0; width: 100%; height: 100%; }
+body .site-theme .hero .hero-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 58%; }
+/* Neutral photo scrim for text contrast; never embedded in the generated photograph. */
+body .site-theme .hero .hero-shade { display: block; position: absolute; inset: 0; background: linear-gradient(90deg, #000a, #0003 60%, #0000); }
+body .site-theme .hero .hero-copy { position: relative; z-index: 1; width: min(1200px, calc(100% - 64px)); padding: 48px 0; margin-inline: auto; }
+body .site-theme .hero-copy h1 { max-width: 700px; margin: 0 0 18px; color: white; font-size: clamp(36px, 3.6vw, 52px); line-height: 1.15; overflow-wrap: normal; }
+body .site-theme .hero .hero-intro { max-width: 56ch; color: white; font-size: 17px; line-height: 1.65; margin: 0; }
+body .site-theme .hero-actions { display: flex; align-items: stretch; justify-content: start; gap: 12px; margin-top: 24px; }
+body .site-theme .hero-actions .button { min-width: 190px; padding-inline: 20px; }
+body .site-theme .hero-actions .secondary { background: transparent; border: 1px solid #fff; color: #fff; }
+body .site-theme .hero-actions .secondary:hover { background: #ffffff1a; }
+body .site-theme .packages { padding: 40px 0 48px; }
+body .site-theme .section-heading { margin-bottom: 22px; }
+body .site-theme .section-heading h2, body .site-theme .pickup-intro h2, body .site-theme .about h2, body .site-theme .faq h2 { max-width: 760px; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.25; }
+body .site-theme .section-heading > div > p { margin-top: 8px; font-size: 15px; color: var(--color-body); }
+body .site-theme .package-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+body .site-theme .package-list > .package-card:nth-of-type(n) { display: grid; grid-column: auto; grid-row: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; border: 0; background: var(--color-surface-muted); box-shadow: none; border-radius: 6px; }
+body .site-theme .package-list .package-card .card-image-button { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
+body .site-theme .package-body { display: flex; flex-direction: column; padding: 20px; }
+body .site-theme .package-body h3 { min-height: 2.8em; margin: 0 0 12px; font-size: 19px; line-height: 1.4; }
+body .site-theme .package-facts { flex-wrap: wrap; justify-content: start; gap: 6px 16px; font-size: 13px; }
+body .site-theme .package-body .package-route { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: var(--color-body); }
+body .site-theme .package-price { padding: 20px 0 0; gap: 6px; }
+body .site-theme .package-price strong { font-size: 21px; color: var(--color-ink); }
+body .site-theme .package-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+body .site-theme .package-actions .inline-book { flex: 1; justify-content: center; min-height: 44px; gap: 8px; }
+body .site-theme .package-book { min-height: 44px; padding: 8px 4px; background: transparent; color: var(--color-primary); text-decoration: underline; text-underline-offset: 4px; font-size: 13px; }
+body .site-theme .destinations { padding-bottom: 48px; }
+body .site-theme .destinations .section-heading > p { display: none; }
+body .site-theme .destination-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: 170px; gap: 14px; }
+body .site-theme .destination-grid .destination-card { position: relative; display: block; border-radius: 5px; overflow: hidden; }
+body .site-theme .destination-grid .destination-card.wide { grid-column: auto; grid-row: auto; min-height: 0; }
+body .site-theme .destination-grid .destination-card > img { width: 100%; height: 100%; object-fit: cover; }
+body .site-theme .destination-grid .destination-card > div { position: absolute; inset: auto 0 0; padding: 38px 12px 12px; min-height: 0; background: linear-gradient(0deg, #000b, #0000); }
+body .site-theme .destination-grid .destination-card h3 { color: white; font-size: 16px; }
+body .site-theme .travel-section { padding: 40px 0; background: var(--color-surface-muted); }
+body .site-theme .pickup-block { padding-top: 0; }
+body .site-theme .pickup-intro { display: block; margin-bottom: 24px; }
+body .site-theme .pickup-intro p { max-width: 70ch; margin: 10px 0 0; color: var(--color-body); font-size: 15px; }
+body .site-theme .pickup-shell { gap: 24px; }
+body .site-theme .pickup-fields, body .site-theme .quote { padding: 22px; border: 0; border-radius: 6px; box-shadow: none; }
+body .site-theme .map { min-height: 300px; }
+body .site-theme .quote-details { display: grid; gap: 16px; min-width: 0; margin: 8px 0 0; padding: 10px 0 0; border: 0; }
+body .site-theme .quote-details legend { padding: 0; font-size: 18px; font-weight: 700; color: var(--color-ink); }
+body .site-theme .quote-details label { margin: 0; }
+body .site-theme .quote > small { margin-top: 10px; line-height: 1.6; }
+body .site-theme .about { padding: 48px 0; gap: 40px; }
+body .site-theme .about-image { height: 300px; }
+body .site-theme .faq { padding-bottom: 48px; gap: 40px; }
+body .site-theme .faq-list details { border: 0; border-radius: 0; background: var(--color-surface-muted); }
+body .site-theme .faq-list details + details { margin-top: 8px; }
+body .site-theme .tour-hero { border: 0; border-radius: 0; background: transparent; align-items: start; }
+body .site-theme .tour-main-image { height: 400px; }
+body .site-theme .tour-summary { padding: 20px 0 20px 32px; }
+body .site-theme .tour-summary h1 { margin: 8px 0 18px; }
+body .site-theme .tour-route { margin-top: 18px; }
+body .site-theme .destination-related { margin-top: 32px; }
+body .site-theme .destination-related .section-heading { gap: 24px; }
+body .site-theme .destination-related h2 { font-size: 28px; }
+body .site-theme .itinerary-list article { padding: 18px 0; border: 0; border-radius: 0; background: transparent; }
+body .site-theme .tour-inclusions > div { padding: 0 0 24px; border-radius: 0; background: transparent; }
+body .site-theme .tour-content { padding: 36px 0; gap: 40px; }
+body .site-theme .booking-body { padding: 28px; }
+body .site-theme .booking-dialog h2 { font-size: 26px; margin-bottom: 12px; }
+body .site-theme .booking-summary { padding: 12px; gap: 8px; margin-block: 14px 10px; background: var(--color-surface-muted); }
+body .site-theme .booking-body .booking-price-notice { margin-bottom: 18px; font-size: 13px; }
+body .site-theme .booking-body form { gap: 14px; }
+body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 13px; color: inherit; }
+@media (min-width: 761px) and (max-width: 1000px) {
+  body .site-theme .package-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body .site-theme .destination-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  body .site-theme .section { width: calc(100% - 32px); }
+  body .site-theme .site-header { min-height: 72px; }
+  body .site-theme .hero { min-height: 410px; align-items: end; }
+  body .site-theme .hero .hero-copy { width: calc(100% - 40px); padding: 34px 0 28px; }
+  body .site-theme .hero .hero-image img { object-position: 67% center; }
+  body .site-theme .hero .hero-shade { background: linear-gradient(0deg, #000c, #0005 68%, #0001); }
+  body .site-theme .hero-copy h1 { max-width: 430px; font-size: clamp(28px, 7.3vw, 34px); line-height: 1.2; margin-bottom: 14px; }
+  body .site-theme .hero .hero-intro { font-size: 15px; line-height: 1.6; }
+  body .site-theme .hero-actions { flex-direction: column; gap: 10px; margin-top: 20px; }
+  body .site-theme .hero-actions .button { min-width: 0; width: 100%; }
+  body .site-theme .packages { padding: 30px 0 36px; }
+  body .site-theme .section-heading { margin-bottom: 18px; }
+  body .site-theme .section-heading h2, body .site-theme .pickup-intro h2, body .site-theme .about h2, body .site-theme .faq h2 { font-size: 25px; }
+  body .site-theme .package-list { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  body .site-theme .package-body { padding: 16px; }
+  body .site-theme .package-body h3 { min-height: 0; font-size: 19px; }
+  body .site-theme .package-price { padding-top: 16px; }
+  body .site-theme .package-actions { gap: 8px 12px; }
+  body .site-theme .destinations { padding-bottom: 36px; }
+  body .site-theme .destination-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 150px; gap: 12px; }
+  body .site-theme .destination-grid .destination-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  body .site-theme .travel-section { padding: 32px 0; }
+  body .site-theme .pickup-shell { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  body .site-theme .pickup-fields, body .site-theme .quote { padding: 16px; }
+  body .site-theme .quote-details { gap: 16px; }
+  body .site-theme .about { padding: 36px 0; gap: 24px; }
+  body .site-theme .about-image { height: 240px; }
+  body .site-theme .faq { padding-bottom: 36px; }
+  body .site-theme .tour-main-image { height: auto; aspect-ratio: 4 / 3; }
+  body .site-theme .tour-summary { padding: 22px 0 0; }
+  body .site-theme .destination-related { margin-top: 30px; }
+  body .site-theme .destination-related h2 { font-size: 25px; }
+  body .site-theme .booking-body { padding: 22px 18px; }
+  body .site-theme .booking-dialog h2 { font-size: 23px; }
+  body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+}

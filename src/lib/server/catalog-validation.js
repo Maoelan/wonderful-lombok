@@ -1,5 +1,6 @@
 import { slugify } from '../i18n.js';
 import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
+import { isDemoImage } from '../demo-images.js';
 
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
@@ -46,6 +47,7 @@ function isLocalConvexStorageImage(value, allowLocalConvexStorage) {
 
 export function validImage(value, { allowLocalConvexStorage = false } = {}) {
   if (!value) return true;
+  if (isDemoImage(value)) return true;
   if (/^\/uploads\/[a-zA-Z0-9-]+\.(jpg|png|webp)$/.test(value || '')) return true;
   if (isLocalConvexStorageImage(value, allowLocalConvexStorage)) return true;
   if (!validUrl(value)) return false;

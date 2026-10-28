@@ -9,6 +9,7 @@
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
+  import { isDemoImage } from '../lib/demo-images.js';
 
   export let data;
   let menuOpen = false;
@@ -33,6 +34,7 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
+  $: illustrativeImages = [settings.heroImage, settings.aboutImage, ...packages.map(item => item.image), ...destinations.map(item => item.image)].some(isDemoImage);
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
@@ -133,32 +135,31 @@
     <div class="hero-copy">
       <h1 id="hero-title">{settings.heroTitle}</h1>
       <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
+      <div class="hero-actions"><a class="button primary" href="#paket">{c.heroPrimary}</a><a class="button secondary" href="#hitung-travel">{formCopy.checkTransferFare}</a></div>
     </div>
   </section>
 
-  <section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
+  {#if rentalEnabled}<section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
     <div class="choice-heading sr-only"><h2 id="choice-title">{c.start}</h2><p>{c.choiceTitle}</p></div>
     <div class:without-rental={!rentalEnabled} class="choice-list">
       <a class="service-tile" href={localePath(locale, '/paket-wisata')}><UiIcon name="palm" /><span><strong>{c.tours}</strong><span>{c.tourChoice}</span></span><UiIcon name="chevron" /></a>
       <a class="service-tile" href="#hitung-travel"><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
       {#if rentalEnabled}<article><UiIcon name="travel" /><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
-  </section>
+  </section>{/if}
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div></div>
+    <div class="section-heading"><div><h2 id="packages-title">{c.tourHeading}</h2><p>{c.tourIntro}</p></div></div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
+        <article class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
           <a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a>
           <div class="package-body">
             <h3 itemprop="name">{item.name}</h3>
             <div class="package-facts"><span>{item.category}</span><span><UiIcon name="clock" />{item.duration}</span></div>
             <p class="package-route" itemprop="description"><UiIcon name="pin" />{item.route}</p>
-            {#if index === 0}<div class="package-description rich-content">{@html item.detail}</div>{/if}
-            {#if item.includes?.length}<ul class="package-inclusions">{#each item.includes.slice(0, 2) as inclusion}<li>{inclusion}</li>{/each}</ul>{/if}
             <div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div>
             <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = packageBooking(item)}>{c.bookTour}</button></div>
           </div>
@@ -177,12 +178,8 @@
   </section>
 
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
-    <div class="section travel-heading" use:reveal>
-      <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
-    </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
-      <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
+      <div class="pickup-intro"><div><h2 id="travel-title">{formCopy.checkTransferFare}</h2></div><p>{c.transferIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p></div>
       <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
@@ -214,6 +211,7 @@
   <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#hitung-travel">{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a><span><UiIcon name="pin" />{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
+  {#if illustrativeImages}<p class="image-disclosure">{c.imageNotice}</p>{/if}
 </footer>
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 <WhatsAppFloat whatsapp={settings.whatsapp} {locale} />

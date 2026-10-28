@@ -18,7 +18,7 @@
 <details bind:this={picker} class:prominent class="language-picker">
   <summary aria-label={`${copy.language}: ${current.name}`}>
     <img src={`/flags/${current.flag}.png`} alt="" />
-    <span>{current.name}</span>
+    <span class="language-name">{current.name}</span><span class="language-code" aria-hidden="true">{current.code.toUpperCase()}</span>
   </summary>
   <div class="language-menu">
     {#each languages as language}<a class:active={language.code === locale} href={localePath(language.code, suffix)} hreflang={language.hreflang}><img src={`/flags/${language.flag}.png`} alt="" /><span>{language.name}</span></a>{/each}

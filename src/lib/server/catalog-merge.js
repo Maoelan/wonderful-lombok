@@ -4,6 +4,7 @@ import { normalizeDestinationSlugs } from '../catalog-relations.js';
 import { destinationSlug, slugify } from '../i18n.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
 import { refreshLegacyHeroSettings } from '../hero-copy.js';
+import { refreshDemoImages } from '../demo-images.js';
 
 export function mergeCatalogData(data = defaultCatalog) {
   const source = data || defaultCatalog;
@@ -59,7 +60,7 @@ export function mergeCatalogData(data = defaultCatalog) {
   const defaultRental = (item) => rentalDefaultsBySlug.get(item?.slug) || rentalDefaultsByName.get(item?.name) || {};
   const defaultFaq = (item) => faqDefaultsBySlug.get(item?.slug) || faqDefaultsByQuestion.get(item?.question) || {};
 
-  return sanitizeCatalogRichText({
+  return sanitizeCatalogRichText(refreshDemoImages({
     ...defaultCatalog,
     ...source,
     schemaVersion: source.schemaVersion ?? CATALOG_SCHEMA_VERSION,
@@ -74,5 +75,5 @@ export function mergeCatalogData(data = defaultCatalog) {
       const fallback = defaultFaq(item);
       return { ...fallback, ...item, slug: item?.slug || fallback.slug || slugify(item?.question) };
     })
-  });
+  }));
 }

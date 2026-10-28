@@ -1,5 +1,6 @@
 import { CATALOG_SCHEMA_VERSION } from './catalog-schema.js';
 import { heroCopy } from './hero-copy.js';
+import { refreshDemoImages } from './demo-images.js';
 
 const commons = (file) => `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file).replace(/'/g, '%27')}?width=1600`;
 const p = {
@@ -13,7 +14,7 @@ const p = {
   trail: commons('Track ke plawangan sembalun dari segara anak, TN Gunung Rinjani.jpg')
 };
 
-export const defaultCatalog = {
+const seedCatalog = {
   schemaVersion: CATALOG_SCHEMA_VERSION,
   travelRate: 10_000,
   settings: {
@@ -84,3 +85,5 @@ export const defaultCatalog = {
     { slug: 'rental-motor', symbol: '🛵', name: 'Rental Motor', nameEn: 'Motorbike Rental', detail: 'Untuk perjalanan mandiri. Unit, helm, syarat identitas, area pengantaran, dan durasi sewa dikonfirmasi melalui WhatsApp.', detailEn: 'For independent travel. Bike availability, helmets, identification, delivery area, and rental period are confirmed through WhatsApp.', price: 'Mulai Rp75.000 per 24 jam', priceEn: 'From IDR 75,000 per 24 hours' }
   ]
 };
+
+export const defaultCatalog = refreshDemoImages(seedCatalog);

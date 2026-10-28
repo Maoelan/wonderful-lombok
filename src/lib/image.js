@@ -9,6 +9,10 @@ function canUseVercelImages() {
 
 function resizedSource(source, width) {
   if (!source || !width) return source;
+  if (/^\/images\/lombok-ai\/[a-z-]+-\d+\.webp$/.test(source)) {
+    const size = [480, 720, 960, 1280, 1600].find(size => size >= width) || 1600;
+    return source.replace(/-\d+\.webp$/, `-${size}.webp`);
+  }
   try {
     const url = new URL(source);
     if (url.hostname === 'commons.wikimedia.org' && url.pathname.includes('/Special:Redirect/file/')) {
@@ -27,10 +31,15 @@ function resizedSource(source, width) {
 
 export function imageUrl(source, width) {
   const resized = resizedSource(source, width);
+  if (resized?.startsWith('/images/lombok-ai/')) return resized;
   if (!canUseVercelImages() || !resized) return resized;
   return `/_vercel/image?url=${encodeURIComponent(resized)}&w=${width}&q=${VERCEL_IMAGE_QUALITY}`;
 }
 
 export function imageSrcset(source, widths) {
+  if (source?.startsWith('/images/lombok-ai/')) {
+    const sizes = [...new Set(widths.map(width => [480, 720, 960, 1280, 1600].find(size => size >= width) || 1600))];
+    return sizes.map(width => `${imageUrl(source, width)} ${width}w`).join(', ');
+  }
   return widths.map((width) => `${imageUrl(source, width)} ${width}w`).join(', ');
 }

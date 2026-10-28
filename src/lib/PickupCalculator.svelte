@@ -628,10 +628,12 @@
       <div><span>{t.from}</span><b>{origin?.name ?? t.notSelected}</b></div>
       <div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div>
     </div>
+    <fieldset class="quote-details"><legend>{t.customerDetails}</legend>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>
     <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" /></label>
     <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} on:focus={() => (today = todayInWita())} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" min={minimumPickupTime || undefined} /></label></div>
     <label><span>{t.passengers}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
+    </fieldset>
     {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{t.bookingOpened}</p>{/if}
     <button class="submit" type="submit" disabled={submitting}>{submitting ? t.saving : t.bookTravel}</button>
     <small>{t.estimateNote}</small>

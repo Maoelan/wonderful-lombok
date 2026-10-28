@@ -1,3 +1,5 @@
+import { getJourneyCopy } from './journey-copy.js';
+
 export const languages = [
   { code: 'en', name: 'English', flag: 'gb', hreflang: 'en' },
   { code: 'zh-cn', name: '中文（简体）', flag: 'cn', hreflang: 'zh-Hans' },
@@ -74,7 +76,8 @@ export function getCopy(locale) {
     de: { home: 'Startseite', itineraryHeading: 'Ihr Reiseablauf', priceHeading: 'Preise nach Gruppengröße', readyTitle: 'Bereit, Lombok zu entdecken?', customItinerary: 'Benötigen Sie eine individuelle Route?', image: 'Bild', viewImage: 'Bild ansehen' },
     ms: { home: 'Laman utama', itineraryHeading: 'Jadual perjalanan anda', priceHeading: 'Harga mengikut bilangan tetamu', readyTitle: 'Bersedia meneroka Lombok?', customItinerary: 'Perlukan jadual khas?', image: 'gambar', viewImage: 'Lihat gambar' }
   };
-  return locale === 'id' ? id : { ...en, ...(translated[locale] || {}), ...(supplemental[locale] || {}), ...(detailTranslations[locale] || {}) };
+  const base = locale === 'id' ? id : { ...en, ...(translated[locale] || {}), ...(supplemental[locale] || {}), ...(detailTranslations[locale] || {}) };
+  return { ...base, ...getJourneyCopy(locale) };
 }
 
 const formId = { pickup: 'Lokasi jemput', destination: 'Tujuan', address: 'Ketik alamat, lalu tekan Enter', searching: 'Mencari…', useLocation: 'Gunakan lokasi saya', locating: 'Mencari GPS…', popular: 'Atau pilih lokasi populer', guidance: 'Ketik alamat lalu tekan Enter, pilih lokasi populer, atau klik langsung pada peta.', loadingMap: 'Memuat peta Lombok', findingRoute: 'Mencari rute jalan', estimate: 'Estimasi perjalanan', calculating: 'Menghitung…', rate: 'Tarif per km rute jalan', from: 'Dari', to: 'Ke', notSelected: 'Belum dipilih', customer: 'Nama pemesan', fullName: 'Nama lengkap', whatsapp: 'Nomor WhatsApp', date: 'Tanggal', time: 'Waktu', passengers: 'Jumlah penumpang', bookTravel: 'Pesan Paket Travel via WhatsApp', estimateNote: 'Harga merupakan perkiraan. Tim Wonderful Lombok akan mengonfirmasi detail perjalanan melalui WhatsApp.', bookNow: 'Pesan Sekarang', close: 'Tutup', booking: 'Permintaan pemesanan', bookingIntro: 'Isi data singkat berikut, lalu lanjutkan konfirmasi melalui WhatsApp.', travelDate: 'Tanggal perjalanan', guests: 'Jumlah peserta', notes: 'Catatan opsional', notesPlaceholder: 'Permintaan khusus atau lokasi penjemputan', saveContinue: 'Simpan dan lanjut ke WhatsApp', saving: 'Menyimpan…', destinationDetails: 'Detail destinasi', previousImage: 'Gambar sebelumnya', nextImage: 'Gambar berikutnya' };
@@ -321,5 +324,5 @@ const publicFlowCopy = {
 
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), ...(publicFlowCopy[locale] || publicFlowCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), ...(publicFlowCopy[locale] || publicFlowCopy.en), ...getJourneyCopy(locale), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
 }
