@@ -75,15 +75,15 @@ body .site-theme .faq { display: block; padding-block: 12px 48px; }
 body .site-theme .faq h2 { margin-bottom: 24px; }
 body .site-theme .faq-list { gap: 8px; }
 body .site-theme .faq-list details { border: 0; border-radius: 5px; background: var(--color-surface-muted); }
-body .site-theme .faq-list summary { display: flex; align-items: center; min-height: 64px; padding: 16px 60px 16px 22px; font-size: 16px; line-height: 1.5; }
-body .site-theme .faq-list summary::after { top: 50%; right: 22px; transform: translateY(-50%); }
+body .site-theme .faq-list summary { position: relative; display: flex; align-items: center; min-height: 64px; padding: 16px 60px 16px 22px; font-size: 16px; line-height: 1.5; }
+body .site-theme .faq-list summary::after { position: absolute; display: grid; place-items: center; width: 24px; height: 24px; top: 50%; right: 22px; font-size: 22px; line-height: 1; transform: translateY(-50%); }
 body .site-theme .faq-list details[open] { background: var(--color-accent-tint); }
-body .site-theme .faq-list details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+body .site-theme .faq-list details[open] summary::after { transform: translateY(-50%); }
 body .site-theme .faq-list details > div { padding: 0 22px 20px; max-width: 85ch; line-height: 1.7; }
 body .site-theme footer.travel-footer { padding: 28px max(32px, calc((100% - 1200px) / 2)); }
 body .site-theme .travel-footer-main { grid-template-columns: minmax(0, 1fr) minmax(150px, .7fr) minmax(0, 1.25fr); gap: 32px; align-items: start; }
 body .site-theme .travel-footer-brand > a { width: fit-content; min-height: 0; }
-body .site-theme .travel-footer-brand img { display: block; width: 124px; height: 62px; object-fit: contain; }
+body .site-theme .travel-footer-brand img { display: block; width: 160px; height: 80px; object-fit: contain; }
 body .site-theme .travel-footer-brand p { margin: 8px 0 0; line-height: 1.6; max-width: 29ch; }
 body .site-theme .travel-footer nav { gap: 0; }
 body .site-theme .travel-footer nav a { font-weight: 600; }
@@ -173,7 +173,7 @@ body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 
   body .site-theme footer.travel-footer { padding: 24px 16px; }
   body .site-theme .travel-footer-main { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   body .site-theme .travel-footer-brand { display: flex; align-items: center; gap: 16px; }
-  body .site-theme .travel-footer-brand img { width: 100px; height: 50px; }
+  body .site-theme .travel-footer-brand img { width: 124px; height: 62px; flex-shrink: 0; }
   body .site-theme .travel-footer-brand p { margin: 0; font-size: 13px; }
   body .site-theme .travel-footer nav { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; }
   body .site-theme .travel-footer-contact { grid-column: auto; }

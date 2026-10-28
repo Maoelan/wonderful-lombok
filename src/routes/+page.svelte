@@ -199,7 +199,7 @@
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
-  <section class="faq section" id="faq" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
+  <section class="faq section" id="faq" aria-labelledby="faq-title" data-whatsapp-float-avoid use:reveal itemscope itemtype="https://schema.org/FAQPage">
     <h2 id="faq-title">{c.faqHeading}</h2>
     <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
   </section>
