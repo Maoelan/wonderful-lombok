@@ -4,6 +4,17 @@ import { readFileSync } from 'node:fs';
 
 const source = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
+test('tour dropdown remains available on catalogue and package detail pages', () => {
+  const header = source('../src/lib/SiteHeader.svelte');
+  assert.doesNotMatch(header, /onToursPage/);
+  assert.match(header, /<summary>\{c.tours\}<\/summary>/);
+  assert.match(header, /\{#each packages as item\}/);
+  for (const path of ['../src/routes/[lang]/paket-wisata/+page.svelte', '../src/routes/[lang]/paket-wisata/[slug]/+page.svelte']) {
+    assert.match(source(path), /packages=\{data.catalog.packages\}/);
+    assert.match(source(path), /destinations=\{data.catalog.destinations\}/);
+  }
+});
+
 test('destination detail headers retain the complete destination dropdown', () => {
   const header = source('../src/lib/SiteHeader.svelte');
   assert.doesNotMatch(header, /onDestinationsPage/);

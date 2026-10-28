@@ -12,7 +12,6 @@
   let header;
   $: c = getCopy(locale);
   $: home = localePath(locale);
-  $: onToursPage = suffix === '/paket-wisata' || suffix.startsWith('/paket-wisata/');
   function closeMenu() {
     menuOpen = false;
     if (tourMenu) tourMenu.open = false;
@@ -41,9 +40,6 @@
   <div class="mobile-language"><LanguageSelector {locale} {suffix} prominent /></div>
   <button bind:this={toggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="page-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
   <nav id="page-navigation" class:open={menuOpen} aria-label={c.menu}>
-    {#if onToursPage}
-    <a href={localePath(locale, '/paket-wisata')} on:click={closeMenu}>{c.tours}</a>
-    {:else}
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
       <div class="nav-dropdown-menu">
@@ -51,7 +47,6 @@
         {#each packages as item}<a href={localePath(locale, `/paket-wisata/${item.slug}`)} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
       </div>
     </details>
-    {/if}
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">

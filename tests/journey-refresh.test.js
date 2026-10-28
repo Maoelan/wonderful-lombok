@@ -82,15 +82,14 @@ test('swap uses a balanced SVG and locale picker retains its current flag', () =
   assert.match(language, /\/flags\/\$\{current.flag\}\.png/);
 });
 
-test('shared photo gallery supports manual controls and bounded, interruptible autoplay', () => {
+test('shared photo gallery is manual, swipeable, and has no playback controls', () => {
   const source=readFileSync(new URL('../src/lib/PhotoGallery.svelte',import.meta.url),'utf8');
-  for (const guard of ['visible', '!hovered', '!focused', '!stopped', '!reducedMotion', '!document.hidden']) assert.ok(source.includes(guard), guard);
-  assert.match(source, /clearInterval\(timer\)/);
-  assert.match(source, /observer\.disconnect\(\)/);
-  assert.match(source, /removeEventListener\('change', updateMotion\)/);
+  assert.doesNotMatch(source, /setInterval|photo-rotation|rotationLabels|Pause slideshow|Jeda pergantian/);
   assert.match(source, /on:pointercancel/);
   assert.match(source, /event\.preventDefault\(\); suppressClick = false/);
-  assert.match(source, /disabled=\{reducedMotion\}/);
+  assert.match(source, /\{#if !compact\}\s*<button class="photo-arrow/);
+  assert.match(source, /class="photo-indicators"/);
+  assert.match(source, /aria-pressed=\{index === i\}/);
   assert.match(source, /aria-label=\{t\.previousImage\}/);
   assert.match(source, /aria-label=\{t\.nextImage\}/);
 });

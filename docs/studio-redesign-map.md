@@ -42,3 +42,7 @@ Additional existing surfaces without a separate mockup: login, 404/error, SEO la
 Public: three tour columns on desktop, two on tablet, one on narrow phones; photos retain ratios, menus fit the viewport, gallery controls have 44px targets. Admin: desktop sidebar and sticky save bar, table/list catalogue, grouped editor with preview rail; tablet collapses sidebar and preview rail; phones use one content region, folded navigation, stacked fields and a compact sticky save control. Do not hide data to make a layout fit.
 
 No new direction is drawn: this is a direct adaptation of an owner-selected mockup. Its quiet working borders, gentle panel radii and small contextual section labels are intentional reference-design exceptions to the generic page-skill defaults.
+
+## Owner follow-up: manual galleries and persistent menus
+
+The later owner clarification supersedes automatic photo rotation: galleries are manual, with no pause/play controls or timer. Compact cards use touch swiping, keyboard arrows and clickable photo indicators, without overlaid chevrons; detail galleries retain bare chevrons and thumbnails. Both package and destination dropdowns remain available on every public page, including package catalogue/detail pages. The shared footer uses a light, compact horizontal brand/navigation layout on desktop and stacked, wrapping navigation/contact rows on phones. No business data or CMS persistence changes are involved.
