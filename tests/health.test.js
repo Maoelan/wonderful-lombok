@@ -24,11 +24,27 @@ test('readiness requires the Convex configuration', () => {
 });
 
 test('production readiness also requires the canonical site URL', () => {
-  const production = { ...baseEnv, NODE_ENV: 'production' };
+  const production = { ...baseEnv, NODE_ENV: 'production', PUBLIC_MAPBOX_TOKEN: 'pk.test-placeholder' };
 
   assert.equal(configReadiness(production).ready, false);
   assert.deepEqual(configReadiness(production).missing, ['PUBLIC_SITE_URL']);
   assert.equal(configReadiness({ ...production, PUBLIC_SITE_URL: 'https://wonderful-lombok.example' }).ready, true);
+});
+
+test('production readiness requires the browser map token even when a server token exists', async () => {
+  const production = { ...baseEnv, NODE_ENV: 'production', PUBLIC_SITE_URL: 'https://wonderful-lombok.example', MAPBOX_SERVER_TOKEN: 'test-server-token' };
+  let calls = 0;
+  const report = await readinessReport({ env: production, checkDependency: async () => { calls += 1; } });
+  assert.equal(report.ready, false);
+  assert.deepEqual(report.missing, ['PUBLIC_MAPBOX_TOKEN']);
+  assert.equal(calls, 0);
+  assert.equal(configReadiness({ ...production, PUBLIC_MAPBOX_TOKEN: '   ' }).ready, false);
+  assert.equal(configReadiness({ ...production, PUBLIC_MAPBOX_TOKEN: 'pk.test-placeholder' }).ready, true);
+});
+
+test('production readiness allows server-side fallback to the public map token', () => {
+  const production = { ...baseEnv, NODE_ENV: 'production', PUBLIC_SITE_URL: 'https://wonderful-lombok.example', PUBLIC_MAPBOX_TOKEN: 'pk.test-placeholder' };
+  assert.equal(configReadiness(production).ready, true);
 });
 
 test('readiness checks the Convex dependency when configuration is present', async () => {

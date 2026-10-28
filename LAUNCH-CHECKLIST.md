@@ -9,7 +9,7 @@ Use this checklist for every production release. It complements [SECURITY.md](SE
 - [ ] Run `npm test`; all tests must pass.
 - [ ] Run `npm audit --audit-level=high`; record accepted residual findings.
 - [ ] Run the production build on Linux CI (`npm run build`). A local Windows build can stop at the Vercel adapter symlink step; that is an environment limitation, not a reason to skip CI.
-- [ ] Confirm CI and CodeQL are green for the release commit, or attach an explanation for any skipped job.
+- [ ] Confirm CI and Security (Semgrep) are green for the release commit, or attach an explanation for any skipped job.
 - [ ] Run `npm run scan:secrets`; CI runs the same high-confidence tracked-file scan. Keep repository secret scanning and push protection enabled where available.
 - [ ] Set `PUBLIC_SITE_URL` to the final HTTPS origin, without a trailing slash.
 - [ ] Confirm `PUBLIC_RENTAL_ENABLED=false` unless the owner has explicitly approved rentals for this release.
@@ -47,7 +47,7 @@ Then verify manually, still read-only:
 - [ ] `robots.txt` references the final-domain sitemap; `sitemap.xml` contains only public canonical URLs.
 - [ ] The rental section and rental sitemap entries are absent while `PUBLIC_RENTAL_ENABLED=false`.
 - [ ] `/api/health` returns `200` with `{"status":"ok"}`.
-- [ ] `/api/ready` returns `200` with `{"status":"ready"}`. A `503` means required configuration is missing or Convex is unreachable; do not expose internal error details.
+- [ ] `/api/ready` returns `200` with `{"status":"ready"}`. Production readiness requires the browser `PUBLIC_MAPBOX_TOKEN` even when a separate server token exists. A `503` means required configuration is missing or Convex is unreachable; do not expose internal error details. Readiness does not call the paid Mapbox APIs; verify token permissions and real routes separately.
 - [ ] Both health endpoints return `Cache-Control: no-store` and are marked `noindex`.
 - [ ] `/admin` redirects to `/login` without a session; `/api/admin/bookings` returns `401` or `403`.
 - [ ] `/admin`, `/login`, and `/api/` responses are not indexable.

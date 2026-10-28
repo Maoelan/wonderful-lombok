@@ -1,7 +1,7 @@
 import { logServerError } from './diagnostics.js';
 
 const BASE_REQUIRED_ENV = ['PUBLIC_CONVEX_URL', 'CONVEX_SERVER_SECRET'];
-const PRODUCTION_REQUIRED_ENV = [...BASE_REQUIRED_ENV, 'PUBLIC_SITE_URL'];
+const PRODUCTION_REQUIRED_ENV = [...BASE_REQUIRED_ENV, 'PUBLIC_SITE_URL', 'PUBLIC_MAPBOX_TOKEN'];
 
 function configured(env, name) {
   return String(env?.[name] || '').trim().length > 0;
