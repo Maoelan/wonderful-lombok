@@ -1,6 +1,6 @@
 <script>
-  import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
+  import { packageBooking } from '../lib/booking-context.js';
   import { createWhatsAppUrl, formatWhatsAppNumber } from '../lib/whatsapp.js';
   import { imageSrcset, imageUrl } from '../lib/image.js';
   import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
@@ -145,7 +145,7 @@
   </section>
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div><a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon /></a></div>
+    <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div></div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item, index}
@@ -159,7 +159,7 @@
             {#if index === 0}<div class="package-description rich-content">{@html item.detail}</div>{/if}
             {#if item.includes?.length}<ul class="package-inclusions">{#each item.includes.slice(0, 2) as inclusion}<li>{inclusion}</li>{/each}</ul>{/if}
             <div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div>
-            <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div>
+            <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = packageBooking(item)}>{c.bookTour}</button></div>
           </div>
         </article>
       {/each}
@@ -178,11 +178,7 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section travel-heading" use:reveal>
       <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
-    </div>
-    <div class="section pickup-block" id="hitung-travel" use:reveal>
-      <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
+      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl><a class="button primary" href={`${localePath(locale, '/travel-lombok')}#hitung-travel`}>{formCopy.checkTransferFare}<UiIcon /></a></div>
     </div>
   </section>
 

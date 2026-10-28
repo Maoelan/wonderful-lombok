@@ -105,6 +105,13 @@
       <div class="booking-body">
         <p class="label">{t.booking}</p><h2 id="booking-title">{booking.name}</h2>
         <p>{t.bookingIntro}</p>
+        {#if booking.duration || booking.price}
+          <dl class="booking-summary">
+            {#if booking.duration}<div><dt>{t.packageDuration}</dt><dd>{booking.duration}</dd></div>{/if}
+            {#if booking.price}<div><dt>{t.startingPrice}</dt><dd><strong>{booking.price}</strong>{#if booking.unit}<span>{booking.unit}</span>{/if}</dd></div>{/if}
+          </dl>
+          {#if booking.price}<p class="booking-price-notice">{t.priceConfirmation}</p>{/if}
+        {/if}
         <form on:submit|preventDefault={submit}>
           <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
           <label><span>{t.fullName}</span><input bind:value={name} autocomplete="name" required /></label>

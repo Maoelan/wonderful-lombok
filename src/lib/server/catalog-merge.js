@@ -3,6 +3,7 @@ import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
 import { normalizeDestinationSlugs } from '../catalog-relations.js';
 import { destinationSlug, slugify } from '../i18n.js';
 import { sanitizeCatalogRichText } from './rich-text.js';
+import { refreshLegacyHeroSettings } from '../hero-copy.js';
 
 export function mergeCatalogData(data = defaultCatalog) {
   const source = data || defaultCatalog;
@@ -62,7 +63,7 @@ export function mergeCatalogData(data = defaultCatalog) {
     ...defaultCatalog,
     ...source,
     schemaVersion: source.schemaVersion ?? CATALOG_SCHEMA_VERSION,
-    settings: { ...defaultCatalog.settings, ...source.settings },
+    settings: refreshLegacyHeroSettings({ ...defaultCatalog.settings, ...source.settings }),
     packages,
     destinations,
     rentals: (source.rentals || defaultCatalog.rentals).map((item) => {

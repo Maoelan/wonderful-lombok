@@ -308,7 +308,18 @@ const enquiryCopy = {
   ms: { enquiryLabel: 'Tanya melalui WhatsApp', enquiryMessage: 'Helo Wonderful Lombok, saya ingin bertanya tentang pakej pelancongan atau perkhidmatan jemput-hantar di Lombok.' }
 };
 
+const publicFlowCopy = {
+  id: { checkTransferFare: 'Cek tarif antar-jemput', packageDuration: 'Durasi', startingPrice: 'Harga mulai', priceConfirmation: 'Harga awal, bukan total otomatis. Tim mengonfirmasi harga akhir sesuai jumlah peserta dan rencana perjalanan.' },
+  en: { checkTransferFare: 'Check transfer fares', packageDuration: 'Duration', startingPrice: 'Starting price', priceConfirmation: 'This is a starting price, not an automatic total. The team confirms the final price for your group and itinerary.' },
+  'zh-cn': { checkTransferFare: '查询接送费用', packageDuration: '行程时长', startingPrice: '起价', priceConfirmation: '此价格为起价，并非自动计算的总价。团队会根据人数和行程确认最终价格。' },
+  'zh-tw': { checkTransferFare: '查詢接送費用', packageDuration: '行程時間', startingPrice: '起價', priceConfirmation: '此價格為起價，並非自動計算的總價。團隊會依人數和行程確認最終價格。' },
+  nl: { checkTransferFare: 'Bekijk transfertarieven', packageDuration: 'Duur', startingPrice: 'Vanafprijs', priceConfirmation: 'Dit is een vanafprijs, geen automatisch berekend totaal. Het team bevestigt de definitieve prijs voor uw groep en reisplan.' },
+  fr: { checkTransferFare: 'Voir les tarifs de transfert', packageDuration: 'Durée', startingPrice: 'Prix à partir de', priceConfirmation: 'Il s’agit d’un prix de départ, pas d’un total calculé automatiquement. L’équipe confirme le prix final selon votre groupe et votre itinéraire.' },
+  de: { checkTransferFare: 'Transferpreise prüfen', packageDuration: 'Dauer', startingPrice: 'Preis ab', priceConfirmation: 'Dies ist ein Einstiegspreis, kein automatisch berechneter Gesamtbetrag. Das Team bestätigt den Endpreis für Ihre Gruppe und Reiseroute.' },
+  ms: { checkTransferFare: 'Semak tambang jemput-hantar', packageDuration: 'Tempoh', startingPrice: 'Harga bermula', priceConfirmation: 'Ini harga permulaan, bukan jumlah automatik. Pasukan mengesahkan harga akhir mengikut bilangan peserta dan rancangan perjalanan.' }
+};
+
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), ...(publicFlowCopy[locale] || publicFlowCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
 }

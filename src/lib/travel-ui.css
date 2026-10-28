@@ -244,6 +244,11 @@ body .site-theme .booking-dialog { padding: 0; border-radius: 8px; background: v
 body .site-theme .booking-body { padding: 36px; }
 body .site-theme .booking-dialog h2 { padding-right: 52px; font-size: 32px; line-height: 1.2; }
 body .site-theme .booking-body > p { font-size: 14px; }
+body .site-theme .booking-summary { display: grid; gap: 12px; margin: 20px 0 12px; padding: 16px; background: var(--surface-soft); border-radius: 6px; }
+body .site-theme .booking-summary > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; gap: 12px; }
+body .site-theme .booking-summary dt { font-size: 14px; }
+body .site-theme .booking-summary dd { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0; overflow-wrap: anywhere; font-size: 14px; }
+body .site-theme .booking-price-notice { margin: 0; line-height: 1.6; }
 body .site-theme .booking-close { color: var(--ink); background: var(--surface-muted); border-radius: 50%; width: 44px; height: 44px; }
 body .site-theme .detail-dialog { border-radius: 8px; }
 body .site-theme .detail-copy h2 { font-size: 36px; }

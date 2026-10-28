@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const routes = [
-  ['Indonesian home', '../src/routes/+page.server.js'],
-  ['localized home', '../src/routes/[lang]/+page.server.js'],
   ['localized travel page', '../src/routes/[lang]/travel-lombok/+page.server.js']
 ];
 
@@ -15,7 +13,11 @@ for (const [name, path] of routes) {
   });
 }
 
-test('the shared home page forwards the token to the pickup calculator', () => {
+test('the homepage links to the travel workflow instead of loading another map', () => {
   const source = readFileSync(new URL('../src/routes/+page.svelte', import.meta.url), 'utf8');
-  assert.match(source, /<LazyPickupCalculator[^>]*mapboxToken=\{data\.mapboxToken\}/);
+  assert.doesNotMatch(source, /LazyPickupCalculator/);
+  assert.match(source, /href=\{`\$\{localePath\(locale, '\/travel-lombok'\)\}#hitung-travel`\}/);
+  for (const path of ['../src/routes/+page.server.js', '../src/routes/[lang]/+page.server.js']) {
+    assert.doesNotMatch(readFileSync(new URL(path, import.meta.url), 'utf8'), /mapboxToken:/);
+  }
 });

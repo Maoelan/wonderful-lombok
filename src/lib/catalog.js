@@ -1,4 +1,5 @@
 import { CATALOG_SCHEMA_VERSION } from './catalog-schema.js';
+import { heroCopy } from './hero-copy.js';
 
 const commons = (file) => `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file).replace(/'/g, '%27')}?width=1600`;
 const p = {
@@ -18,9 +19,7 @@ export const defaultCatalog = {
   settings: {
     whatsapp: '6281916550731', email: 'hello@wonderfullombok.com', location: 'Lombok, Nusa Tenggara Barat', instagram: '', tiktok: '', facebook: '',
     heroImage: p.aan2, aboutImage: p.sembalun, colorTheme: 'classic',
-    heroTitle: 'Lombok, dirancang sesuai caramu bepergian.', heroTitleEn: 'Lombok, planned around the way you travel.',
-    heroDescription: 'Pilih tur privat, antar-jemput antarlokasi, atau kendaraan dengan driver. Kami membantu merangkai rute yang masuk akal untuk waktu liburanmu.',
-    heroDescriptionEn: 'Choose a private tour, point-to-point transfer, or a vehicle with a driver. We help shape a route that fits the time you have.',
+    ...heroCopy.id, heroTitleEn: heroCopy.en.heroTitle, heroDescriptionEn: heroCopy.en.heroDescription,
     aboutTitle: 'Satu kontak untuk perjalananmu di Lombok.', aboutTitleEn: 'One contact for your Lombok journey.',
     aboutDescription: 'Mulai dari kedatangan di bandara, perjalanan antarpantai, hingga tur beberapa hari, setiap detail dikonfirmasi melalui WhatsApp sebelum keberangkatan.',
     aboutDescriptionEn: 'From airport arrival and beach transfers to multi-day tours, every detail is confirmed through WhatsApp before departure.'

@@ -1,5 +1,6 @@
 import { defaultCatalog } from '../catalog.js';
 import { destinationSlug, localeTag, slugify } from '../i18n.js';
+import { heroCopy } from '../hero-copy.js';
 
 const hasText = (value) => typeof value === 'string' ? value.trim().length > 0 : value !== undefined && value !== null;
 const hasItems = (value) => Array.isArray(value) && value.length > 0;
@@ -51,12 +52,12 @@ const localizedTier = (tier, locale, fallback = {}, defaultItem) => ({
 });
 
 const localizedSettings = {
-  'zh-cn': { heroTitle: '按你的旅行方式，规划龙目岛。', heroDescription: '选择私人旅游、点对点接送或带司机的车辆。我们会根据你的时间安排合理路线。', aboutTitle: '一个联系人，安排你的龙目岛旅程。', aboutDescription: '从机场接机、海滩之间的接送到多日旅游，所有细节都会在出发前通过 WhatsApp 确认。' },
-  'zh-tw': { heroTitle: '依你的旅行方式，規劃龍目島。', heroDescription: '選擇私人旅遊、點對點接送或附司機的車輛。我們會依照你的時間安排合適路線。', aboutTitle: '一個聯絡人，安排你的龍目島旅程。', aboutDescription: '從機場接送、海灘之間的交通到多日旅遊，所有細節都會在出發前透過 WhatsApp 確認。' },
-  nl: { heroTitle: 'Lombok, gepland rond jouw manier van reizen.', heroDescription: 'Kies een privétour, transfer of voertuig met chauffeur. Wij maken een route die past bij de tijd die je hebt.', aboutTitle: 'Eén contactpersoon voor je reis op Lombok.', aboutDescription: 'Van aankomst op de luchthaven en strandtransfers tot meerdaagse tours: alle details worden vóór vertrek via WhatsApp bevestigd.' },
-  fr: { heroTitle: 'Lombok, organisé selon votre façon de voyager.', heroDescription: 'Choisissez un circuit privé, un transfert ou un véhicule avec chauffeur. Nous créons un itinéraire adapté à votre temps.', aboutTitle: 'Un seul contact pour votre voyage à Lombok.', aboutDescription: 'De l’arrivée à l’aéroport aux transferts entre plages et aux circuits de plusieurs jours, chaque détail est confirmé sur WhatsApp avant le départ.' },
-  de: { heroTitle: 'Lombok, passend zu Ihrer Art zu reisen.', heroDescription: 'Wählen Sie eine private Tour, einen Transfer oder ein Fahrzeug mit Fahrer. Wir planen eine Route passend zu Ihrer Zeit.', aboutTitle: 'Ein Kontakt für Ihre gesamte Lombok-Reise.', aboutDescription: 'Von der Abholung am Flughafen über Strandtransfers bis zu mehrtägigen Touren werden alle Details vor der Abfahrt über WhatsApp bestätigt.' },
-  ms: { heroTitle: 'Lombok, dirancang mengikut cara anda mengembara.', heroDescription: 'Pilih lawatan peribadi, pemindahan terus atau kenderaan bersama pemandu. Kami menyusun laluan yang sesuai dengan masa anda.', aboutTitle: 'Satu hubungan untuk perjalanan anda di Lombok.', aboutDescription: 'Daripada ketibaan di lapangan terbang dan pemindahan antara pantai hingga lawatan beberapa hari, setiap butiran disahkan melalui WhatsApp sebelum bertolak.' }
+  'zh-cn': { aboutTitle: '一个联系人，安排你的龙目岛旅程。', aboutDescription: '从机场接机、海滩之间的接送到多日旅游，所有细节都会在出发前通过 WhatsApp 确认。' },
+  'zh-tw': { aboutTitle: '一個聯絡人，安排你的龍目島旅程。', aboutDescription: '從機場接送、海灘之間的交通到多日旅遊，所有細節都會在出發前透過 WhatsApp 確認。' },
+  nl: { aboutTitle: 'Eén contactpersoon voor je reis op Lombok.', aboutDescription: 'Van aankomst op de luchthaven en strandtransfers tot meerdaagse tours: alle details worden vóór vertrek via WhatsApp bevestigd.' },
+  fr: { aboutTitle: 'Un seul contact pour votre voyage à Lombok.', aboutDescription: 'De l’arrivée à l’aéroport aux transferts entre plages et aux circuits de plusieurs jours, chaque détail est confirmé sur WhatsApp avant le départ.' },
+  de: { aboutTitle: 'Ein Kontakt für Ihre gesamte Lombok-Reise.', aboutDescription: 'Von der Abholung am Flughafen über Strandtransfers bis zu mehrtägigen Touren werden alle Details vor der Abfahrt über WhatsApp bestätigt.' },
+  ms: { aboutTitle: 'Satu hubungan untuk perjalanan anda di Lombok.', aboutDescription: 'Daripada ketibaan di lapangan terbang dan pemindahan antara pantai hingga lawatan beberapa hari, setiap butiran disahkan melalui WhatsApp sebelum bertolak.' }
 };
 
 const catalogTranslations = {
@@ -374,7 +375,7 @@ function localizedFaqField(item, field, locale, fallback, defaultItem, travelRat
 
 export function localizeCatalog(catalog, locale) {
   const settings = { ...(catalog.settings || {}) };
-  const settingsFallback = localizedSettings[locale] || {};
+  const settingsFallback = { ...(localizedSettings[locale] || {}), ...(heroCopy[locale] || {}) };
   for (const field of ['heroTitle', 'heroDescription', 'aboutTitle', 'aboutDescription']) settings[field] = localizedField(settings, field, locale, settingsFallback[field], defaultCatalog.settings);
 
   const localizedCatalog = {
