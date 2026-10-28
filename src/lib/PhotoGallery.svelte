@@ -25,7 +25,7 @@
     }
   }
   function start(event) {
-    if (event.pointerType !== 'touch' || event.target.closest('button')) return;
+    if (event.button !== 0 || event.target.closest('button')) return;
     suppressClick = false;
     touchStart = { x: event.clientX, y: event.clientY };
   }
@@ -43,7 +43,7 @@
 <div class:compact class="photo-gallery" role="region" aria-label={name}>
   <div class:card-image-button={compact} class:tour-main-image={!compact} class="photo-stage" role="group" aria-label={name} on:pointerdown={start} on:pointerup={end} on:pointercancel={() => touchStart = null}>
     {#key selected}
-      {#if href}<a class="photo-link" {href} aria-label={`${c.viewDetail}: ${name}`} on:click={follow} on:keydown={key}><img class="package-slide" src={imageUrl(selected, 640)} srcset={imageSrcset(selected, [480, 640, 800])} sizes="(max-width: 760px) 92vw, (max-width: 1000px) 45vw, 30vw" alt={name} loading="lazy" decoding="async" width="640" height="480" itemprop="image" draggable="false" /></a>
+      {#if href}<a class="photo-link" {href} draggable="false" aria-label={`${c.viewDetail}: ${name}`} on:click={follow} on:keydown={key}><img class="package-slide" src={imageUrl(selected, 640)} srcset={imageSrcset(selected, [480, 640, 800])} sizes="(max-width: 760px) 92vw, (max-width: 1000px) 45vw, 30vw" alt={name} loading="lazy" decoding="async" width="640" height="480" itemprop="image" draggable="false" /></a>
       {:else}<img class="package-slide" src={imageUrl(selected, 900)} srcset={imageSrcset(selected, [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 58vw" alt={`${name}, ${c.image} ${index + 1}`} loading="eager" fetchpriority={index === 0 ? 'high' : 'auto'} decoding="async" width="900" height="650" draggable="false" />{/if}
     {/key}
     {#if gallery.length > 1}
