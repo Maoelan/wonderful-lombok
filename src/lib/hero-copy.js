@@ -20,7 +20,11 @@ const legacyHeroSettings = {
 export function refreshLegacyHeroSettings(settings) {
   const next = { ...settings };
   for (const [field, legacy] of Object.entries(legacyHeroSettings)) {
-    if (next[field] === legacy || next[field] === `<p>${legacy}</p>`) {
+    const stored = next[field];
+    const plain = typeof stored === 'string' && stored.startsWith('<p>') && stored.endsWith('</p>')
+      ? stored.slice(3, -4)
+      : stored;
+    if (plain === legacy) {
       const english = field.endsWith('En');
       next[field] = heroCopy[english ? 'en' : 'id'][english ? field.slice(0, -2) : field];
     }
