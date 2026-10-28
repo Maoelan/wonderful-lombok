@@ -1,4 +1,7 @@
 /* Owner-selected Studio mockup. Presentation only; original data/actions remain in Svelte. */
+@media (max-width: 480px) {
+  body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr); }
+}
 body .site-theme { --studio-panel: #f7f7f3; --studio-line: #e1e7e6; }
 body .site-theme .hero { min-height: 480px; }
 body .site-theme .hero-copy h1 { max-width: 760px; font-size: clamp(36px, 3.75vw, 54px); }
