@@ -59,7 +59,7 @@
         {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
       </div>
     </details>
-    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>
+    <a href={`${home}#hitung-travel`} on:click={closeMenu}>{c.travel}</a>
     <a href={`${home}#faq`} on:click={closeMenu}>{c.faq}</a>
     <div class="nav-language"><LanguageSelector {locale} {suffix} /></div>
   </nav>

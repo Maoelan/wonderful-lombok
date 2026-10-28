@@ -1,4 +1,5 @@
 <script>
+  import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
   import { packageBooking } from '../lib/booking-context.js';
   import { createWhatsAppUrl, formatWhatsAppNumber } from '../lib/whatsapp.js';
@@ -113,7 +114,7 @@
         {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
       </div>
     </details>
-    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
+    <a href="#hitung-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
     <a href={`${localeHome}#faq`} on:click={closeMenu}>{c.faq}</a>
     <div class="nav-language"><LanguageSelector {locale} /></div>
   </nav>
@@ -139,7 +140,7 @@
     <div class="choice-heading sr-only"><h2 id="choice-title">{c.start}</h2><p>{c.choiceTitle}</p></div>
     <div class:without-rental={!rentalEnabled} class="choice-list">
       <a class="service-tile" href={localePath(locale, '/paket-wisata')}><UiIcon name="palm" /><span><strong>{c.tours}</strong><span>{c.tourChoice}</span></span><UiIcon name="chevron" /></a>
-      <a class="service-tile" href={localePath(locale, '/travel-lombok')}><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
+      <a class="service-tile" href="#hitung-travel"><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
       {#if rentalEnabled}<article><UiIcon name="travel" /><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
   </section>
@@ -178,7 +179,11 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section travel-heading" use:reveal>
       <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl><a class="button primary" href={`${localePath(locale, '/travel-lombok')}#hitung-travel`}>{formCopy.checkTransferFare}<UiIcon /></a></div>
+      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
+    </div>
+    <div class="section pickup-block" id="hitung-travel" use:reveal>
+      <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
+      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
 
@@ -206,7 +211,7 @@
 
 <footer id="kontak" data-whatsapp-float-avoid>
   <div class="footer-brand"><img class="footer-logo" src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="160" height="80" /><p>{c.localPartner}</p></div>
-  <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
+  <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#hitung-travel">{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
   <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a><span><UiIcon name="pin" />{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div>
   <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
 </footer>

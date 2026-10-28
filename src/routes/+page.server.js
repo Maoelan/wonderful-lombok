@@ -12,6 +12,7 @@ export async function load({ url }) {
     catalog: localizeCatalog(catalog, 'id'),
     locale: 'id',
     rentalEnabled: process.env.PUBLIC_RENTAL_ENABLED === 'true',
+    mapboxToken: process.env.PUBLIC_MAPBOX_TOKEN || '',
     canonicalUrl: `${siteOrigin}/`,
     alternateUrls: alternateUrls(siteOrigin),
     socialImageUrl: getSocialImageUrl(catalog.packages[0]?.image, siteOrigin)
