@@ -13,7 +13,6 @@
   $: c = getCopy(locale);
   $: home = localePath(locale);
   $: onToursPage = suffix === '/paket-wisata' || suffix.startsWith('/paket-wisata/');
-  $: onDestinationsPage = suffix.startsWith('/destinasi/');
   function closeMenu() {
     menuOpen = false;
     if (tourMenu) tourMenu.open = false;
@@ -53,9 +52,6 @@
       </div>
     </details>
     {/if}
-    {#if onDestinationsPage}
-    <a href={`${home}#destinasi`} on:click={closeMenu}>{c.destinations}</a>
-    {:else}
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
@@ -63,7 +59,6 @@
         {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
       </div>
     </details>
-    {/if}
     <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>
     <a href={`${home}#faq`} on:click={closeMenu}>{c.faq}</a>
     <div class="nav-language"><LanguageSelector {locale} {suffix} /></div>
