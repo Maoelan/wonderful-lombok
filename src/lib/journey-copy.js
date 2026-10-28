@@ -2,7 +2,7 @@ const copy = {
   "id": {
     "heroTitle": "Jelajahi Lombok, perjalanan kami yang urus.",
     "heroDescription": "Tur privat dan antar-jemput untuk liburanmu di Lombok.",
-    "travel": "Antar-jemput",
+    "travel": "Jasa Travel",
     "tourHeading": "Pilih perjalananmu",
     "tourIntro": "Pilih perjalanan yang cocok untukmu.",
     "destinationHeading": "Jelajahi destinasi Lombok",

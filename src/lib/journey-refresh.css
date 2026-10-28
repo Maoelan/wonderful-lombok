@@ -17,8 +17,9 @@ body .site-theme { background: var(--color-surface); color: var(--color-ink); }
 body .site-theme .section { width: min(1200px, calc(100% - 64px)); }
 body .site-theme .site-header { min-height: 80px; padding-block: 6px; }
 body .site-theme .brand-logo { height: 64px; }
-body .site-theme .language-picker summary { min-width: 66px; min-height: 44px; padding: 8px 28px 8px 12px; gap: 0; background: transparent; }
-body .site-theme .language-picker summary > img, body .site-theme .language-name { display: none; }
+body .site-theme .language-picker summary { min-width: 94px; min-height: 44px; padding: 8px 28px 8px 12px; gap: 8px; background: transparent; }
+body .site-theme .language-picker summary > img { display: block; width: 20px; height: 14px; object-fit: cover; flex: 0 0 20px; }
+body .site-theme .language-name { display: none; }
 body .site-theme .language-code { font-size: 13px; font-weight: 650; }
 body .site-theme .language-menu a img { display: block; }
 body .site-theme .hero { display: flex; align-items: center; width: 100%; min-height: 440px; padding: 0; margin: 0; border-radius: 0; background: #102b30; color: white; }
@@ -70,9 +71,30 @@ body .site-theme .quote-details label { margin: 0; }
 body .site-theme .quote > small { margin-top: 10px; line-height: 1.6; }
 body .site-theme .about { padding: 48px 0; gap: 40px; }
 body .site-theme .about-image { height: 300px; }
-body .site-theme .faq { padding-bottom: 48px; gap: 40px; }
-body .site-theme .faq-list details { border: 0; border-radius: 0; background: var(--color-surface-muted); }
-body .site-theme .faq-list details + details { margin-top: 8px; }
+body .site-theme .faq { display: block; padding-block: 12px 48px; }
+body .site-theme .faq h2 { margin-bottom: 24px; }
+body .site-theme .faq-list { gap: 8px; }
+body .site-theme .faq-list details { border: 0; border-radius: 5px; background: var(--color-surface-muted); }
+body .site-theme .faq-list summary { display: flex; align-items: center; min-height: 64px; padding: 16px 60px 16px 22px; font-size: 16px; line-height: 1.5; }
+body .site-theme .faq-list summary::after { top: 50%; right: 22px; transform: translateY(-50%); }
+body .site-theme .faq-list details[open] { background: var(--color-accent-tint); }
+body .site-theme .faq-list details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+body .site-theme .faq-list details > div { padding: 0 22px 20px; max-width: 85ch; line-height: 1.7; }
+body .site-theme footer.travel-footer { padding: 28px max(32px, calc((100% - 1200px) / 2)); }
+body .site-theme .travel-footer-main { grid-template-columns: minmax(0, 1fr) minmax(150px, .7fr) minmax(0, 1.25fr); gap: 32px; align-items: start; }
+body .site-theme .travel-footer-brand > a { width: fit-content; min-height: 0; }
+body .site-theme .travel-footer-brand img { display: block; width: 124px; height: 62px; object-fit: contain; }
+body .site-theme .travel-footer-brand p { margin: 8px 0 0; line-height: 1.6; max-width: 29ch; }
+body .site-theme .travel-footer nav { gap: 0; }
+body .site-theme .travel-footer nav a { font-weight: 600; }
+body .site-theme .travel-footer-contact { gap: 0; min-width: 0; }
+body .site-theme .travel-footer-contact strong { margin: 8px 0 4px; font-size: 15px; }
+body .site-theme .travel-footer-contact a, body .site-theme .travel-footer-contact p { gap: 10px; min-height: 44px; overflow-wrap: anywhere; line-height: 1.5; }
+body .site-theme .travel-footer-contact :is(svg, img) { flex: 0 0 20px; }
+body .site-theme .travel-footer-bottom { margin-top: 12px; gap: 0; }
+body .site-theme .travel-footer .social-links { gap: 4px 24px; }
+body .site-theme .location-tools > .swap { display: grid; place-items: center; width: 44px; height: 48px; padding: 0; margin-top: 56px; }
+body .site-theme .location-tools .field-heading { min-height: 44px; }
 body .site-theme .tour-hero { border: 0; border-radius: 0; background: transparent; align-items: start; }
 body .site-theme .tour-main-image { height: 400px; }
 body .site-theme .tour-summary { padding: 20px 0 20px 32px; }
@@ -130,6 +152,21 @@ body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 
   body .site-theme .booking-body { padding: 22px 18px; }
   body .site-theme .booking-dialog h2 { font-size: 23px; }
   body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  body .site-theme footer.travel-footer { padding: 24px 16px; }
+  body .site-theme .travel-footer-main { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  body .site-theme .travel-footer-brand { display: flex; align-items: center; gap: 16px; }
+  body .site-theme .travel-footer-brand img { width: 100px; height: 50px; }
+  body .site-theme .travel-footer-brand p { margin: 0; font-size: 13px; }
+  body .site-theme .travel-footer nav { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; }
+  body .site-theme .travel-footer-contact { grid-column: auto; }
+  body .site-theme .travel-footer-bottom { margin-top: 12px; }
+  body .site-theme .faq h2 { margin-bottom: 18px; }
+  body .site-theme .faq-list summary { padding: 16px 48px 16px 16px; }
+  body .site-theme .faq-list summary::after { right: 18px; }
+  body .site-theme .faq-list details > div { padding-inline: 16px; }
+}
+@media (max-width: 900px) {
+  body .site-theme .location-tools > .swap { justify-self: center; margin: 0; }
 }
 @media (max-width: 360px) {
   /* Native date segments need a full row on narrow phones. */

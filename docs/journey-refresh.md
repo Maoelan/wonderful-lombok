@@ -18,7 +18,7 @@ The supplied mockup intentionally calls for equal product cards, an outlined sec
 
 ## Generated imagery
 
-Ten standalone photographic assets were generated with the built-in image-generation tool. Exact scene prompts and the complete mandatory negative prompt are in `static/images/lombok-ai/manifest.json`. These are Lombok-inspired mockup images, not verified documentary photographs. Visible localized disclosure appears on public pages using the demo imagery. Replace them with operator-approved actual photographs before a real commercial launch.
+Ten standalone photographic assets were generated with the built-in image-generation tool. Exact scene prompts and the complete mandatory negative prompt are in `static/images/lombok-ai/manifest.json`. These are Lombok-inspired mockup images, not verified documentary photographs. The owner subsequently requested removal of the public preview notice; provenance remains recorded here and in the manifest. Replace them with operator-approved actual photographs before a real commercial launch.
 
 Responsive WebP variants (480/720/960/1280/1600 px) are committed under `static/images/lombok-ai/`. Original generated PNGs remain outside the repository. `scripts/build-demo-images.py` reproduces delivery variants from a private local key-to-source-path map. These static assets bypass the dynamic Vercel image service; CMS uploads retain their existing behavior.
 
@@ -49,3 +49,9 @@ Top three problems (most visible first), each with the screenshot it shows in an
 3. `preview-round-1/desktop-page-01.jpg`: the map is blank in the early full-page capture because it had not loaded. The dedicated calculator check scrolls it into view and confirms the rendered map canvas. No blank-map image substitutes for the interactive map.
 
 Remaining limitations: images are illustrative rather than location-verified; replace them before a commercial launch. Floating navigation overlays and functional labels trigger the skill's generic design heuristics. This is not a new Lighthouse or accessibility certification, and booking submissions were not sent to the operator during read-only visual QA.
+
+## Footer, FAQ and controls follow-up
+
+Owner-requested component refinement, keeping the existing Coastal Atlas direction rather than drawing a new page design. The shared footer now closes all public pages consistently: compact brand, service navigation, actual configured contact links and optional social links. The large copyright/rights statement and public AI preview notice are removed at the owner's request. Required map attribution remains in the interactive map.
+
+FAQ uses its full section width beneath a single heading, with shorter disclosure rows and a clear open state; all CMS answers and FAQ schema remain intact. The location swap control uses symmetrical SVG paths with a preserved accessible name, aligned with the address inputs on desktop and centered between fields on mobile. The compact language picker shows its current flag again. The Indonesian navigation service is now named “Jasa Travel”; other locales retain their appropriate localized service names.

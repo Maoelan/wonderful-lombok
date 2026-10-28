@@ -2,14 +2,14 @@
   import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
   import { packageBooking } from '../lib/booking-context.js';
-  import { createWhatsAppUrl, formatWhatsAppNumber } from '../lib/whatsapp.js';
+  import { createWhatsAppUrl } from '../lib/whatsapp.js';
   import { imageSrcset, imageUrl } from '../lib/image.js';
   import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
-  import { isDemoImage } from '../lib/demo-images.js';
+  import SiteFooter from '../lib/SiteFooter.svelte';
 
   export let data;
   let menuOpen = false;
@@ -17,7 +17,6 @@
   let tourMenu;
   let destinationMenu;
   let menuToggle;
-  const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
   const fallbackImage = '/wonderful-lombok-icon-192.png';
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
@@ -34,7 +33,6 @@
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
   $: faqs = data.catalog.faqs;
-  $: illustrativeImages = [settings.heroImage, settings.aboutImage, ...packages.map(item => item.image), ...destinations.map(item => item.image)].some(isDemoImage);
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
@@ -201,18 +199,12 @@
   </section>
 
   <section class="faq section" id="faq" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
-    <div><p class="label">{c.faq}</p><h2 id="faq-title">{c.faqHeading}</h2></div>
+    <h2 id="faq-title">{c.faqHeading}</h2>
     <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
   </section>
 </main>
 
-<footer id="kontak" data-whatsapp-float-avoid>
-  <div class="footer-brand"><img class="footer-logo" src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="160" height="80" /><p>{c.localPartner}</p></div>
-  <div class="footer-links"><a href="#paket">{c.tours}</a><a href="#hitung-travel">{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
-  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a><span><UiIcon name="pin" />{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div>
-  <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
-  {#if illustrativeImages}<p class="image-disclosure">{c.imageNotice}</p>{/if}
-</footer>
+<SiteFooter {settings} {locale} {rentalEnabled} homepage />
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 <WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
 </div>

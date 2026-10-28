@@ -554,7 +554,7 @@
         <button class="gps-action" type="button" on:click={gpsLoading ? cancelGps : useCurrentLocation}>{gpsLoading ? t.cancelGps : t.useLocation}</button>
       </div>
 
-      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}>⇅</button>
+      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 19V5m-4 4 4-4 4 4M16 5v14m-4-4 4 4 4-4" /></svg></button>
 
       <div class="location-field">
         <div class="field-heading">

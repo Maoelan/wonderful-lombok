@@ -44,7 +44,7 @@ test('all eight languages provide the refreshed navigation and form hierarchy', 
     for(const key of ['heroPrimary','travel','tourHeading','destinationHeading','faqHeading','imageNotice'])assert.ok(copy[key],code+'.'+key);
     for(const key of ['customerDetails','checkTransferFare','priceConfirmation'])assert.ok(form[key],code+'.'+key);
   }
-  assert.equal(getCopy('id').travel,'Antar-jemput');
+  assert.equal(getCopy('id').travel,'Jasa Travel');
 });
 
 test('the previous hero default updates but an edited hero remains canonical', () => {
@@ -62,4 +62,22 @@ test('homepage keeps equal cards, two hero links and one calculator introduction
   const manifest=JSON.parse(readFileSync(new URL('../static/images/lombok-ai/manifest.json',import.meta.url),'utf8'));
   assert.equal(manifest.assets.length,10);
   assert.ok(manifest.negativePrompt.includes('unrealistic water color, neon turquoise sea'));
+});
+
+test('homepage and detail pages share the compact footer without the removed notices', () => {
+  const home=readFileSync(new URL('../src/routes/+page.svelte',import.meta.url),'utf8');
+  const footer=readFileSync(new URL('../src/lib/SiteFooter.svelte',import.meta.url),'utf8');
+  assert.match(home, /<SiteFooter \{settings\} \{locale\} \{rentalEnabled\} homepage/);
+  assert.doesNotMatch(home+footer, /image-disclosure|footer-copyright|All rights reserved|Hak cipta dilindungi/);
+  assert.match(footer, /id="kontak"/);
+  assert.match(footer, /settings\.instagram/);
+  assert.match(footer, /#hitung-travel/);
+});
+
+test('swap uses a balanced SVG and locale picker retains its current flag', () => {
+  const calculator=readFileSync(new URL('../src/lib/PickupCalculator.svelte',import.meta.url),'utf8');
+  const language=readFileSync(new URL('../src/lib/LanguageSelector.svelte',import.meta.url),'utf8');
+  assert.match(calculator, /aria-label=\{t.swapLocations\}><svg/);
+  assert.doesNotMatch(calculator, /⇅/);
+  assert.match(language, /\/flags\/\$\{current.flag\}\.png/);
 });
