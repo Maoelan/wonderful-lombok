@@ -297,7 +297,18 @@ export function bookingErrorMessage(copy, code, fallback = '') {
   return copy?.bookingErrors?.[bookingErrorAliases[code] || code] || fallback;
 }
 
+const enquiryCopy = {
+  id: { enquiryLabel: 'Tanya via WhatsApp', enquiryMessage: 'Halo Wonderful Lombok, saya ingin bertanya tentang paket wisata atau antar-jemput di Lombok.' },
+  en: { enquiryLabel: 'Ask on WhatsApp', enquiryMessage: 'Hello Wonderful Lombok, I would like to ask about tours or transfers in Lombok.' },
+  'zh-cn': { enquiryLabel: '通过 WhatsApp 咨询', enquiryMessage: '您好 Wonderful Lombok，我想咨询龙目岛的旅游套餐或接送服务。' },
+  'zh-tw': { enquiryLabel: '透過 WhatsApp 諮詢', enquiryMessage: '您好 Wonderful Lombok，我想諮詢龍目島的旅遊行程或接送服務。' },
+  nl: { enquiryLabel: 'Vraag via WhatsApp', enquiryMessage: 'Hallo Wonderful Lombok, ik heb een vraag over tours of transfers op Lombok.' },
+  fr: { enquiryLabel: 'Question sur WhatsApp', enquiryMessage: 'Bonjour Wonderful Lombok, je souhaite me renseigner sur les excursions ou les transferts à Lombok.' },
+  de: { enquiryLabel: 'Frage per WhatsApp', enquiryMessage: 'Hallo Wonderful Lombok, ich habe eine Frage zu Touren oder Transfers auf Lombok.' },
+  ms: { enquiryLabel: 'Tanya melalui WhatsApp', enquiryMessage: 'Helo Wonderful Lombok, saya ingin bertanya tentang pakej pelancongan atau perkhidmatan jemput-hantar di Lombok.' }
+};
+
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
 }

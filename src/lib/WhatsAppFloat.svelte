@@ -5,8 +5,9 @@
   export let whatsapp = '';
   export let locale = 'id';
   let suppressed = false;
-  $: label = getFormCopy(locale).bookNow;
-  $: message = locale !== 'id' ? 'Hello Wonderful Lombok, I would like to plan a trip in Lombok.' : 'Halo Wonderful Lombok, saya ingin merencanakan perjalanan di Lombok.';
+  $: copy = getFormCopy(locale);
+  $: label = copy.enquiryLabel;
+  $: message = copy.enquiryMessage;
 
   onMount(() => {
     const targets = [...document.querySelectorAll('[data-whatsapp-float-avoid]')];
