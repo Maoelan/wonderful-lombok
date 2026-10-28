@@ -81,3 +81,16 @@ test('swap uses a balanced SVG and locale picker retains its current flag', () =
   assert.doesNotMatch(calculator, /⇅/);
   assert.match(language, /\/flags\/\$\{current.flag\}\.png/);
 });
+
+test('shared photo gallery supports manual controls and bounded, interruptible autoplay', () => {
+  const source=readFileSync(new URL('../src/lib/PhotoGallery.svelte',import.meta.url),'utf8');
+  for (const guard of ['visible', '!hovered', '!focused', '!stopped', '!reducedMotion', '!document.hidden']) assert.ok(source.includes(guard), guard);
+  assert.match(source, /clearInterval\(timer\)/);
+  assert.match(source, /observer\.disconnect\(\)/);
+  assert.match(source, /removeEventListener\('change', updateMotion\)/);
+  assert.match(source, /on:pointercancel/);
+  assert.match(source, /event\.preventDefault\(\); suppressClick = false/);
+  assert.match(source, /disabled=\{reducedMotion\}/);
+  assert.match(source, /aria-label=\{t\.previousImage\}/);
+  assert.match(source, /aria-label=\{t\.nextImage\}/);
+});

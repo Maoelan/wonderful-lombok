@@ -10,6 +10,7 @@
   import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
   import SiteFooter from '../lib/SiteFooter.svelte';
+  import PhotoGallery from '../lib/PhotoGallery.svelte';
 
   export let data;
   let menuOpen = false;
@@ -153,7 +154,7 @@
       {#each packages as item, index}
         {@const gallery = packageGallery(item)}
         <article class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
-          <a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a>
+          <PhotoGallery images={gallery} name={item.name} {locale} href={`/${locale}/paket-wisata/${item.slug}`} compact />
           <div class="package-body">
             <h3 itemprop="name">{item.name}</h3>
             <div class="package-facts"><span>{item.category}</span><span><UiIcon name="clock" />{item.duration}</span></div>
