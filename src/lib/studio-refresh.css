@@ -82,7 +82,7 @@ body .admin-header p { margin-top: 10px; max-width: 80ch; }
 body .admin-section { padding-top: 28px; }
 body .admin-section-heading { margin-bottom: 20px; }
 body .admin-section-heading h3 { font-size: 18px; }
-body .admin-section-heading .admin-kicker, body .admin-editor-summary, body .admin-section > .admin-kicker { display: none; }
+body .admin-section-heading .admin-kicker, body .admin-catalog-workspace .admin-editor-summary, body .admin-section > .admin-kicker { display: none; }
 body .admin-secondary { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 40px; border-radius: 6px; font-size: 13px; }
 body .admin-text-button { border: 0; padding: 8px 0; color: var(--color-primary); background: transparent; font-weight: 650; text-align: left; cursor: pointer; }
 body .admin-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
