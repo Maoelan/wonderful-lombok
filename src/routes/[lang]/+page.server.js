@@ -1,7 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getPublicCatalog } from '#lib/server/db.js';
 import { loadCatalogOrMaintenance } from '#lib/server/catalog-fallback.js';
-import { absoluteUrl, getSiteOrigin } from '#lib/server/site-url.js';
+import { getSiteOrigin } from '#lib/server/site-url.js';
+import { getSocialImageUrl } from '#lib/social-image.js';
 import { alternateUrls, isLocale, localePath } from '#lib/i18n.js';
 import { localizeCatalog } from '#lib/server/catalog-i18n.js';
 
@@ -14,7 +15,8 @@ export async function load({ params, url }) {
   return {
     catalog: localizeCatalog(catalog, params.lang), locale: params.lang, canonicalUrl,
     rentalEnabled: process.env.PUBLIC_RENTAL_ENABLED === 'true',
+    mapboxToken: process.env.PUBLIC_MAPBOX_TOKEN || '',
     alternateUrls: alternateUrls(siteOrigin),
-    socialImageUrl: absoluteUrl(catalog.packages[0]?.image || '/', siteOrigin)
+    socialImageUrl: getSocialImageUrl(catalog.packages[0]?.image, siteOrigin)
   };
 }

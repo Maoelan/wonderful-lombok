@@ -48,6 +48,12 @@ export async function getSessionUser(cookies) {
 
 export async function destroySession(cookies) {
   const token = cookies.get(sessionCookie);
-  if (token) await convexMutation('admin:destroySession', { tokenHash: createHash('sha256').update(token).digest('hex') });
-  cookies.delete(sessionCookie, sessionCookieClearOptions(production));
+  try {
+    if (token) await convexMutation('admin:destroySession', { tokenHash: createHash('sha256').update(token).digest('hex') });
+  } catch {
+    // Logout must still clear the browser cookie if Convex is unavailable.
+    // The server-side session will expire on its own TTL.
+  } finally {
+    cookies.delete(sessionCookie, sessionCookieClearOptions(production));
+  }
 }

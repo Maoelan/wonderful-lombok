@@ -30,7 +30,7 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
-  <SiteHeader locale={data.locale} suffix="/travel-lombok" />
+  <SiteHeader locale={data.locale} suffix="/travel-lombok" packages={data.catalog.packages} destinations={data.catalog.destinations} />
   <main class="catalog-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><span>{travel.label}</span></nav>
     <section class="catalog-intro" aria-labelledby="travel-page-title"><p class="label">{travel.label}</p><h1 id="travel-page-title">{travel.heading}</h1>{#each travel.intro as paragraph}<p>{paragraph}</p>{/each}</section>
@@ -38,7 +38,7 @@
       <section><p class="label">Lombok</p><h2>{travel.coverageTitle}</h2><ul class="service-list">{#each travel.coverage as point}<li>{point}</li>{/each}</ul></section>
       <aside class="tour-inclusions"><div><h2>{travel.bookingTitle}</h2><p>{travel.bookingText}</p><a class="text-link" href={localePath(data.locale, '/paket-wisata')}>{travel.packagesLink}</a></div></aside>
     </div>
-    <section class="pickup-block" id="hitung-travel" aria-labelledby="calculator-title"><div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2 id="calculator-title">{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div><div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={data.catalog.travelRate} whatsapp={data.catalog.settings.whatsapp} locale={data.locale} /></div></section>
+    <section class="pickup-block" id="hitung-travel" aria-labelledby="calculator-title"><div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2 id="calculator-title">{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div><div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={data.catalog.travelRate} whatsapp={data.catalog.settings.whatsapp} locale={data.locale} mapboxToken={data.mapboxToken} /></div></section>
   </main>
   <SiteFooter settings={data.catalog.settings} locale={data.locale} />
   <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />

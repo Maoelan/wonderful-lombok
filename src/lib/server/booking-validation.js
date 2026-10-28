@@ -1,10 +1,10 @@
-import { isInsideLombok } from '../pickup.js';
+import { MAX_TRAVEL_POINTS, isInsideLombok } from '../pickup.js';
 import { isLocale } from '../i18n.js';
 import { todayInWita } from '../date.js';
 
 export { todayInWita };
 
-export const MAX_STOPS = 2;
+export const MAX_STOPS = MAX_TRAVEL_POINTS;
 export const MAX_NOTES_LENGTH = 1000;
 export const MAX_DETAIL_LENGTH = 4000;
 export const MAX_TRAVEL_DISTANCE_KM = 500;
@@ -12,20 +12,21 @@ export const MAX_TRAVEL_PRICE = 20_000_000;
 
 const TRAVEL_DETAIL_KEYS = new Set([
   'notes', 'origin', 'destination', 'originCoordinates', 'originAccuracyM', 'originSource',
-  'destinationCoordinates', 'pickupTime', 'distanceKm', 'estimatedPrice', 'locale'
+  'destinationCoordinates', 'stops', 'pickupTime', 'distanceKm', 'estimatedPrice', 'locale'
 ]);
 const COMMON_DETAIL_KEYS = new Set(['notes']);
 const ORIGIN_SOURCES = new Set(['search', 'map', 'gps', 'preset']);
 
 export class BookingValidationError extends Error {
-  constructor(message, status = 400) {
+  constructor(message, status = 400, code = 'invalid') {
     super(message);
     this.name = 'BookingValidationError';
     this.status = status;
+    this.code = code;
   }
 }
 
-const fail = (message, status = 400) => { throw new BookingValidationError(message, status); };
+const fail = (message, status = 400, code = 'invalid') => { throw new BookingValidationError(message, status, code); };
 
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -69,20 +70,69 @@ export function isValidTravelDate(value, now = Date.now()) {
   return value >= todayInWita(now);
 }
 
+function witaTimestamp(date, time) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return NaN;
+  if (typeof time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return NaN;
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute] = time.split(':').map(Number);
+  const timestamp = Date.UTC(year, month - 1, day, hour - 8, minute);
+  const wita = new Date(timestamp + 8 * 60 * 60_000);
+  if (wita.getUTCFullYear() !== year || wita.getUTCMonth() !== month - 1 || wita.getUTCDate() !== day || wita.getUTCHours() !== hour || wita.getUTCMinutes() !== minute) return NaN;
+  return timestamp;
+}
+
+export function isValidPickupDateTime(date, time, now = Date.now()) {
+  const timestamp = witaTimestamp(date, time);
+  return Number.isFinite(timestamp) && timestamp >= now;
+}
+
 export function normalizeWhatsApp(value) {
+  const invalid = () => fail('Nama dan nomor WhatsApp belum valid.', 400, 'contact');
   const textValue = typeof value === 'string' ? value.trim() : '';
-  if (!textValue || !/^\+?[\d\s().-]+$/.test(textValue)) {
-    fail('Nama dan nomor WhatsApp belum valid.');
-  }
+  if (!textValue || !/^\+?[\d\s().-]+$/.test(textValue)) invalid();
   const digits = textValue.replace(/\D/g, '');
-  if (digits.startsWith('00')) fail('Nama dan nomor WhatsApp belum valid.');
-  const normalized = digits.startsWith('62') ? digits : digits.startsWith('0') ? `62${digits.slice(1)}` : '';
-  if (!/^628\d{7,12}$/.test(normalized)) fail('Nama dan nomor WhatsApp belum valid.');
+  if (digits.startsWith('00')) invalid();
+  const normalized = textValue.startsWith('+') || digits.startsWith('62')
+    ? digits
+    : digits.startsWith('0') ? `62${digits.slice(1)}`
+    : digits.startsWith('8') ? `62${digits}`
+    : '';
+  const valid = normalized.startsWith('62') ? /^628\d{7,12}$/.test(normalized) : /^[1-9]\d{7,14}$/.test(normalized);
+  if (!valid) invalid();
   return normalized;
 }
 
 export function isValidIdempotencyKey(value) {
   return typeof value === 'string' && /^[A-Za-z0-9_-]{16,128}$/.test(value);
+}
+
+function normalizeTravelStops(details) {
+  let stops;
+  if (details.stops !== undefined) {
+    if (!Array.isArray(details.stops) || details.stops.length < 2 || details.stops.length > MAX_STOPS) {
+      fail(`Jumlah titik perjalanan harus tepat ${MAX_STOPS}.`);
+    }
+    stops = details.stops.map((stop, index) => {
+      if (!isPlainObject(stop)) fail(`Detail pemesanan tidak valid: lokasi ${index + 1}.`);
+      return {
+        name: text(stop.name, `lokasi ${index + 1}`, 160),
+        coordinates: coordinatePair(stop.coordinates, `koordinat lokasi ${index + 1}`)
+      };
+    });
+  } else {
+    stops = [
+      { name: text(details.origin, 'titik jemput', 160), coordinates: coordinatePair(details.originCoordinates, 'koordinat jemput') },
+      { name: text(details.destination, 'tujuan', 160), coordinates: coordinatePair(details.destinationCoordinates, 'koordinat tujuan') }
+    ];
+  }
+
+  const seen = new Set();
+  for (const stop of stops) {
+    const key = `${stop.coordinates[0].toFixed(6)},${stop.coordinates[1].toFixed(6)}`;
+    if (seen.has(key)) fail('Titik perjalanan harus berbeda.');
+    seen.add(key);
+  }
+  return stops;
 }
 
 export function normalizeBookingDetails(serviceType, details) {
@@ -94,13 +144,11 @@ export function normalizeBookingDetails(serviceType, details) {
   const notes = optionalNotes(details.notes);
   if (serviceType !== 'travel') return { notes };
 
-  const origin = text(details.origin, 'titik jemput', 160);
-  const destination = text(details.destination, 'tujuan', 160);
-  const originCoordinates = coordinatePair(details.originCoordinates, 'koordinat jemput');
-  const destinationCoordinates = coordinatePair(details.destinationCoordinates, 'koordinat tujuan');
-  if (originCoordinates[0] === destinationCoordinates[0] && originCoordinates[1] === destinationCoordinates[1]) {
-    fail('Titik jemput dan tujuan harus berbeda.');
-  }
+  const stops = normalizeTravelStops(details);
+  const origin = stops[0].name;
+  const destination = stops.at(-1).name;
+  const originCoordinates = stops[0].coordinates;
+  const destinationCoordinates = stops.at(-1).coordinates;
 
   let originAccuracyM = null;
   if (details.originAccuracyM !== undefined && details.originAccuracyM !== null) {
@@ -130,6 +178,7 @@ export function normalizeBookingDetails(serviceType, details) {
     originAccuracyM,
     originSource,
     destinationCoordinates,
+    stops,
     pickupTime: details.pickupTime,
     distanceKm,
     estimatedPrice,
@@ -139,6 +188,6 @@ export function normalizeBookingDetails(serviceType, details) {
 
 export function verifyTravelQuote(details, quote) {
   if (!quote || details.distanceKm !== quote.distanceKm || details.estimatedPrice !== quote.estimatedPrice) {
-    fail('Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', 409);
+    fail('Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', 409, 'conflict');
   }
 }

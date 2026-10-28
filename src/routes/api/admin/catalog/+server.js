@@ -1,12 +1,14 @@
 import { json } from '@sveltejs/kit';
+import { PUBLIC_CONVEX_URL } from '$app/env/public';
 import { updateCatalog } from '#lib/server/db.js';
-import { validateCatalog } from '#lib/server/catalog-validation.js';
+import { isLocalConvexUrl, validateCatalog } from '#lib/server/catalog-validation.js';
 import { sanitizeCatalogRichText } from '#lib/server/rich-text.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
 import { logServerError } from '#lib/server/diagnostics.js';
 
 const conflictMessage = 'Katalog telah diubah oleh sesi admin lain. Muat ulang halaman admin sebelum menyimpan lagi.';
+const configuredConvexUrl = process.env.PUBLIC_CONVEX_URL || PUBLIC_CONVEX_URL;
 
 export async function PUT({ locals, request }) {
   if (!locals.user) return json({ error: 'Sesi admin tidak valid.' }, { status: 401 });
@@ -22,7 +24,7 @@ export async function PUT({ locals, request }) {
     return json({ error: 'Muat ulang halaman admin sebelum menyimpan.', code: 'catalog_reload' }, { status: 428 });
   }
   const catalog = sanitizeCatalogRichText(payload.catalog);
-  const validationError = validateCatalog(catalog);
+  const validationError = validateCatalog(catalog, { allowLocalConvexStorage: isLocalConvexUrl(configuredConvexUrl) });
   if (validationError) return json({ error: validationError }, { status: 400 });
 
   let result;

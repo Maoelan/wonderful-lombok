@@ -1,18 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculatePickupPrice, coordinateDistanceMetres, formatPlaceSearchName, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces, placeSearchQueries, readPlaceSearchResults, readRoadRoute } from '../src/lib/pickup.js';
+import {
+  MAX_TRAVEL_POINTS,
+  calculatePickupPrice,
+  coordinateDistanceMetres,
+  estimateLabel,
+  hasStableGpsFix,
+  isInsideLombok,
+  isUsableGpsFix,
+  localizedPlaces,
+  mapboxGeocodePlaceSearchUrl,
+  mapboxLanguage,
+  mapboxPlaceSearchUrl,
+  mapboxRouteUrl,
+  readMapboxGeocodePlaceResults,
+  readMapboxPlaceResults,
+  readMapboxRoute,
+  travelStopsFromDetails
+} from '../src/lib/pickup.js';
 import { createWhatsAppUrl, formatWhatsAppNumber } from '../src/lib/whatsapp.js';
+
+const airport = { name: 'Bandara Internasional Lombok', lat: -8.756283, lng: 116.277145 };
+const kuta = { name: 'Kuta Mandalika', lat: -8.893241, lng: 116.277504 };
+const senggigi = { name: 'Senggigi', lat: -8.493705, lng: 116.044691 };
 
 test('pickup price bills each started kilometer at Rp10.000', () => {
   assert.equal(calculatePickupPrice(8.2), 90_000);
   assert.equal(calculatePickupPrice(0), 0);
 });
 
-test('road route uses routed distance, snap distance, and Leaflet coordinates', () => {
-  const route = readRoadRoute({ routes: [{ distance: 12_100, geometry: { coordinates: [[116.1, -8.5], [116.2, -8.6]] } }], waypoints: [{ distance: 8 }, { distance: 16 }] });
-  assert.equal(route.distanceKm, 13);
-  assert.deepEqual(route.points, [[-8.5, 116.1], [-8.6, 116.2]]);
-  assert.equal(route.snapDistanceM, 16);
+test('estimate display does not show a zero price before a route is ready or after a route error', () => {
+  const format = (value) => `Rp ${value}`;
+  const base = { ready: true, price: 130_000, format, calculating: 'Calculating…' };
+  assert.equal(estimateLabel({ ...base, loading: true, error: '' }), 'Calculating…');
+  assert.equal(estimateLabel({ ...base, loading: false, error: '' }), 'Rp 130000');
+  assert.equal(estimateLabel({ ...base, loading: false, error: 'Route not found' }), '—');
+  assert.equal(estimateLabel({ ...base, loading: false, error: '', ready: false }), '—');
 });
 
 test('GPS fixes must be fresh, accurate, inside Lombok, and stable', () => {
@@ -26,55 +49,165 @@ test('GPS fixes must be fresh, accurate, inside Lombok, and stable', () => {
   assert.equal(isUsableGpsFix({ ...first, timestamp: now - 30_000 }, { now }), false);
 });
 
-test('location bounds accept Lombok and reject other islands', () => {
-  assert.equal(isInsideLombok(-8.5833, 116.1167), true);
-  assert.equal(isInsideLombok(-8.65, 115.22), false);
-  assert.equal(isInsideLombok(-8.55, 117.42), false);
+test('land validation accepts Lombok land points and rejects sea points inside the old bounding box', () => {
+  assert.equal(isInsideLombok(-8.5833, 116.1167), true); // Mataram
+  assert.equal(isInsideLombok(-8.756283, 116.277145), true); // Airport
+  assert.equal(isInsideLombok(-8.393852, 116.099492), true); // Bangsal
+  assert.equal(isInsideLombok(-8.61646, 115.85837), false); // west of Lombok, inside the old bbox
+  assert.equal(isInsideLombok(-8.43819, 115.976), false); // north of Lombok, inside the old bbox
+  assert.equal(isInsideLombok(-8.65, 115.22), false); // Bali
+  assert.equal(isInsideLombok(-8.55, 117.42), false); // east of Lombok
+  assert.equal(isInsideLombok(-8.35, 116.039), false); // Gili Trawangan
 });
 
-test('place search retries joined village names and keeps only Lombok results', () => {
-  assert.deepEqual(placeSearchQueries('  Aik   Mual  '), ['Aik Mual', 'AikMual']);
-  assert.deepEqual(readPlaceSearchResults([
-    { display_name: 'Aikmual, Lombok Tengah', address: { village: 'Aikmual', county: 'Lombok Tengah', state: 'Nusa Tenggara Barat', country: 'Indonesia' }, lat: '-8.6621668', lon: '116.2855197' },
-    { display_name: 'Denpasar, Bali', lat: '-8.65', lon: '115.22' }
-  ], 'en'), [{ name: 'Aikmual, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.6621668, lng: 116.2855197 }]);
+test('Mapbox place search requests are Lombok-bound and locale-aware', () => {
+  const url = new URL(mapboxPlaceSearchUrl('  Kuta  ', 'zh-cn', 'test-mapbox-token'));
+  assert.equal(`${url.origin}${url.pathname}`, 'https://api.mapbox.com/search/searchbox/v1/forward');
+  assert.equal(url.searchParams.get('q'), 'Kuta');
+  assert.equal(url.searchParams.get('access_token'), 'test-mapbox-token');
+  assert.equal(url.searchParams.get('country'), 'id');
+  assert.equal(url.searchParams.get('bbox'), '115.78,-9.15,116.82,-8.15');
+  assert.equal(url.searchParams.get('proximity'), '116.17,-8.65');
+  assert.equal(url.searchParams.get('language'), 'zh-Hans');
+  assert.equal(url.searchParams.get('limit'), '8');
+  assert.equal(url.searchParams.get('types'), 'poi,address,place,locality,neighborhood,street');
+
+  const fallback = new URL(mapboxGeocodePlaceSearchUrl('  Kuta  ', 'zh-cn', 'test-mapbox-token'));
+  assert.equal(`${fallback.origin}${fallback.pathname}`, 'https://api.mapbox.com/geocoding/v5/mapbox.places/Kuta.json');
+  assert.equal(fallback.searchParams.get('autocomplete'), 'true');
+  assert.equal(fallback.searchParams.get('country'), 'id');
+  assert.equal(fallback.searchParams.get('types'), 'poi,address,place,locality,neighborhood');
+  assert.equal(mapboxLanguage('zh-tw'), 'zh-Hant');
+  assert.equal(mapboxLanguage('unknown'), 'en');
 });
 
-test('search address administrative terms follow the active language', () => {
-  const mataram = {
-    addresstype: 'city', namedetails: { name: 'Mataram', 'name:zh': '马塔兰' },
-    address: { city: 'Mataram', county: 'Kec. Selaparang', state: 'West Nusa Tenggara', country: 'Indonesia' }
+test('Mapbox Search Box results use full addresses and drop outside or duplicate places', () => {
+  const payload = {
+    features: [
+      { properties: { mapbox_id: 'mb1', name: 'Kuta', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.277504, -8.893241] } },
+      { properties: { mapbox_id: 'mb2', name: 'Kuta Beach', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.28, -8.89] } },
+      { properties: { mapbox_id: 'mb3', name: 'Denpasar', full_address: 'Denpasar, Bali, Indonesia' }, geometry: { coordinates: [115.22, -8.65] } },
+      { properties: { mapbox_id: 'mb1', name: 'Kuta duplicate', full_address: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [116.277504, -8.893241] } },
+      { properties: { mapbox_id: 'mb4', name: 'Sea point', full_address: 'Sea point, West Nusa Tenggara, Indonesia' }, geometry: { coordinates: [115.85837, -8.61646] } }
+    ]
   };
-  const masMas = {
-    addresstype: 'village', namedetails: { name: 'Mas-Mas' },
-    address: { village: 'Mas-Mas', county: 'Lombok Tengah', state: 'West Nusa Tenggara', postcode: '83553', country: 'Indonesia' }
+  assert.deepEqual(readMapboxPlaceResults(payload), [
+    { name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.893241, lng: 116.277504, placeId: 'mb1' },
+    { name: 'Kuta Beach, Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.89, lng: 116.28, placeId: 'mb2' }
+  ]);
+});
+
+test('Mapbox geocoding fallback results keep localized place names and Lombok filtering', () => {
+  const payload = {
+    features: [
+      { id: 'mb1', text: 'Kuta', place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', center: [116.277504, -8.893241] },
+      { id: 'mb2', text: 'Kuta Beach', place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', center: [116.28, -8.89] },
+      { id: 'mb3', text: 'Denpasar', place_name: 'Denpasar, Bali, Indonesia', center: [115.22, -8.65] },
+      { id: 'mb1', text: 'Kuta duplicate', place_name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', center: [116.277504, -8.893241] },
+      { id: 'mb4', text: 'Sea point', place_name: 'Sea point, West Nusa Tenggara, Indonesia', center: [115.85837, -8.61646] }
+    ]
   };
-  assert.equal(formatPlaceSearchName(mataram, 'en'), 'Mataram, Selaparang District, West Nusa Tenggara, Indonesia');
-  assert.equal(formatPlaceSearchName(mataram, 'zh-cn'), '马塔兰, Selaparang区, 西努沙登加拉省, 印度尼西亚');
-  assert.equal(formatPlaceSearchName(mataram, 'zh-tw'), 'Mataram, Selaparang區, 西努沙登加拉省, 印度尼西亞');
-  const expectedMasMas = {
-    id: 'Mas-Mas, Kabupaten Lombok Tengah, Nusa Tenggara Barat, 83553, Indonesia',
-    en: 'Mas-Mas, Central Lombok Regency, West Nusa Tenggara, 83553, Indonesia',
-    'zh-cn': 'Mas-Mas, 中龙目县, 西努沙登加拉省, 83553, 印度尼西亚',
-    'zh-tw': 'Mas-Mas, 中龍目縣, 西努沙登加拉省, 83553, 印度尼西亞',
-    nl: 'Mas-Mas, regentschap Centraal-Lombok, West-Nusa Tenggara, 83553, Indonesië',
-    fr: 'Mas-Mas, régence de Lombok central, Petites îles de la Sonde occidentales, 83553, Indonésie',
-    de: 'Mas-Mas, Regierungsbezirk Zentral-Lombok, West-Nusa Tenggara, 83553, Indonesien',
-    ms: 'Mas-Mas, Daerah Lombok Tengah, Nusa Tenggara Barat, 83553, Indonesia'
-  };
-  for (const [locale, expected] of Object.entries(expectedMasMas)) {
-    assert.equal(formatPlaceSearchName(masMas, locale), expected);
-  }
+  assert.deepEqual(readMapboxGeocodePlaceResults(payload), [
+    { name: 'Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.893241, lng: 116.277504, placeId: 'mb1' },
+    { name: 'Kuta Beach, Kuta, Central Lombok Regency, West Nusa Tenggara, Indonesia', lat: -8.89, lng: 116.28, placeId: 'mb2' }
+  ]);
+});
+
+test('Mapbox route requests use driving, exclude ferries, and request full GeoJSON', () => {
+  const url = new URL(mapboxRouteUrl([airport, senggigi], 'fr', 'test-mapbox-token'));
+  assert.equal(url.origin, 'https://api.mapbox.com');
+  assert.equal(url.pathname, '/directions/v5/mapbox/driving/116.277145,-8.756283;116.044691,-8.493705');
+  assert.equal(url.searchParams.get('access_token'), 'test-mapbox-token');
+  assert.equal(url.searchParams.get('alternatives'), 'false');
+  assert.equal(url.searchParams.get('geometries'), 'geojson');
+  assert.equal(url.searchParams.get('overview'), 'full');
+  assert.equal(url.searchParams.get('steps'), 'true');
+  assert.equal(url.searchParams.get('exclude'), 'ferry');
+  assert.equal(url.searchParams.get('language'), 'fr');
+  assert.throws(() => mapboxRouteUrl([airport, kuta, senggigi], 'fr', 'token'), /exactly two points/);
+});
+
+const mapboxRoutePayload = {
+  waypoints: [
+    { distance: 0.04, location: [116.1, -8.5] },
+    { distance: 0, location: [116.2, -8.6] }
+  ],
+  routes: [{
+    distance: 12_100,
+    duration: 1800,
+    geometry: { type: 'LineString', coordinates: [[116.1, -8.5], [116.15, -8.55], [116.2, -8.6]] },
+    legs: [{
+      steps: [
+        { mode: 'driving', maneuver: { type: 'depart' } },
+        { mode: 'driving', maneuver: { type: 'turn' } },
+        { mode: 'driving', maneuver: { type: 'arrive' } }
+      ]
+    }]
+  }]
+};
+
+test('Mapbox route data uses distance, duration, GeoJSON geometry, and snap distance', () => {
+  const route = readMapboxRoute(mapboxRoutePayload, 'No route', [
+    { lat: -8.5, lng: 116.1 },
+    { lat: -8.6, lng: 116.2 }
+  ]);
+  assert.equal(route.distanceKm, 13);
+  assert.equal(route.durationMinutes, 30);
+  assert.equal(route.snapDistanceM, 0.04);
+  assert.equal(route.roadAccess, true);
+  assert.deepEqual(route.points, [[-8.5, 116.1], [-8.55, 116.15], [-8.6, 116.2]]);
+});
+
+test('Mapbox route data only grants road access to all-driving routes without ferries', () => {
+  const routeWith = (steps) => readMapboxRoute({
+    ...mapboxRoutePayload,
+    routes: [{ ...mapboxRoutePayload.routes[0], legs: [{ steps }] }]
+  });
+  assert.equal(routeWith([{ mode: 'walking', maneuver: { type: 'turn' } }]).roadAccess, false);
+  assert.equal(routeWith([{ mode: 'driving', maneuver: { type: 'ferry' } }]).roadAccess, false);
+  assert.equal(routeWith([{ mode: 'driving', maneuver: { type: 'ferry_train' } }]).roadAccess, false);
+  assert.equal(routeWith([{ mode: 'ferry', maneuver: { type: 'depart' } }]).roadAccess, false);
+  assert.equal(routeWith([]).roadAccess, false);
+});
+
+test('Mapbox route data rejects a missing route and reports a distant snap', () => {
+  assert.throws(() => readMapboxRoute({}, 'No road route was found.'), /No road route was found/);
+  assert.throws(() => readMapboxRoute({ routes: [{ distance: 0 }] }, 'No road route was found.'), /No road route was found/);
+  const route = readMapboxRoute(mapboxRoutePayload, 'No route', [
+    { lat: -8.7, lng: 116.5 },
+    { lat: -8.6, lng: 116.2 }
+  ]);
+  assert.ok(route.snapDistanceM > 500);
+});
+
+test('booking details expose ordered stops while accepting legacy two-point records', () => {
+  assert.deepEqual(travelStopsFromDetails({
+    stops: [
+      { name: 'Airport', coordinates: [-8.756283, 116.277145] },
+      { name: 'Kuta', coordinates: [-8.893241, 116.277504] },
+      { name: 'Senggigi', coordinates: [-8.493705, 116.044691] }
+    ]
+  }), [
+    { name: 'Airport', lat: -8.756283, lng: 116.277145 },
+    { name: 'Kuta', lat: -8.893241, lng: 116.277504 },
+    { name: 'Senggigi', lat: -8.493705, lng: 116.044691 }
+  ]);
+  assert.deepEqual(travelStopsFromDetails({
+    origin: 'Airport',
+    destination: 'Senggigi',
+    originCoordinates: [-8.756283, 116.277145],
+    destinationCoordinates: [-8.493705, 116.044691]
+  }), [
+    { name: 'Airport', lat: -8.756283, lng: 116.277145 },
+    { name: 'Senggigi', lat: -8.493705, lng: 116.044691 }
+  ]);
+  assert.deepEqual(travelStopsFromDetails({}), []);
 });
 
 test('popular Lombok places follow the active interface language', () => {
   assert.equal(localizedPlaces('en').find((place) => place.id === 'airport').name, 'Lombok International Airport');
   assert.equal(localizedPlaces('fr').find((place) => place.id === 'bangsal').name, 'Port de Bangsal');
   assert.equal(localizedPlaces('id').find((place) => place.id === 'airport').name, 'Bandara Internasional Lombok');
-});
-
-test('road route uses the localized not-found message', () => {
-  assert.throws(() => readRoadRoute({}, 'No road route was found.'), /No road route was found/);
 });
 
 test('WhatsApp link targets the configured business number and encodes its message', () => {

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultCatalog } from '../src/lib/catalog.js';
-import { destinationSlug, getCopy, getFormCopy, localeTag, nominatimLanguage } from '../src/lib/i18n.js';
+import { bookingErrorMessage, destinationSlug, getCopy, getFormCopy, localeTag } from '../src/lib/i18n.js';
+import { mapboxLanguage } from '../src/lib/pickup.js';
 import { localizeCatalog } from '../src/lib/server/catalog-i18n.js';
 
 test('Chinese package details contain no Indonesian or English fallback content', () => {
@@ -33,16 +34,35 @@ test('each supported interface locale has detail-page copy', () => {
 });
 
 test('map and GPS messages are complete for every supported locale', () => {
-  const required = ['mapLoadError', 'selected', 'searchFailed', 'gpsSearching', 'gpsDenied', 'routeNotFound', 'bookingOpened', 'whatsappGreeting', 'interactiveMap'];
+  const required = [
+    'mapLoadError', 'selected', 'chooseOnMap', 'searchFailed', 'gpsSearching', 'gpsDenied', 'routeNotFound',
+    'bookingOpened', 'whatsappGreeting', 'interactiveMap', 'searchResultsPickup', 'searchResultsDestination',
+    'swapLocations', 'pickOnMap', 'cancelGps', 'chooseBothPoints', 'routeStopCount', 'routeDuplicateStop',
+    'mapNotConfigured', 'mapPermissionDenied', 'mapQuotaExceeded', 'mapNetworkError', 'routeDuration',
+    'routeNoRoadAccess'
+  ];
   for (const locale of ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
     const copy = getFormCopy(locale);
     required.forEach((key) => assert.ok(copy[key], `${locale}.${key}`));
     assert.ok(localeTag(locale));
-    assert.ok(nominatimLanguage(locale));
+    assert.ok(mapboxLanguage(locale));
   }
-  assert.equal(nominatimLanguage('zh-cn'), 'zh-CN');
-  assert.equal(nominatimLanguage('zh-tw'), 'zh-TW');
+  assert.equal(mapboxLanguage('zh-cn'), 'zh-Hans');
+  assert.equal(mapboxLanguage('zh-tw'), 'zh-Hant');
   assert.notEqual(getFormCopy('en').gpsDenied, getFormCopy('id').gpsDenied);
+});
+
+test('booking error codes are translated for every supported locale', () => {
+  const codes = ['invalid', 'contact', 'date', 'time', 'conflict', 'route', 'service', 'busy'];
+  for (const locale of ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
+    const copy = getFormCopy(locale);
+    codes.forEach((code) => assert.ok(copy.bookingErrors[code], `${locale}.${code}`));
+  }
+  const english = getFormCopy('en');
+  assert.equal(bookingErrorMessage(english, 'not_found'), english.bookingErrors.route);
+  assert.equal(bookingErrorMessage(english, 'permission_denied'), english.bookingErrors.service);
+  assert.equal(bookingErrorMessage(english, 'unknown_code', 'fallback'), 'fallback');
+  assert.notEqual(bookingErrorMessage(getFormCopy('id'), 'busy'), bookingErrorMessage(english, 'busy'));
 });
 
 test('every non-English locale localizes dynamic public catalog content', () => {

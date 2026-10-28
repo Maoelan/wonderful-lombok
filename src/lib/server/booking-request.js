@@ -1,6 +1,7 @@
 import {
   BookingValidationError,
   isValidIdempotencyKey,
+  isValidPickupDateTime,
   isValidTravelDate,
   normalizeBookingDetails,
   normalizeWhatsApp,
@@ -8,10 +9,10 @@ import {
 } from './booking-validation.js';
 import { TravelQuoteError, getTravelQuote } from './travel-quote.js';
 
-const failure = (message, status = 400) => ({ status, body: { error: message } });
+const failure = (message, status = 400, code = status === 503 ? 'busy' : 'invalid') => ({ status, body: { error: message, code } });
 
 function bookingFailure(error) {
-  if (error instanceof BookingValidationError || error instanceof TravelQuoteError) return failure(error.message, error.status);
+  if (error instanceof BookingValidationError || error instanceof TravelQuoteError) return failure(error.message, error.status, error.code);
   return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);
 }
 
@@ -19,6 +20,7 @@ export async function createBookingRequest({
   body,
   idempotencyKey,
   fetchImpl = globalThis.fetch,
+  mapboxToken = process.env.MAPBOX_SERVER_TOKEN || process.env.PUBLIC_MAPBOX_TOKEN,
   loadCatalog,
   saveBooking,
   rentalEnabled = false,
@@ -31,14 +33,14 @@ export async function createBookingRequest({
   let whatsapp;
   try { whatsapp = normalizeWhatsApp(body.whatsapp); } catch (error) { return bookingFailure(error); }
   const name = typeof body.name === 'string' ? body.name.trim() : '';
-  if (!name || name.length > 100) return failure('Nama dan nomor WhatsApp belum valid.');
+  if (!name || name.length > 100) return failure('Nama dan nomor WhatsApp belum valid.', 400, 'contact');
 
   const allowed = ['wisata', 'travel', ...(rentalEnabled ? ['rental'] : [])];
   if (!allowed.includes(body.serviceType)) return failure('Jenis layanan tidak valid.');
   const serviceName = typeof body.serviceName === 'string' ? body.serviceName.trim() : '';
   if (!serviceName || serviceName.length > 120) return failure('Jenis layanan tidak valid.');
 
-  if (!isValidTravelDate(body.travelDate, now)) return failure('Tanggal perjalanan tidak valid.');
+  if (!isValidTravelDate(body.travelDate, now)) return failure('Tanggal perjalanan tidak valid.', 400, 'date');
   if (typeof body.people !== 'number' || !Number.isInteger(body.people) || body.people < 1 || body.people > 50) {
     return failure('Jumlah peserta tidak valid.');
   }
@@ -46,20 +48,30 @@ export async function createBookingRequest({
   let details;
   try { details = normalizeBookingDetails(body.serviceType, body.details); } catch (error) { return bookingFailure(error); }
 
+  if (body.serviceType === 'travel' && !isValidPickupDateTime(body.travelDate, details.pickupTime, now)) {
+    return failure('Jam jemput sudah lewat. Pilih waktu lain.', 400, 'time');
+  }
+
   if (body.serviceType === 'travel') {
     let quote;
     try {
       const catalog = await loadCatalog();
-      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl });
+      quote = await getTravelQuote(details, catalog?.travelRate, { fetchImpl, token: mapboxToken });
       verifyTravelQuote(details, quote);
     } catch (error) {
       return bookingFailure(error);
     }
-    details = { ...details, distanceKm: quote.distanceKm, estimatedPrice: quote.estimatedPrice, travelRate: quote.travelRate };
+    details = {
+      ...details,
+      distanceKm: quote.distanceKm,
+      durationMinutes: quote.durationMinutes,
+      estimatedPrice: quote.estimatedPrice,
+      travelRate: quote.travelRate
+    };
   }
 
   try {
-    const code = await saveBooking({
+    const saved = await saveBooking({
       serviceType: body.serviceType,
       serviceName,
       travelDate: body.travelDate,
@@ -69,6 +81,9 @@ export async function createBookingRequest({
       details,
       idempotencyKey
     });
+    if (saved?.conflict) return failure('Permintaan pemesanan tidak konsisten. Silakan coba lagi.', 409, 'conflict');
+    const code = typeof saved === 'string' ? saved : saved?.code;
+    if (!code) return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);
     return { status: 201, body: { code } };
   } catch {
     return failure('Pemesanan belum dapat disimpan. Coba lagi.', 503);

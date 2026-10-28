@@ -5,7 +5,7 @@ import { clientAddressKey } from '#lib/server/client-address.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
 
-const failure = (message, status = 400) => json({ error: message }, { status });
+const failure = (message, status = 400, code = 'invalid') => json({ error: message, code }, { status });
 
 export async function POST({ request, getClientAddress, fetch }) {
   const limit = consumeRateLimit(`booking:${clientAddressKey(getClientAddress())}`, 8, 60 * 60_000);

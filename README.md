@@ -25,7 +25,7 @@ This repository currently powers a showcase deployment. Production hosting and t
 - Eight interface languages: Indonesian, English, Simplified Chinese, Traditional Chinese, Dutch, French, German, and Malay.
 - Tour catalog with galleries, itineraries, inclusions, and group-based pricing.
 - Lombok destination directory with image galleries and details.
-- Transfer calculator with geolocation, road routing, maps, and distance-based estimates.
+- Two-point transfer planner (pick-up and destination) with a Mapbox GL JS browser map and Mapbox Streets style, Lombok-focused place search, road-route distance and duration, and distance-based estimates. Mapbox handles both the browser map and server-side search and routing; the browser map uses `PUBLIC_MAPBOX_TOKEN`.
 - Booking records stored in Convex before continuing through WhatsApp.
 - Custom admin CMS for catalog content, translations, rich text, images, settings, and bookings, with versioned payload validation and revision checks that reject stale concurrent saves.
 - SEO essentials including metadata, canonical URLs, `hreflang`, `robots.txt`, and a sitemap.
@@ -36,7 +36,8 @@ This repository currently powers a showcase deployment. Production hosting and t
 
 - SvelteKit and Svelte 5
 - Convex Database and File Storage
-- Leaflet, OpenStreetMap, Nominatim, and OSRM
+- Mapbox GL JS with the Mapbox Streets style for the browser map
+- Mapbox Search Box API, Geocoding API v5 (fallback), and Directions API v5 for server-side search and routing
 - Vercel
 
 ## Local development
@@ -53,7 +54,7 @@ npm run admin:create
 npm run dev
 ```
 
-Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. See [ENVIRONMENT.md](ENVIRONMENT.md) for variable purpose, visibility, ownership, and rotation cadence. Never commit real credentials or deployment secrets.
+Convex creates `.env.local` during setup. Use `.env.example` as the variable reference and replace every placeholder locally. Mapbox handles the browser map and server-side place search and routing. The browser map uses `PUBLIC_MAPBOX_TOKEN`, a public `pk.` token restricted to the intended URLs. Server-side calls use `MAPBOX_SERVER_TOKEN` when it is set, otherwise they fall back to `PUBLIC_MAPBOX_TOKEN` for this local demo. Without a Mapbox token, search and routing fail closed with a configuration message. See [ENVIRONMENT.md](ENVIRONMENT.md) for variable purpose, visibility, ownership, token restrictions, quotas, and rotation cadence. Never commit real credentials or deployment secrets.
 
 Open `http://127.0.0.1:5173` after the development server starts.
 
@@ -102,12 +103,16 @@ Do not commit admin credentials, environment files, deploy keys, customer record
 - Convex-hosted images removed from the catalog are deleted after a successful save if no catalog field still references them, including URLs inside rich text. This deletion is permanent; the admin confirmation warns before saving.
 - Security headers are applied by the application.
 - Environment files, local Vercel metadata, private keys, dumps, and backups are excluded through `.gitignore`.
-- The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment.
+- The in-memory rate limiter is suitable for this showcase, not for a high-traffic multi-instance production deployment. Production requires the Vercel Firewall/WAF or shared-store gate in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md).
 
 No public repository or application can be guaranteed vulnerability-free. Run the test suite, dependency audit, secret scan, and production build before each release.
 
 ## Photo credits
 
 Demo imagery is sourced from Wikimedia Commons. Attribution and license details are available on the source pages for [Tanjung Aan](https://commons.wikimedia.org/wiki/Category:Tanjung_Aan_Beach), [Seger Beach](https://commons.wikimedia.org/wiki/File:PANTAI_SEGER.jpg), [Sade Village](https://commons.wikimedia.org/wiki/File:Traditional_Sasak_Village_Sade_houses.JPG), [the Gili Islands](https://commons.wikimedia.org/wiki/Category:Gili_Islands), [Senggigi](https://commons.wikimedia.org/wiki/Category:Senggigi), and [Rinjani and Sembalun](https://commons.wikimedia.org/wiki/Category:Rinjani-Lombok_UNESCO_Global_Geopark).
+
+## Map data
+
+The route planner validates land points against a simplified coastline derived from [OpenStreetMap relation 7219495](https://www.openstreetmap.org/relation/7219495), © OpenStreetMap contributors, available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/). The polygon is used only to reject route points in the sea; it is not a surveyed boundary. Mapbox Directions requests use `mapbox/driving` and `exclude=ferry`. Every returned step must be a driving step, and each selected point must snap within 250 m of the road network or the route is rejected. The browser map is Mapbox GL JS with the Mapbox Streets style and displays Mapbox/OpenStreetMap attribution in the map itself.
 
 Replace all demo contact details, pricing, and content through the admin panel before using this project as an official business website.

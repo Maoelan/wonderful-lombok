@@ -1,5 +1,6 @@
-export const MAX_UPLOAD_BYTES = 5_000_000;
-export const MAX_UPLOAD_REQUEST_BYTES = 5_500_000;
+// Keep the file limit below Vercel's 4.5 MB function request limit, including multipart overhead.
+export const MAX_UPLOAD_BYTES = 4_000_000;
+export const MAX_UPLOAD_REQUEST_BYTES = 4_400_000;
 
 export const uploadFormats = [
   { type: 'image/jpeg', extension: 'jpg', signature: [0xff, 0xd8, 0xff] },
@@ -9,14 +10,14 @@ export const uploadFormats = [
 
 export function validateUploadSize(size) {
   if (!Number.isInteger(size) || size <= 0 || size > MAX_UPLOAD_BYTES) {
-    return { error: 'Pilih gambar maksimal 5 MB.', status: 400 };
+    return { error: 'Pilih gambar maksimal 4 MB.', status: 400 };
   }
   return null;
 }
 
 export function validateUploadRequestSize(contentLength) {
   if (Number(contentLength || 0) > MAX_UPLOAD_REQUEST_BYTES) {
-    return { error: 'Ukuran gambar maksimal 5 MB.', status: 413 };
+    return { error: 'Ukuran gambar maksimal 4 MB.', status: 413 };
   }
   return null;
 }

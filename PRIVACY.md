@@ -8,7 +8,7 @@ A booking can contain:
 
 - booking code, idempotency key, service type and name, travel date, number of guests, status, created and updated timestamps;
 - customer name, WhatsApp number, optional notes, and site locale;
-- for travel bookings: origin and destination labels, origin and destination coordinates, GPS accuracy and source, pickup time, routed distance, and estimated price.
+- for travel bookings: pickup, ordered stop, and destination labels and coordinates; GPS accuracy and source for the pickup point; pickup time; routed distance; estimated duration; and estimated price.
 
 The site does not collect payment card data or create customer accounts. Payment and final confirmation happen outside the site through WhatsApp.
 
@@ -16,16 +16,16 @@ The site does not collect payment card data or create customer accounts. Payment
 
 - Name and WhatsApp number let the team confirm the booking and contact the customer.
 - Travel date, guests, service, and notes let the team plan the trip.
-- Pickup and destination coordinates are used to calculate the road route and estimate the travel price, and to tell the driver where to go.
+- Pickup, ordered stop, and destination coordinates are used to calculate the road route and estimate the travel price and duration, and to tell the driver where to go.
 - Status and timestamps support admin follow-up.
 
 ## Location data
 
-Coordinates are stored only for the pickup point and destination the customer selected. The application does not track location in the background, does not store a location history, and does not expose booking coordinates in the public catalog, sitemap, structured data, or public API.
+Coordinates are stored only for the pickup point, ordered stops, and destination the customer selected. The application does not track location in the background, does not store a location history, and does not expose booking coordinates in the public catalog, sitemap, structured data, or public API.
 
-During a travel quote, coordinates are sent to the configured road-routing provider. Address searches are sent to the configured geocoding provider. Those providers process the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests.
+During a travel quote, the selected coordinates are sent to Mapbox Directions API v5. Address and place searches are sent to the Mapbox Search Box API, with a Geocoding API v5 fallback. Mapbox processes the request to return a route or place result; the application does not add customer name or WhatsApp number to those requests. The route geometry and distance are returned to the browser, but the booking coordinates are stored only in Convex with the booking.
 
-Coordinates are kept with the booking because operations need the pickup point for dispatch and customer support. If precise coordinates are not needed for a future service type, do not add them to that service's detail schema.
+Coordinates are kept with the booking because operations need the pickup point and ordered stops for dispatch and customer support. If precise coordinates are not needed for a future service type, do not add them to that service's detail schema.
 
 ## Who can access it
 
@@ -40,7 +40,7 @@ The current operating target is:
 
 - booking records: delete 12 months after the travel date, or earlier when the customer requests deletion and there is no open operational or legal need to keep them;
 - removed catalog media: delete permanently on the next successful catalog save, as implemented in `catalog:save`; the admin confirmation warns that there is no undo, so keep an approved backup before removing media that may be needed again;
-- orphaned uploads that were never saved: review monthly and delete;
+- orphaned uploads that were never saved: review monthly and delete; client-side cleanup is not implemented, so an upload abandoned before a catalog save remains until this manual review;
 - application logs: the application does not write booking payloads or secrets to logs. Hosting and database logs follow the provider's retention settings.
 
 This period and the public privacy notice still require owner and legal approval. Automated expiry cleanup is not implemented yet, so the process below is manual until a scheduled cleanup is added.
@@ -51,7 +51,7 @@ Export:
 
 1. Sign in to the admin page and open **Pemesanan**.
 2. Choose **Unduh CSV**, or send an authenticated `GET /api/admin/bookings/export`.
-3. The CSV includes the latest 5,000 bookings, is UTF-8 with a BOM, escapes spreadsheet formula prefixes, and is served with `no-store`.
+3. The CSV includes the entire booking history, read page by page without a silent row cap. A large export may take longer. The file is UTF-8 with a BOM, escapes spreadsheet formula prefixes, and is served with `no-store`.
 
 Delete a booking:
 
@@ -65,4 +65,7 @@ Both routes require an active admin session. The delete route also passes throug
 
 - `tests/bookings-csv.test.js` covers CSV escaping, formula-injection protection, headers, and BOM output.
 - `tests/booking-data.test.js` covers booking deletion, idempotency-record cleanup, and missing records.
+- `tests/booking-validation.test.js` covers ordered stops, duplicate points, Lombok bounds, and quote verification.
+- `tests/upstream-routes.test.js` covers the place-search and route proxies, including quota and permission failures.
+- `tests/map-providers.test.js` covers Mapbox Search Box and Geocoding place search, Directions parsing, ferry rejection, and snap-distance rejection.
 - `tests/request-security.test.js` covers trusted-origin enforcement for admin mutation paths.

@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { removeBooking } from '../convex/bookingData.js';
+import { removeBooking, updateBookingStatus } from '../convex/bookingData.js';
 
 function fakeContext(bookings, requests = {}) {
   const deleted = [];
+  const patched = [];
   return {
     deleted,
+    patched,
     db: {
       async get(id) {
         return bookings[id] ?? null;
@@ -26,10 +28,22 @@ function fakeContext(bookings, requests = {}) {
       },
       async delete(id) {
         deleted.push(id);
+      },
+      async patch(id, values) {
+        patched.push({ id, ...values });
       }
     }
   };
 }
+
+test('updates the status only when the booking exists', async () => {
+  const ctx = fakeContext({ 'booking-1': { _id: 'booking-1', status: 'baru' } });
+
+  assert.equal(await updateBookingStatus(ctx, 'booking-1', 'selesai', 123), true);
+  assert.deepEqual(ctx.patched, [{ id: 'booking-1', status: 'selesai', updatedAt: 123 }]);
+  assert.equal(await updateBookingStatus(ctx, 'missing', 'selesai', 456), false);
+  assert.equal(ctx.patched.length, 1);
+});
 
 test('removes a booking and its idempotency record', async () => {
   const ctx = fakeContext({ 'booking-1': { _id: 'booking-1', idempotencyKey: 'key-1' } }, { 'key-1': { _id: 'request-1' } });

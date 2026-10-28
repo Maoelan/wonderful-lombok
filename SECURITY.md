@@ -57,7 +57,7 @@ A limited response includes `Retry-After` in seconds.
 
 Client address keys are derived from `getClientAddress()` (the adapter-vercel `x-forwarded-for` value). The right-most value is used, and it must parse as an IP address; anything else maps to `unknown`. Vercel overwrites `x-forwarded-for` with the client address. When self-hosting, configure the reverse proxy to overwrite or append the real client address and block direct access to the app port, otherwise a client can forge the right-most hop.
 
-The limiter is per serverless instance. It reduces accidental abuse and simple scripted attacks, but it is not a shared counter. A production deployment should add a platform-level WAF or shared store (for example Vercel WAF or Upstash Redis) in front of login, booking, geocoding, routing, upload, and admin mutation endpoints. This residual risk is accepted for the current launch until shared infrastructure is available.
+The limiter is per serverless instance. It reduces accidental abuse and simple scripted attacks, but it is not a shared counter. The current showcase deployment accepts this limitation as defense in depth, not as a hard security boundary. Before production traffic is enabled, either configure platform-level rate-limit rules (for example Vercel Firewall/WAF) in front of login, booking, geocoding, routing, upload, and admin mutation endpoints, or replace this module with a shared store (for example Upstash Redis). The production launch gate is tracked in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md); do not treat the in-memory limiter as sufficient for a multi-instance production launch.
 
 The in-memory table is bounded. When it is full, new keys are rejected instead of evicting active buckets, so flooding fresh keys cannot reset an existing limit. Expired buckets are pruned when the table is full.
 
@@ -67,11 +67,11 @@ Both booking forms include an off-screen `website` field that people do not see.
 
 ## Uploaded image metadata
 
-Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared MIME type and magic bytes, and capped at 5 MB per file and 5.5 MB per multipart request. Before the bytes are sent to Convex storage, JPEG EXIF/XMP/IPTC/comment segments, PNG `eXIf` and text chunks, and WebP `EXIF`/`XMP` chunks are removed. A JPEG orientation value is preserved with a minimal EXIF segment so phone photos are not rotated unexpectedly. Malformed images are rejected instead of being stored with their metadata.
+Admin uploads are limited to JPEG, PNG, and WebP, checked against their declared MIME type and magic bytes, and capped at 4,000,000 bytes (4 MB) per file and 4,400,000 bytes per multipart request. The request cap stays below the platform's 4.5 MB function-request ceiling with headroom for multipart overhead; `BODY_SIZE_LIMIT` is set to `4.5M` in `.env.example`. Before the bytes are sent to Convex storage, JPEG EXIF/XMP/IPTC/comment segments, PNG `eXIf` and text chunks, and WebP `EXIF`/`XMP` chunks are removed. A JPEG orientation value is preserved with a minimal EXIF segment so phone photos are not rotated unexpectedly. Malformed images are rejected instead of being stored with their metadata.
 
 This is a structural metadata filter, not a full image decoder or a malware scanner. Keep the upload endpoint admin-only, origin-checked, and rate-limited.
 
-When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including links or URLs inside rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save. Deletion is permanent and cannot be undone; admin confirmations call this out, and `PRIVACY.md` records the operational procedure.
+When a catalog save succeeds, Convex storage IDs that were in the previous catalog but are absent from the new catalog are deleted. A file is kept if the same storage URL still appears anywhere in the saved catalog, including links or URLs inside rich text. Cleanup failures are ignored so they cannot roll back a successful catalog save. An upload becomes orphaned if an admin uploads a file and leaves the editor before saving the catalog; client-side cleanup for that case is not implemented, so orphaned uploads remain a manual monthly review item in `PRIVACY.md`. Deletion is permanent and cannot be undone; admin confirmations call this out.
 
 ## Booking data access
 
