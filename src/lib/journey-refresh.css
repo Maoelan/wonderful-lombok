@@ -119,10 +119,12 @@ body .site-theme .photo-indicators span { width: 7px; height: 7px; border-radius
 body .site-theme .photo-indicators .active span { width: 18px; border-radius: 4px; background: white; }
 body .site-theme .photo-gallery button:focus-visible { outline: 3px solid white; outline-offset: -4px; }
 body .site-theme .photo-gallery .tour-gallery-count { pointer-events: none; }
+body .site-theme .photo-stage .photo-layer { position: absolute; inset: 0; }
+body .site-theme .photo-stage .photo-layer.previous { z-index: 1; opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
-  body .site-theme .photo-stage .package-slide { animation: photo-reveal .3s ease-out; }
+  body .site-theme .photo-stage .photo-layer.previous { transition: opacity .45s ease; }
 }
-@keyframes photo-reveal { from { opacity: .6; } to { opacity: 1; } }
+body .site-theme .photo-stage .photo-layer.previous.fading { opacity: 0; }
 body .site-theme .tour-hero { border: 0; border-radius: 0; background: transparent; align-items: start; }
 body .site-theme .tour-main-image { height: 400px; }
 body .site-theme .tour-summary { padding: 20px 0 20px 32px; }

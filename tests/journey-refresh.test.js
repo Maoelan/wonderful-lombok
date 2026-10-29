@@ -82,9 +82,19 @@ test('swap uses a balanced SVG and locale picker retains its current flag', () =
   assert.match(language, /\/flags\/\$\{current.flag\}\.png/);
 });
 
-test('shared photo gallery is manual, swipeable, and has no playback controls', () => {
+test('shared photo gallery auto-rotates package thumbnails with a staggered crossfade', () => {
   const source=readFileSync(new URL('../src/lib/PhotoGallery.svelte',import.meta.url),'utf8');
-  assert.doesNotMatch(source, /setInterval|photo-rotation|rotationLabels|Pause slideshow|Jeda pergantian/);
+  assert.match(source, /const AUTOPLAY_DELAY = 5000/);
+  assert.match(source, /const STAGGER_DELAY = 1200/);
+  assert.match(source, /const FADE_DURATION = 450/);
+  assert.match(source, /Math\.min\(position, 4\) \* STAGGER_DELAY/);
+  assert.match(source, /if \(!compact \|\| reducedMotion\(\)\) return/);
+  assert.match(source, /!autoplayPaused && !document\.hidden && Date\.now\(\) - lastChanged >= AUTOPLAY_DELAY/);
+  assert.match(source, /on:mouseenter=\{pauseAutoplay\}/);
+  assert.match(source, /on:focusin=\{pauseAutoplay\}/);
+  assert.match(source, /class="photo-layer previous" class:fading/);
+  assert.doesNotMatch(source, /\{#key selected\}/);
+  assert.doesNotMatch(source, /package-slide/);
   assert.match(source, /on:pointercancel/);
   assert.match(source, /event\.preventDefault\(\); suppressClick = false/);
   assert.match(source, /\{#if !compact\}\s*<button class="photo-arrow/);
