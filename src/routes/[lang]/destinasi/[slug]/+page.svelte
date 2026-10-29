@@ -39,7 +39,7 @@
   <SkipLink locale={data.locale} />
   <SiteHeader locale={data.locale} suffix={`/destinasi/${data.item.slug}`} packages={data.catalog.packages} destinations={data.catalog.destinations} />
   <main id="main-content" tabindex="-1" class="tour-detail-page">
-    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`${home}#destinasi`}>{c.destinations}</a><span>/</span><span>{data.item.name}</span></nav>
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={localePath(data.locale, '/destinasi')}>{c.destinations}</a><span>/</span><span>{data.item.name}</span></nav>
     <section class="tour-hero">
       <PhotoGallery images={gallery} name={data.item.name} locale={data.locale} />
       <div class="tour-summary"><p class="label">{destinationSeo.label}</p><h1>{data.item.name}</h1><p>{data.item.note}</p><div class="tour-route"><span>{destinationSeo.about}</span><div class="rich-content">{@html data.item.detail}</div></div><a class="button primary" href={data.relatedPackages.length ? '#related-packages' : localePath(data.locale, '/paket-wisata')}>{c.viewTours}</a></div>

@@ -70,13 +70,22 @@ test('every package booking entry point supplies price context to the shared dia
   for(const field of ['booking.duration','booking.price','booking.unit','t.priceConfirmation']) assert.ok(dialog.includes(field),field);
 });
 
-test('homepage keeps all package cards without a redundant section-level catalogue action', () => {
+test('homepage curates featured packages and destinations with counts and see-all links', () => {
   const source=readFileSync(new URL('../src/routes/+page.svelte',import.meta.url),'utf8');
-  const section=source.slice(source.indexOf('<section class="packages section"'),source.indexOf('<section class="destinations"'));
-  assert.match(section, /\{#each packages as item\}/);
-  assert.match(section, /<TourCard \{item\}/);
-  assert.doesNotMatch(section, /c\.allTours|packages\.slice/);
-  assert.match(source, /class="nav-dropdown-all" href=\{`\/\$\{locale\}\/paket-wisata`\}/);
+  const packages=source.slice(source.indexOf('<section class="packages section"'),source.indexOf('<section class="destinations"'));
+  assert.match(packages, /\{#each homePackages as item\}/);
+  assert.match(packages, /<TourCard \{item\}/);
+  assert.doesNotMatch(packages, /\{#each packages as item\}/);
+  assert.match(packages, /class="section-kicker">\{c\.featuredTours\}/);
+  assert.match(packages, /c\.packageCount/);
+  assert.match(packages, /class="section-more" href=\{localePath\(locale, '\/paket-wisata'\)\}/);
+  const destinations=source.slice(source.indexOf('<section class="destinations"'),source.indexOf('<section class="travel-section"'));
+  assert.match(destinations, /\{#each homeDestinations as destination\}/);
+  assert.match(destinations, /<DestinationCard item=\{destination\}/);
+  assert.match(destinations, /c\.destinationCount/);
+  assert.match(destinations, /class="section-more" href=\{localePath\(locale, '\/destinasi'\)\}/);
+  assert.match(source, /class="nav-dropdown-more" href=\{`\/\$\{locale\}\/paket-wisata`\}/);
+  assert.match(source, /class="nav-dropdown-more" href=\{localePath\(locale, '\/destinasi'\)\}/);
 });
 
 test('summary labels and final-price notices are translated for all eight locales', () => {

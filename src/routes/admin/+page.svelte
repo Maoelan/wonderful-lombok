@@ -30,6 +30,14 @@
 
   const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   const formatCurrency = (value) => Number.isFinite(value) ? currency.format(value) : '';
+  const regionOptions = [
+    ['south-coast', 'Pesisir Selatan'],
+    ['east-lombok', 'Lombok Timur'],
+    ['gilis-sekotong', 'Gili & Sekotong'],
+    ['waterfalls-rinjani', 'Air Terjun & Rinjani'],
+    ['west-culture', 'Budaya Lombok Barat'],
+    ['other', 'Destinasi lainnya']
+  ];
 
   const leaveGuard = createUnsavedChangesGuard({
     isDirty: () => dirty,
@@ -448,6 +456,7 @@
               <div class="admin-editor-body"><div class="admin-fields"><section class="admin-form-panel" id="package-info"><h4>Informasi utama</h4>
                 <label><span>Nama paket</span><input value={item.name} on:input={(event) => updatePackage(index, 'name', event.currentTarget.value)} /></label>
                 <div class="admin-field-row"><label><span>Durasi</span><input value={item.duration} on:input={(event) => updatePackage(index, 'duration', event.currentTarget.value)} placeholder="Contoh: 2 hari 1 malam" /></label><label><span>Kategori</span><input value={item.category} on:input={(event) => updatePackage(index, 'category', event.currentTarget.value)} placeholder="Contoh: Private tour" /></label></div>
+                <label class="admin-flag"><input type="checkbox" checked={item.featured === true} on:change={(event) => updatePackage(index, 'featured', event.currentTarget.checked)} /><span>Tampilkan sebagai paket pilihan di beranda dan navigasi</span></label>
                 <label><span>Destinasi dan aktivitas</span><textarea rows="2" value={item.route} on:input={(event) => updatePackage(index, 'route', event.currentTarget.value)}></textarea></label>
                 <fieldset class="admin-subsection admin-destination-picker"><legend>Destinasi dalam paket</legend><p>Pilih destinasi yang benar-benar dikunjungi. Paket ini akan otomatis tampil pada halaman destinasi yang dipilih.</p>{#if catalog.destinations.length}<div class="admin-checkbox-list">{#each catalog.destinations as destination}<label class:selected={(item.destinationSlugs || []).includes(destination.slug)}><input type="checkbox" checked={(item.destinationSlugs || []).includes(destination.slug)} on:change={(event) => setPackageDestination(index, destination.slug, event.currentTarget.checked)} /><span><strong>{destination.name}</strong><small>{destination.note}</small></span></label>{/each}</div>{:else}<p class="admin-inline-empty">Belum ada destinasi. Tambahkan destinasi terlebih dahulu.</p>{/if}</fieldset>
                 <RichTextEditor label="Deskripsi paket" bind:value={item.detail} />
@@ -496,6 +505,10 @@
               <div class="admin-editor-body"><div class="admin-fields"><section class="admin-form-panel" id="destination-info"><h4>Informasi destinasi</h4>
                 <label><span>Nama destinasi</span><input value={item.name} on:input={(event) => updateDestination(index, 'name', event.currentTarget.value)} /></label>
                 <label><span>Keterangan singkat</span><input value={item.note} on:input={(event) => updateDestination(index, 'note', event.currentTarget.value)} /></label>
+                <div class="admin-field-row">
+                  <label><span>Wilayah</span><select value={item.region || ''} on:change={(event) => updateDestination(index, 'region', event.currentTarget.value)}><option value="">Belum ditentukan</option>{#each regionOptions as [value, label]}<option value={value}>{label}</option>{/each}</select><small>Dipakai untuk mengelompokkan destinasi di navigasi dan halaman destinasi.</small></label>
+                  <label class="admin-flag"><input type="checkbox" checked={item.featured === true} on:change={(event) => updateDestination(index, 'featured', event.currentTarget.checked)} /><span>Tampilkan sebagai destinasi pilihan di beranda dan navigasi</span></label>
+                </div>
                 <RichTextEditor label="Deskripsi destinasi" bind:value={item.detail} />
                 </section>
                 <details class="admin-translation"><summary>Terjemahan English (opsional)</summary><div class="admin-fields">

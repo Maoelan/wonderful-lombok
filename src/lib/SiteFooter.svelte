@@ -22,7 +22,7 @@
         <a href={homepage ? '#paket' : localePath(locale, '/paket-wisata')} aria-current={current === 'tours' ? 'page' : undefined}>{c.tours}</a>
         <a href={`${home}#hitung-travel`} aria-current={current === 'travel' ? 'page' : undefined}>{c.travel}</a>
         {#if rentalEnabled}<a href={`${home}#rental`}>{c.rentalLabel}</a>{/if}
-        <a href={`${home}#destinasi`} aria-current={current === 'destinations' ? 'page' : undefined}>{c.destinations}</a>
+        <a href={homepage ? '#destinasi' : localePath(locale, '/destinasi')} aria-current={current === 'destinations' ? 'page' : undefined}>{c.destinations}</a>
         <a href={`${home}#faq`}>{c.faq}</a>
       </div>
     </nav>

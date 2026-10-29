@@ -83,8 +83,51 @@ export function getCopy(locale) {
     ms: { home: 'Laman utama', itineraryHeading: 'Jadual perjalanan anda', priceHeading: 'Harga mengikut bilangan tetamu', readyTitle: 'Bersedia meneroka Lombok?', customItinerary: 'Perlukan jadual khas?', image: 'gambar', viewImage: 'Lihat gambar', bookWhatsapp: 'Mesej via WhatsApp', photoOf: 'Foto {current} daripada {total}: {name}', imageFallback: 'Gambar ganti untuk {name}', whatsappMessage: 'Halo Wonderful Lombok, saya ingin bertanya tentang pakej {name}.', whatsappTier: 'Halo Wonderful Lombok, saya ingin bertanya tentang pakej {name} untuk {guests}.' }
   };
   const base = locale === 'id' ? id : { ...en, ...(translated[locale] || {}), ...(supplemental[locale] || {}), ...(detailTranslations[locale] || {}) };
-  return { ...base, ...getJourneyCopy(locale) };
+  return { ...base, ...getJourneyCopy(locale), ...(discoveryCopy[locale] || discoveryCopy.en) };
 }
+
+const discoveryCopy = {
+  id: {
+    featuredTours: 'Paket pilihan', featuredDestinations: 'Destinasi pilihan', allDestinations: 'Lihat semua destinasi',
+    packageCount: '{shown} dari {total} paket', destinationCount: '{shown} dari {total} destinasi',
+    regions: { 'south-coast': 'Pesisir Selatan', 'east-lombok': 'Lombok Timur', 'gilis-sekotong': 'Gili & Sekotong', 'waterfalls-rinjani': 'Air Terjun & Rinjani', 'west-culture': 'Budaya Lombok Barat', other: 'Destinasi lainnya' }
+  },
+  en: {
+    featuredTours: 'Featured packages', featuredDestinations: 'Featured destinations', allDestinations: 'View all destinations',
+    packageCount: '{shown} of {total} packages', destinationCount: '{shown} of {total} destinations',
+    regions: { 'south-coast': 'South Coast', 'east-lombok': 'East Lombok', 'gilis-sekotong': 'Gilis & Sekotong', 'waterfalls-rinjani': 'Waterfalls & Rinjani', 'west-culture': 'West Lombok Culture', other: 'Other destinations' }
+  },
+  'zh-cn': {
+    featuredTours: '精选套餐', featuredDestinations: '精选目的地', allDestinations: '查看全部目的地',
+    packageCount: '{total} 个套餐中的 {shown} 个', destinationCount: '{total} 个目的地中的 {shown} 个',
+    regions: { 'south-coast': '南海岸', 'east-lombok': '东龙目', 'gilis-sekotong': '吉利群岛与塞科通', 'waterfalls-rinjani': '瀑布与林贾尼', 'west-culture': '西龙目文化', other: '其他目的地' }
+  },
+  'zh-tw': {
+    featuredTours: '精選套裝', featuredDestinations: '精選目的地', allDestinations: '查看全部目的地',
+    packageCount: '{total} 個套裝中的 {shown} 個', destinationCount: '{total} 個目的地中的 {shown} 個',
+    regions: { 'south-coast': '南海岸', 'east-lombok': '東龍目', 'gilis-sekotong': '吉利群島與塞科通', 'waterfalls-rinjani': '瀑布與林賈尼', 'west-culture': '西龍目文化', other: '其他目的地' }
+  },
+  nl: {
+    featuredTours: 'Uitgelichte pakketten', featuredDestinations: 'Uitgelichte bestemmingen', allDestinations: 'Bekijk alle bestemmingen',
+    packageCount: '{shown} van {total} pakketten', destinationCount: '{shown} van {total} bestemmingen',
+    regions: { 'south-coast': 'Zuidkust', 'east-lombok': 'Oost-Lombok', 'gilis-sekotong': 'Gili’s & Sekotong', 'waterfalls-rinjani': 'Watervallen & Rinjani', 'west-culture': 'Cultuur van West-Lombok', other: 'Overige bestemmingen' }
+  },
+  fr: {
+    featuredTours: 'Circuits sélectionnés', featuredDestinations: 'Destinations sélectionnées', allDestinations: 'Voir toutes les destinations',
+    packageCount: '{shown} sur {total} circuits', destinationCount: '{shown} sur {total} destinations',
+    regions: { 'south-coast': 'Côte sud', 'east-lombok': 'Lombok oriental', 'gilis-sekotong': 'Gilis et Sekotong', 'waterfalls-rinjani': 'Cascades et Rinjani', 'west-culture': 'Culture de Lombok occidental', other: 'Autres destinations' }
+  },
+  de: {
+    featuredTours: 'Ausgewählte Pakete', featuredDestinations: 'Ausgewählte Reiseziele', allDestinations: 'Alle Reiseziele ansehen',
+    packageCount: '{shown} von {total} Paketen', destinationCount: '{shown} von {total} Reisezielen',
+    regions: { 'south-coast': 'Südküste', 'east-lombok': 'Ost-Lombok', 'gilis-sekotong': 'Gilis & Sekotong', 'waterfalls-rinjani': 'Wasserfälle & Rinjani', 'west-culture': 'Kultur in West-Lombok', other: 'Weitere Reiseziele' }
+  },
+  ms: {
+    featuredTours: 'Pakej pilihan', featuredDestinations: 'Destinasi pilihan', allDestinations: 'Lihat semua destinasi',
+    packageCount: '{shown} daripada {total} pakej', destinationCount: '{shown} daripada {total} destinasi',
+    regions: { 'south-coast': 'Pantai Selatan', 'east-lombok': 'Lombok Timur', 'gilis-sekotong': 'Gili & Sekotong', 'waterfalls-rinjani': 'Air Terjun & Rinjani', 'west-culture': 'Budaya Lombok Barat', other: 'Destinasi lain' }
+  }
+};
 
 const formId = { pickup: 'Lokasi jemput', destination: 'Tujuan', address: 'Ketik alamat, lalu tekan Enter', searching: 'Mencari…', useLocation: 'Gunakan lokasi saya', locating: 'Mencari GPS…', popular: 'Atau pilih lokasi populer', guidance: 'Ketik alamat lalu tekan Enter, pilih lokasi populer, atau klik langsung pada peta.', loadingMap: 'Memuat peta Lombok', findingRoute: 'Mencari rute jalan', estimate: 'Estimasi perjalanan', calculating: 'Menghitung…', chooseRoute: 'Pilih rute untuk melihat estimasi.', rate: 'Tarif per km rute jalan', from: 'Dari', to: 'Ke', notSelected: 'Belum dipilih', customer: 'Nama pemesan', fullName: 'Nama lengkap', whatsapp: 'Nomor WhatsApp', date: 'Tanggal', time: 'Waktu', passengers: 'Jumlah penumpang', bookTravel: 'Pesan Paket Travel via WhatsApp', estimateNote: 'Harga merupakan perkiraan. Tim Wonderful Lombok akan mengonfirmasi detail perjalanan melalui WhatsApp.', bookNow: 'Pesan Sekarang', close: 'Tutup', booking: 'Permintaan pemesanan', bookingIntro: 'Isi data singkat berikut, lalu lanjutkan konfirmasi melalui WhatsApp.', travelDate: 'Tanggal perjalanan', guests: 'Jumlah peserta', notes: 'Catatan opsional', notesPlaceholder: 'Permintaan khusus atau lokasi penjemputan', saveContinue: 'Simpan dan lanjut ke WhatsApp', saving: 'Menyimpan…', destinationDetails: 'Detail destinasi', previousImage: 'Gambar sebelumnya', nextImage: 'Gambar berikutnya' };
 const formEn = { pickup: 'Pick-up location', destination: 'Destination', address: 'Type an address, then press Enter', searching: 'Searching…', useLocation: 'Use my location', locating: 'Locating…', popular: 'Or choose a popular location', guidance: 'Type an address and press Enter, choose a popular location, or click the map.', loadingMap: 'Loading Lombok map', findingRoute: 'Finding road route', estimate: 'Trip estimate', calculating: 'Calculating…', chooseRoute: 'Choose a route to see the estimate.', rate: 'Rate per road kilometre', from: 'From', to: 'To', notSelected: 'Not selected', customer: 'Customer name', fullName: 'Full name', whatsapp: 'WhatsApp number', date: 'Date', time: 'Time', passengers: 'Passengers', bookTravel: 'Book Travel Service via WhatsApp', estimateNote: 'This is an estimate. Wonderful Lombok will confirm the trip details through WhatsApp.', bookNow: 'Book Now', close: 'Close', booking: 'Booking request', bookingIntro: 'Enter your details, then continue the confirmation through WhatsApp.', travelDate: 'Travel date', guests: 'Number of guests', notes: 'Optional notes', notesPlaceholder: 'Special requests or pick-up location', saveContinue: 'Save and continue to WhatsApp', saving: 'Saving…', destinationDetails: 'Destination details', previousImage: 'Previous image', nextImage: 'Next image' };

@@ -1,6 +1,10 @@
 import { slugify } from '../i18n.js';
 import { CATALOG_SCHEMA_VERSION } from '../catalog-schema.js';
+import { DESTINATION_REGION_KEYS } from '../catalog-display.js';
 import { isDemoImage } from '../demo-images.js';
+
+const optionalFlag = (value) => value === undefined || typeof value === 'boolean';
+const optionalRegion = (value) => value === undefined || value === '' || DESTINATION_REGION_KEYS.includes(value);
 
 const text = (value, min, max) => typeof value === 'string' && value.trim().length >= min && value.length <= max;
 const optionalText = (value, max) => value === undefined || value === '' || text(value, 2, max);
@@ -75,7 +79,7 @@ export function validateCatalog(catalog, options = {}) {
     const tiersValid = Array.isArray(item.priceTiers) && item.priceTiers.length <= 30 && item.priceTiers.every((tier) => text(tier?.guests, 1, 100) && text(tier.price, 1, 50) && text(tier.note, 1, 100) && optionalText(tier.guestsEn, 100) && optionalText(tier.noteEn, 100));
     const related = item.destinationSlugs;
     const relationsValid = Array.isArray(related) && related.length <= 50 && new Set(related).size === related.length && related.every((slug) => typeof slug === 'string' && knownDestinationSlugs.has(slug));
-    return text(item.name, 2, 100) && text(item.route, 2, 500) && text(item.detail, 2, 2000) && text(item.price, 2, 50) && text(item.unit, 2, 50) && text(item.category, 2, 100) && text(item.duration, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.routeEn, 500) && optionalText(item.detailEn, 2000) && optionalText(item.unitEn, 50) && optionalText(item.categoryEn, 100) && optionalText(item.durationEn, 100) && validItinerary(item.itinerary || []) && validItinerary(item.itineraryEn || []) && stringList(item.includes || []) && stringList(item.includesEn || []) && stringList(item.excludes || []) && stringList(item.excludesEn || []) && tiersValid && relationsValid && validImage(item.image, options) && validGallery(item.images || [], options);
+    return text(item.name, 2, 100) && text(item.route, 2, 500) && text(item.detail, 2, 2000) && text(item.price, 2, 50) && text(item.unit, 2, 50) && text(item.category, 2, 100) && text(item.duration, 2, 100) && optionalText(item.nameEn, 100) && optionalText(item.routeEn, 500) && optionalText(item.detailEn, 2000) && optionalText(item.unitEn, 50) && optionalText(item.categoryEn, 100) && optionalText(item.durationEn, 100) && validItinerary(item.itinerary || []) && validItinerary(item.itineraryEn || []) && stringList(item.includes || []) && stringList(item.includesEn || []) && stringList(item.excludes || []) && stringList(item.excludesEn || []) && tiersValid && relationsValid && optionalFlag(item.featured) && validImage(item.image, options) && validGallery(item.images || [], options);
   });
   if (!packagesValid) return 'Data Paket Wisata tidak valid.';
 
@@ -84,7 +88,7 @@ export function validateCatalog(catalog, options = {}) {
     const slug = item?.slug || slugify(item?.name);
     if (!validSlug(slug) || destinationSlugs.has(slug)) return false;
     destinationSlugs.add(slug);
-    return text(item?.name, 2, 100) && text(item.note, 2, 300) && text(item.detail, 2, 2000) && optionalText(item.nameEn, 100) && optionalText(item.noteEn, 300) && optionalText(item.detailEn, 2000) && validImage(item.image, options) && validGallery(item.images || [], options);
+    return text(item?.name, 2, 100) && text(item.note, 2, 300) && text(item.detail, 2, 2000) && optionalText(item.nameEn, 100) && optionalText(item.noteEn, 300) && optionalText(item.detailEn, 2000) && optionalFlag(item.featured) && optionalRegion(item.region) && validImage(item.image, options) && validGallery(item.images || [], options);
   });
   if (!destinationsValid) return 'Data destinasi tidak valid.';
 

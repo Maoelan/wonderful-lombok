@@ -13,6 +13,8 @@
   import SkipLink from '../lib/SkipLink.svelte';
   import TourCard from '../lib/TourCard.svelte';
   import FaqSection from '../lib/FaqSection.svelte';
+  import DestinationCard from '../lib/DestinationCard.svelte';
+  import { HOME_DESTINATION_LIMIT, HOME_PACKAGE_LIMIT, NAV_DESTINATION_LIMIT, NAV_PACKAGE_LIMIT, groupDestinationsByRegion, pickFeatured } from '../lib/catalog-display.js';
 
   export let data;
   let menuOpen = false;
@@ -36,7 +38,13 @@
   $: seoTitle = seo.homeTitle;
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
+  $: homePackages = pickFeatured(packages, HOME_PACKAGE_LIMIT);
+  $: homeDestinations = pickFeatured(destinations, HOME_DESTINATION_LIMIT);
+  $: navPackages = pickFeatured(packages, NAV_PACKAGE_LIMIT);
+  $: navDestinations = pickFeatured(destinations, NAV_DESTINATION_LIMIT);
+  $: navDestinationGroups = groupDestinationsByRegion(destinations);
   $: faqs = data.catalog.faqs;
+  const countLabel = (template, shown, total) => template.replace('{shown}', shown).replace('{total}', total);
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
@@ -129,15 +137,22 @@
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href={`/${locale}/paket-wisata`} on:click={closeMenu}>{c.allTours}</a>
-        {#each packages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        {#each navPackages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        <a class="nav-dropdown-more" href={`/${locale}/paket-wisata`} on:click={closeMenu}>{c.allTours}<UiIcon name="chevron" /></a>
       </div>
     </details>
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href="#destinasi" on:click={closeMenu}>{c.destinationLabel}</a>
-        {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {#if navDestinationGroups.length}
+          {#each navDestinationGroups as group}
+            <p class="nav-dropdown-group">{c.regions[group.key]}</p>
+            {#each group.items.slice(0, NAV_DESTINATION_LIMIT) as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+          {/each}
+        {:else}
+          {#each navDestinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {/if}
+        <a class="nav-dropdown-more" href={localePath(locale, '/destinasi')} on:click={closeMenu}>{c.allDestinations}<UiIcon name="chevron" /></a>
       </div>
     </details>
     <a href="#hitung-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
@@ -174,19 +189,31 @@
   </section>{/if}
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><h2 id="packages-title">{c.tourHeading}</h2></div></div>
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">{c.featuredTours}</p>
+        <h2 id="packages-title">{c.tourHeading}</h2>
+        <p class="section-count">{countLabel(c.packageCount, homePackages.length, packages.length)}</p>
+      </div>
+      <a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon name="chevron" /></a>
+    </div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
-      {#each packages as item}<TourCard {item} {locale} onBook={() => booking = packageBooking(item)} />{/each}
+      {#each homePackages as item}<TourCard {item} {locale} onBook={() => booking = packageBooking(item)} />{/each}
     </div>
   </section>
 
   <section class="destinations" id="destinasi" aria-labelledby="destinations-title">
-    <div class="section section-heading" use:reveal><div><p class="label">{c.destinationLabel}</p><h2 id="destinations-title">{c.destinationHeading}</h2></div><p>{c.destinationIntro}</p></div>
-    <div class="destination-grid section" use:reveal>
-      {#each destinations as destination, index}
-        <a class:wide={index === 0} class="destination-card" href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt="" loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></a>
-      {/each}
+    <div class="section section-heading" use:reveal>
+      <div>
+        <p class="section-kicker">{c.featuredDestinations}</p>
+        <h2 id="destinations-title">{c.destinationHeading}</h2>
+        <p class="section-count">{countLabel(c.destinationCount, homeDestinations.length, destinations.length)}</p>
+      </div>
+      <a class="section-more" href={localePath(locale, '/destinasi')}>{c.allDestinations}<UiIcon name="chevron" /></a>
+    </div>
+    <div class="destination-grid homepage-destinations section" use:reveal>
+      {#each homeDestinations as destination}<DestinationCard item={destination} {locale} />{/each}
     </div>
   </section>
 

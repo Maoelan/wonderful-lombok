@@ -1,7 +1,9 @@
 <script>
   import { tick } from 'svelte';
   import LanguageSelector from './LanguageSelector.svelte';
+  import UiIcon from './UiIcon.svelte';
   import { destinationSlug, getCopy, localePath } from './i18n.js';
+  import { NAV_DESTINATION_LIMIT, NAV_PACKAGE_LIMIT, groupDestinationsByRegion, pickFeatured } from './catalog-display.js';
   export let locale = 'id';
   export let suffix = '';
   export let packages = [];
@@ -15,6 +17,9 @@
   let lockedScrollY = 0;
   $: c = getCopy(locale);
   $: home = localePath(locale);
+  $: navPackages = pickFeatured(packages, NAV_PACKAGE_LIMIT);
+  $: navDestinations = pickFeatured(destinations, NAV_DESTINATION_LIMIT);
+  $: navDestinationGroups = groupDestinationsByRegion(destinations);
   $: activeTours = suffix.startsWith('/paket-wisata');
   $: activeDestinations = suffix.startsWith('/destinasi');
   $: activeTravel = suffix === '/travel-lombok';
@@ -74,15 +79,22 @@
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href={localePath(locale, '/paket-wisata')} aria-current={activeTours ? 'page' : undefined} on:click={closeMenu}>{c.allTours}</a>
-        {#each packages as item}<a href={localePath(locale, `/paket-wisata/${item.slug}`)} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        {#each navPackages as item}<a href={localePath(locale, `/paket-wisata/${item.slug}`)} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        <a class="nav-dropdown-more" href={localePath(locale, '/paket-wisata')} aria-current={activeTours ? 'page' : undefined} on:click={closeMenu}>{c.allTours}<UiIcon name="chevron" /></a>
       </div>
     </details>
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href={`${home}#destinasi`} aria-current={activeDestinations ? 'page' : undefined} on:click={closeMenu}>{c.destinationLabel}</a>
-        {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {#if navDestinationGroups.length}
+          {#each navDestinationGroups as group}
+            <p class="nav-dropdown-group">{c.regions[group.key]}</p>
+            {#each group.items.slice(0, NAV_DESTINATION_LIMIT) as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+          {/each}
+        {:else}
+          {#each navDestinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {/if}
+        <a class="nav-dropdown-more" href={localePath(locale, '/destinasi')} aria-current={activeDestinations ? 'page' : undefined} on:click={closeMenu}>{c.allDestinations}<UiIcon name="chevron" /></a>
       </div>
     </details>
     <a href={`${home}#hitung-travel`} aria-current={activeTravel ? 'page' : undefined} on:click={closeMenu}>{c.travel}</a>

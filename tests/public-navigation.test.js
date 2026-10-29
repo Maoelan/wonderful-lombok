@@ -4,26 +4,31 @@ import { readFileSync } from 'node:fs';
 
 const source = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('tour dropdown remains available on catalogue and package detail pages', () => {
+test('tour dropdown stays compact with a see-all link on catalogue and package detail pages', () => {
   const header = source('../src/lib/SiteHeader.svelte');
   assert.doesNotMatch(header, /onToursPage/);
   assert.match(header, /<summary>\{c.tours\}<\/summary>/);
-  assert.match(header, /\{#each packages as item\}/);
+  assert.match(header, /\{#each navPackages as item\}/);
+  assert.match(header, /class="nav-dropdown-more" href=\{localePath\(locale, '\/paket-wisata'\)\}/);
   for (const path of ['../src/routes/[lang]/paket-wisata/+page.svelte', '../src/routes/[lang]/paket-wisata/[slug]/+page.svelte']) {
     assert.match(source(path), /packages=\{data.catalog.packages\}/);
     assert.match(source(path), /destinations=\{data.catalog.destinations\}/);
   }
 });
 
-test('destination detail headers retain the complete destination dropdown', () => {
+test('destination dropdown groups links by region and links to the destination index', () => {
   const header = source('../src/lib/SiteHeader.svelte');
   assert.doesNotMatch(header, /onDestinationsPage/);
   assert.match(header, /<summary>\{c.destinations\}<\/summary>/);
-  assert.match(header, /\{#each destinations as destination\}/);
+  assert.match(header, /\{#each navDestinationGroups as group\}/);
+  assert.match(header, /class="nav-dropdown-group">\{c\.regions\[group\.key\]\}/);
+  assert.match(header, /group\.items\.slice\(0, NAV_DESTINATION_LIMIT\)/);
+  assert.match(header, /\{#each navDestinations as destination\}/);
   assert.match(header, /destinationSlug\(destination\)/);
-  assert.match(header, /href=\{`\$\{home\}#destinasi`\}/);
+  assert.match(header, /class="nav-dropdown-more" href=\{localePath\(locale, '\/destinasi'\)\}/);
   const detail = source('../src/routes/[lang]/destinasi/[slug]/+page.svelte');
   assert.match(detail, /destinations=\{data.catalog.destinations\}/);
+  assert.match(detail, /localePath\(data\.locale, '\/destinasi'\)/);
 });
 
 test('travel navigation consistently targets the homepage calculator', () => {
