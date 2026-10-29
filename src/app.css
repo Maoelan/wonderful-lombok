@@ -2198,6 +2198,13 @@ input[type='file']::file-selector-button:hover { border-color: var(--forest); ba
 body .site-theme .section-heading .section-kicker { margin: 0 0 8px; color: var(--accent-strong); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 body .site-theme .section-heading .section-count { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 body .site-theme .homepage-destinations { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 220px; }
+@media (min-width: 1001px) {
+  body .site-theme .homepage-destinations { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  body .site-theme .homepage-destinations .destination-card { grid-column: span 2; }
+  body .site-theme .homepage-destinations .destination-card:nth-child(3n + 1):nth-last-child(2),
+  body .site-theme .homepage-destinations .destination-card:nth-child(3n + 2):nth-last-child(1) { grid-column: span 3; }
+  body .site-theme .homepage-destinations .destination-card:nth-child(3n + 1):nth-last-child(1) { grid-column: 2 / span 4; }
+}
 body .site-theme .destination-page .destination-region { margin-top: 44px; }
 body .site-theme .destination-page .destination-region > h2 { margin: 0 0 18px; font-size: clamp(24px, 2.4vw, 32px); }
 body .site-theme .destination-catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 210px; gap: 14px; }
