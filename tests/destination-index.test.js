@@ -29,7 +29,7 @@ test('sitemap includes the destination index', () => {
 test('discovery copy and destination SEO cover every locale', () => {
   for (const { code } of languages) {
     const copy = getCopy(code);
-    for (const key of ['featuredTours', 'featuredDestinations', 'allDestinations', 'packageCount', 'destinationCount']) assert.ok(copy[key], `${code}.${key}`);
+    for (const key of ['featuredTours', 'featuredDestinations', 'allDestinations']) assert.ok(copy[key], `${code}.${key}`);
     for (const key of DESTINATION_REGION_KEYS) assert.ok(copy.regions[key], `${code}.regions.${key}`);
     const seo = getSeoCopy(code);
     for (const key of ['destinationsTitle', 'destinationsDescription', 'destinationsBreadcrumb']) assert.ok(seo[key], `${code}.${key}`);

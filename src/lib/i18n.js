@@ -89,42 +89,34 @@ export function getCopy(locale) {
 const discoveryCopy = {
   id: {
     featuredTours: 'Paket pilihan', featuredDestinations: 'Destinasi pilihan', allDestinations: 'Lihat semua destinasi',
-    packageCount: '{shown} dari {total} paket', destinationCount: '{shown} dari {total} destinasi',
     regions: { 'south-coast': 'Pesisir Selatan', 'east-lombok': 'Lombok Timur', 'gilis-sekotong': 'Gili & Sekotong', 'waterfalls-rinjani': 'Air Terjun & Rinjani', 'west-culture': 'Budaya Lombok Barat', other: 'Destinasi lainnya' }
   },
   en: {
     featuredTours: 'Featured packages', featuredDestinations: 'Featured destinations', allDestinations: 'View all destinations',
-    packageCount: '{shown} of {total} packages', destinationCount: '{shown} of {total} destinations',
     regions: { 'south-coast': 'South Coast', 'east-lombok': 'East Lombok', 'gilis-sekotong': 'Gilis & Sekotong', 'waterfalls-rinjani': 'Waterfalls & Rinjani', 'west-culture': 'West Lombok Culture', other: 'Other destinations' }
   },
   'zh-cn': {
     featuredTours: '精选套餐', featuredDestinations: '精选目的地', allDestinations: '查看全部目的地',
-    packageCount: '{total} 个套餐中的 {shown} 个', destinationCount: '{total} 个目的地中的 {shown} 个',
     regions: { 'south-coast': '南海岸', 'east-lombok': '东龙目', 'gilis-sekotong': '吉利群岛与塞科通', 'waterfalls-rinjani': '瀑布与林贾尼', 'west-culture': '西龙目文化', other: '其他目的地' }
   },
   'zh-tw': {
     featuredTours: '精選套裝', featuredDestinations: '精選目的地', allDestinations: '查看全部目的地',
-    packageCount: '{total} 個套裝中的 {shown} 個', destinationCount: '{total} 個目的地中的 {shown} 個',
     regions: { 'south-coast': '南海岸', 'east-lombok': '東龍目', 'gilis-sekotong': '吉利群島與塞科通', 'waterfalls-rinjani': '瀑布與林賈尼', 'west-culture': '西龍目文化', other: '其他目的地' }
   },
   nl: {
     featuredTours: 'Uitgelichte pakketten', featuredDestinations: 'Uitgelichte bestemmingen', allDestinations: 'Bekijk alle bestemmingen',
-    packageCount: '{shown} van {total} pakketten', destinationCount: '{shown} van {total} bestemmingen',
     regions: { 'south-coast': 'Zuidkust', 'east-lombok': 'Oost-Lombok', 'gilis-sekotong': 'Gili’s & Sekotong', 'waterfalls-rinjani': 'Watervallen & Rinjani', 'west-culture': 'Cultuur van West-Lombok', other: 'Overige bestemmingen' }
   },
   fr: {
     featuredTours: 'Circuits sélectionnés', featuredDestinations: 'Destinations sélectionnées', allDestinations: 'Voir toutes les destinations',
-    packageCount: '{shown} sur {total} circuits', destinationCount: '{shown} sur {total} destinations',
     regions: { 'south-coast': 'Côte sud', 'east-lombok': 'Lombok oriental', 'gilis-sekotong': 'Gilis et Sekotong', 'waterfalls-rinjani': 'Cascades et Rinjani', 'west-culture': 'Culture de Lombok occidental', other: 'Autres destinations' }
   },
   de: {
     featuredTours: 'Ausgewählte Pakete', featuredDestinations: 'Ausgewählte Reiseziele', allDestinations: 'Alle Reiseziele ansehen',
-    packageCount: '{shown} von {total} Paketen', destinationCount: '{shown} von {total} Reisezielen',
     regions: { 'south-coast': 'Südküste', 'east-lombok': 'Ost-Lombok', 'gilis-sekotong': 'Gilis & Sekotong', 'waterfalls-rinjani': 'Wasserfälle & Rinjani', 'west-culture': 'Kultur in West-Lombok', other: 'Weitere Reiseziele' }
   },
   ms: {
     featuredTours: 'Pakej pilihan', featuredDestinations: 'Destinasi pilihan', allDestinations: 'Lihat semua destinasi',
-    packageCount: '{shown} daripada {total} pakej', destinationCount: '{shown} daripada {total} destinasi',
     regions: { 'south-coast': 'Pantai Selatan', 'east-lombok': 'Lombok Timur', 'gilis-sekotong': 'Gili & Sekotong', 'waterfalls-rinjani': 'Air Terjun & Rinjani', 'west-culture': 'Budaya Lombok Barat', other: 'Destinasi lain' }
   }
 };

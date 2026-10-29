@@ -70,19 +70,19 @@ test('every package booking entry point supplies price context to the shared dia
   for(const field of ['booking.duration','booking.price','booking.unit','t.priceConfirmation']) assert.ok(dialog.includes(field),field);
 });
 
-test('homepage curates featured packages and destinations with counts and see-all links', () => {
+test('homepage curates featured packages and destinations with see-all links', () => {
   const source=readFileSync(new URL('../src/routes/+page.svelte',import.meta.url),'utf8');
   const packages=source.slice(source.indexOf('<section class="packages section"'),source.indexOf('<section class="destinations"'));
   assert.match(packages, /\{#each homePackages as item\}/);
   assert.match(packages, /<TourCard \{item\}/);
   assert.doesNotMatch(packages, /\{#each packages as item\}/);
   assert.match(packages, /class="section-kicker">\{c\.featuredTours\}/);
-  assert.match(packages, /c\.packageCount/);
+  assert.doesNotMatch(packages, /section-count/);
   assert.match(packages, /class="section-more" href=\{localePath\(locale, '\/paket-wisata'\)\}/);
   const destinations=source.slice(source.indexOf('<section class="destinations"'),source.indexOf('<section class="travel-section"'));
   assert.match(destinations, /\{#each homeDestinations as destination\}/);
   assert.match(destinations, /<DestinationCard item=\{destination\}/);
-  assert.match(destinations, /c\.destinationCount/);
+  assert.doesNotMatch(destinations, /section-count/);
   assert.match(destinations, /class="section-more" href=\{localePath\(locale, '\/destinasi'\)\}/);
   assert.match(source, /class="nav-dropdown-more" href=\{`\/\$\{locale\}\/paket-wisata`\}/);
   assert.match(source, /class="nav-dropdown-more" href=\{localePath\(locale, '\/destinasi'\)\}/);

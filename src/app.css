@@ -2196,7 +2196,6 @@ input[type='file']::file-selector-button:hover { border-color: var(--forest); ba
 
 /* Curated homepage discovery and destination index */
 body .site-theme .section-heading .section-kicker { margin: 0 0 8px; color: var(--accent-strong); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
-body .site-theme .section-heading .section-count { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 body .site-theme .homepage-destinations { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 220px; }
 @media (min-width: 1001px) {
   body .site-theme .homepage-destinations { grid-template-columns: repeat(6, minmax(0, 1fr)); }

@@ -44,7 +44,6 @@
   $: navDestinations = pickFeatured(destinations, NAV_DESTINATION_LIMIT);
   $: navDestinationGroups = groupDestinationsByRegion(destinations);
   $: faqs = data.catalog.faqs;
-  const countLabel = (template, shown, total) => template.replace('{shown}', shown).replace('{total}', total);
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
@@ -193,7 +192,6 @@
       <div>
         <p class="section-kicker">{c.featuredTours}</p>
         <h2 id="packages-title">{c.tourHeading}</h2>
-        <p class="section-count">{countLabel(c.packageCount, homePackages.length, packages.length)}</p>
       </div>
       <a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon name="chevron" /></a>
     </div>
@@ -208,7 +206,6 @@
       <div>
         <p class="section-kicker">{c.featuredDestinations}</p>
         <h2 id="destinations-title">{c.destinationHeading}</h2>
-        <p class="section-count">{countLabel(c.destinationCount, homeDestinations.length, destinations.length)}</p>
       </div>
       <a class="section-more" href={localePath(locale, '/destinasi')}>{c.allDestinations}<UiIcon name="chevron" /></a>
     </div>
