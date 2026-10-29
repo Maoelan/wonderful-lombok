@@ -1,7 +1,6 @@
 <script>
   import LazyPickupCalculator from '#lib/LazyPickupCalculator.svelte';
   import SiteHeader from '#lib/SiteHeader.svelte';
-  import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   import SiteFooter from '#lib/SiteFooter.svelte';
   import { getCopy, languages, localePath } from '#lib/i18n.js';
   import { getSeoCopy, getTravelSeo, jsonLdScript, travelServiceSchema } from '#lib/seo.js';
@@ -38,8 +37,7 @@
       <section><p class="label">Lombok</p><h2>{travel.coverageTitle}</h2><ul class="service-list">{#each travel.coverage as point}<li>{point}</li>{/each}</ul></section>
       <aside class="tour-inclusions"><div><h2>{travel.bookingTitle}</h2><p>{travel.bookingText}</p><a class="text-link" href={localePath(data.locale, '/paket-wisata')}>{travel.packagesLink}</a></div></aside>
     </div>
-    <section class="pickup-block" id="hitung-travel" aria-labelledby="calculator-title"><div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2 id="calculator-title">{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div><div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={data.catalog.travelRate} whatsapp={data.catalog.settings.whatsapp} locale={data.locale} mapboxToken={data.mapboxToken} /></div></section>
+    <section class="pickup-block" id="hitung-travel" aria-labelledby="calculator-title"><div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2 id="calculator-title">{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div><div class="calculator-wrap"><LazyPickupCalculator rate={data.catalog.travelRate} whatsapp={data.catalog.settings.whatsapp} locale={data.locale} mapboxToken={data.mapboxToken} /></div></section>
   </main>
   <SiteFooter settings={data.catalog.settings} locale={data.locale} />
-  <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

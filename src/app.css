@@ -1821,7 +1821,8 @@ footer {
 .booking-body > p:not(.label) { color: var(--muted); line-height: 1.6; }
 .booking-dialog form { display: grid; gap: 16px; margin-top: 24px; }
 .booking-dialog textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-control); color: var(--ink); padding: 14px 16px; font: inherit; }
-.booking-close { position: absolute; top: 14px; right: 16px; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; font-size: 28px; }
+.booking-close { position: absolute; top: 14px; right: 16px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; font-size: 28px; line-height: 1; }
+.booking-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .detail-backdrop { position: fixed; z-index: 2100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(5,35,29,.82); animation: backdrop-in .18s ease-out; }
 .detail-dialog { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); width: min(1000px, 100%); max-height: calc(100vh - 40px); overflow: auto; border-radius: var(--radius-md); background: var(--paper); animation: dialog-in .28s cubic-bezier(.2,.7,.2,1); }
 .detail-media { position: relative; min-width: 0; }
@@ -1982,10 +1983,6 @@ footer {
 .admin-translation .admin-inline-empty { margin: 0; }
 .admin-translation .admin-price-tier { grid-template-columns: 1fr 1fr 1fr; }
 .admin-secondary.compact { width: fit-content; min-height: 42px; margin-top: 6px; padding: 8px 14px; }
-.whatsapp-float { position: fixed; z-index: 1500; right: max(22px, calc((100vw - 1240px) / 2)); bottom: 24px; display: inline-flex; min-height: 54px; align-items: center; gap: 11px; padding: 0 18px; border: 2px solid white; border-radius: 28px; background: #168c49; color: white; text-decoration: none; box-shadow: 0 9px 24px rgba(5,35,29,.25); transition: background .18s ease, transform .18s ease; }
-.whatsapp-float span { font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
-.whatsapp-float img { width: 28px; height: 28px; flex: 0 0 28px; filter: brightness(0) invert(1); }
-.whatsapp-float:hover, .whatsapp-float:focus-visible { background: #11763d; transform: translateY(-2px); }
 
 @media (max-width: 760px) {
   .inner-header { min-height: 76px; gap: 12px; padding: 0 18px; }
@@ -2012,9 +2009,6 @@ footer {
   .price-row span { grid-column: 1 / -1; }
   .admin-price-tier, .admin-translation .admin-price-tier { grid-template-columns: 1fr; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .admin-checkbox-list { grid-template-columns: 1fr; }
-  .whatsapp-float { right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); width: 50px; min-height: 50px; justify-content: center; padding: 0; border: 0; border-radius: 50%; }
-  .whatsapp-float span { display: none; }
-  .whatsapp-float img { width: 30px; height: 30px; flex-basis: 30px; }
 }
 
 /* Admin uses the same editorial identity, with denser spacing for operational work. */

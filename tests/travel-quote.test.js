@@ -54,7 +54,7 @@ test('server travel quote uses Mapbox Directions distance, duration, and the cat
       return new Response(JSON.stringify(routePayload), { status: 200 });
     }
   });
-  assert.deepEqual(quote, { distanceKm: 13, durationMinutes: 30, estimatedPrice: 130_000, travelRate: 10_000 });
+  assert.deepEqual(quote, { distanceMeters: 12_100, distanceKm: 13, durationMinutes: 30, estimatedPrice: 130_000, travelRate: 10_000 });
   const url = new URL(requestedUrl);
   assert.equal(url.origin, 'https://api.mapbox.com');
   assert.equal(url.pathname, '/directions/v5/mapbox/driving/116.277145,-8.756283;116.044691,-8.493705');
@@ -144,7 +144,7 @@ test('server travel quote retries one transient Mapbox Directions outage', async
     }
   });
 
-  assert.deepEqual(quote, { distanceKm: 13, durationMinutes: 30, estimatedPrice: 130_000, travelRate: 10_000 });
+  assert.deepEqual(quote, { distanceMeters: 12_100, distanceKm: 13, durationMinutes: 30, estimatedPrice: 130_000, travelRate: 10_000 });
   assert.equal(calls, 2);
 });
 
@@ -197,4 +197,62 @@ test('server travel quote rejects an invalid catalog rate and an invalid number 
     }),
     (error) => error instanceof TravelQuoteError && error.status === 400 && error.code === 'invalid_points'
   );
+});
+
+const shortRouteDetails = {
+  origin: 'Titik peta -8.58415, 116.10645',
+  destination: 'Titik peta -8.58403, 116.10742',
+  originCoordinates: [-8.58415, 116.10645],
+  destinationCoordinates: [-8.58403, 116.10742],
+  locale: 'en'
+};
+
+function shortRoutePayload(distance) {
+  return {
+    waypoints: [
+      { distance: 0, location: [116.10645, -8.58415] },
+      { distance: 0, location: [116.10742, -8.58403] }
+    ],
+    routes: [{
+      distance,
+      duration: 120,
+      geometry: {
+        type: 'LineString',
+        coordinates: [[116.10645, -8.58415], [116.10742, -8.58403]]
+      },
+      legs: [{ steps: driveSteps }]
+    }]
+  };
+}
+
+test('server travel quote rejects the reported 150 m route as too short', async () => {
+  await assert.rejects(
+    getTravelQuote(shortRouteDetails, 10_000, {
+      token: 'test-mapbox-token',
+      fetchImpl: async () => new Response(JSON.stringify(shortRoutePayload(150)), { status: 200 })
+    }),
+    (error) => error instanceof TravelQuoteError
+      && error.status === 422
+      && error.code === 'route_too_short'
+      && /1 km/.test(error.message)
+  );
+});
+
+test('server travel quote applies the minimum at the 999 m, 1000 m, and 1001 m boundaries', async () => {
+  const quote = (distance) => getTravelQuote(shortRouteDetails, 10_000, {
+    token: 'test-mapbox-token',
+    fetchImpl: async () => new Response(JSON.stringify(shortRoutePayload(distance)), { status: 200 })
+  });
+
+  await assert.rejects(quote(999), (error) => error instanceof TravelQuoteError && error.code === 'route_too_short');
+
+  const atMinimum = await quote(1000);
+  assert.equal(atMinimum.distanceMeters, 1000);
+  assert.equal(atMinimum.distanceKm, 1);
+  assert.equal(atMinimum.estimatedPrice, 10_000);
+
+  const aboveMinimum = await quote(1001);
+  assert.equal(aboveMinimum.distanceMeters, 1001);
+  assert.equal(aboveMinimum.distanceKm, 2);
+  assert.equal(aboveMinimum.estimatedPrice, 20_000);
 });

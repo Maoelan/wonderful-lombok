@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { getFormCopy, isLocale } from '#lib/i18n.js';
+import { getFormCopy, interpolateMessage, isLocale } from '#lib/i18n.js';
 import { MAX_TRAVEL_POINTS, isInsideLombok } from '#lib/pickup.js';
+import { MIN_TRANSFER_DISTANCE_LABEL } from '#lib/travel-rules.js';
 import { clientAddressKey } from '#lib/server/client-address.js';
 import { consumeRateLimit } from '#lib/server/rate-limit.js';
 import { tooManyRequests } from '#lib/server/http.js';
@@ -16,6 +17,13 @@ function publicError(error, t) {
   if (error.code === 'quota_exceeded') return { error: t.mapQuotaExceeded, status: 503 };
   if (error.code === 'network') return { error: t.mapNetworkError, status: 502 };
   if (error.code === 'no_road_access') return { error: t.routeNoRoadAccess, status: 422 };
+  if (error.code === 'route_too_short') {
+    return {
+      error: interpolateMessage(t.routeTooShort, { distance: MIN_TRANSFER_DISTANCE_LABEL }),
+      status: 422,
+      code: 'route_too_short'
+    };
+  }
   if (error.code === 'not_found') return { error: t.routeNotFound, status: 422 };
   return { error: t.routeServiceDown, status: 502 };
 }
@@ -44,7 +52,7 @@ async function routeResponse(stops, locale, fetch, getClientAddress) {
     return json(route, { headers: { 'cache-control': 'private, no-store' } });
   } catch (error) {
     const result = publicError(error, t);
-    return json({ error: result.error }, { status: result.status });
+    return json({ error: result.error, ...(result.code ? { code: result.code } : {}) }, { status: result.status });
   }
 }
 

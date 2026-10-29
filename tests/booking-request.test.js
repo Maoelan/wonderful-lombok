@@ -73,6 +73,7 @@ test('booking request stores the server travel quote and normalized customer dat
   assert.equal(saved[0].whatsapp, '6281234567890');
   assert.equal(saved[0].idempotencyKey, '123e4567-e89b-42d3-a456-426614174000');
   assert.equal(saved[0].details.distanceKm, 13);
+  assert.equal(saved[0].details.distanceMeters, 12_100);
   assert.equal(saved[0].details.durationMinutes, 30);
   assert.equal(saved[0].details.estimatedPrice, 130_000);
   assert.equal(saved[0].details.travelRate, 10_000);
@@ -221,6 +222,57 @@ test('booking request rejects a ferry route as lacking road access', async () =>
 
   assert.equal(result.status, 422);
   assert.match(result.body.error, /akses jalan/);
+});
+
+test('booking request rejects a short route and never creates a record', async () => {
+  let saved = 0;
+  const shortPayload = {
+    waypoints: [
+      { distance: 0, location: [116.10645, -8.58415] },
+      { distance: 0, location: [116.10742, -8.58403] }
+    ],
+    routes: [{
+      distance: 150,
+      duration: 90,
+      geometry: {
+        type: 'LineString',
+        coordinates: [[116.10645, -8.58415], [116.10742, -8.58403]]
+      },
+      legs: [{
+        steps: [
+          { mode: 'driving', maneuver: { type: 'depart' } },
+          { mode: 'driving', maneuver: { type: 'arrive' } }
+        ]
+      }]
+    }]
+  };
+  const body = travelBody({
+    details: {
+      origin: 'Titik peta -8.58415, 116.10645',
+      destination: 'Titik peta -8.58403, 116.10742',
+      originCoordinates: [-8.58415, 116.10645],
+      originAccuracyM: 10,
+      originSource: 'map',
+      destinationCoordinates: [-8.58403, 116.10742],
+      pickupTime: '09:30',
+      distanceKm: 1,
+      estimatedPrice: 10_000,
+      locale: 'en'
+    }
+  });
+  const result = await createBookingRequest({
+    body,
+    idempotencyKey: '123e4567-e89b-42d3-a456-426614174016',
+    now,
+    fetchImpl: async () => new Response(JSON.stringify(shortPayload), { status: 200 }),
+    loadCatalog: async () => ({ travelRate: 10_000 }),
+    saveBooking: async () => { saved += 1; return 'WL-TEST-SHORT'; }
+  });
+
+  assert.equal(result.status, 422);
+  assert.equal(result.body.code, 'route_too_short');
+  assert.match(result.body.error, /1 km/);
+  assert.equal(saved, 0);
 });
 
 test('booking request rejects arbitrary detail objects and missing idempotency keys', async () => {

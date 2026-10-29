@@ -10,7 +10,7 @@
   $: home = localePath(locale);
 </script>
 
-<footer id="kontak" class="travel-footer" data-whatsapp-float-avoid>
+<footer id="kontak" class="travel-footer">
   <div class="travel-footer-main">
     <div class="travel-footer-brand"><a href={home}><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="180" height="90" loading="lazy" /></a><p>{c.localPartner}</p></div>
     <nav aria-label={c.menu}><a href={homepage ? '#paket' : localePath(locale, '/paket-wisata')}>{c.tours}</a><a href={`${home}#hitung-travel`}>{c.travel}</a>{#if rentalEnabled}<a href={`${home}#rental`}>{c.rentalLabel}</a>{/if}<a href={`${home}#destinasi`}>{c.destinations}</a><a href={`${home}#faq`}>{c.faq}</a></nav>

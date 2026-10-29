@@ -213,6 +213,7 @@ const routePlannerCopy = {
     mapNotConfigured: 'Layanan peta belum dikonfigurasi. Hubungi admin.',
     mapPermissionDenied: 'Kunci layanan peta tidak diizinkan untuk situs ini.', mapQuotaExceeded: 'Kuota layanan peta habis. Coba lagi nanti.',
     mapNetworkError: 'Layanan peta tidak dapat dijangkau. Periksa koneksi lalu coba lagi.',
+    routeTooShort: 'Rute ini lebih pendek dari jarak minimum {distance} untuk layanan travel. Pilih titik jemput dan tujuan yang lebih jauh.',
     routeDuration: '{minutes} menit', routeDurationLabel: 'Estimasi waktu'
   },
   en: {
@@ -221,6 +222,7 @@ const routePlannerCopy = {
     mapNotConfigured: 'Map service is not configured. Contact the administrator.',
     mapPermissionDenied: 'The map service key is not allowed for this site.', mapQuotaExceeded: 'The map service quota is exhausted. Try again later.',
     mapNetworkError: 'The map service cannot be reached. Check your connection and try again.',
+    routeTooShort: 'This route is shorter than the {distance} minimum for a transfer. Choose a pick-up and destination farther apart.',
     routeDuration: '{minutes} min', routeDurationLabel: 'Estimated time'
   },
   'zh-cn': {
@@ -229,6 +231,7 @@ const routePlannerCopy = {
     mapNotConfigured: '地图服务尚未配置。请联系管理员。',
     mapPermissionDenied: '此网站无权使用地图服务密钥。', mapQuotaExceeded: '地图服务配额已用完，请稍后再试。',
     mapNetworkError: '无法连接地图服务。请检查网络后重试。',
+    routeTooShort: '此路线短于接送服务的最低距离 {distance}。请选择更远的接送地点和目的地。',
     routeDuration: '{minutes} 分钟', routeDurationLabel: '预计时间'
   },
   'zh-tw': {
@@ -237,6 +240,7 @@ const routePlannerCopy = {
     mapNotConfigured: '地圖服務尚未設定。請聯絡管理員。',
     mapPermissionDenied: '此網站無權使用地圖服務金鑰。', mapQuotaExceeded: '地圖服務配額已用完，請稍後再試。',
     mapNetworkError: '無法連線地圖服務。請檢查網路後重試。',
+    routeTooShort: '此路線短於接送服務的最低距離 {distance}。請選擇更遠的接送地點和目的地。',
     routeDuration: '{minutes} 分鐘', routeDurationLabel: '預計時間'
   },
   nl: {
@@ -245,6 +249,7 @@ const routePlannerCopy = {
     mapNotConfigured: 'Kaartdienst is niet geconfigureerd. Neem contact op met de beheerder.',
     mapPermissionDenied: 'De sleutel van de kaartdienst is niet toegestaan voor deze site.', mapQuotaExceeded: 'Het quotum van de kaartdienst is opgebruikt. Probeer het later opnieuw.',
     mapNetworkError: 'De kaartdienst is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.',
+    routeTooShort: 'Deze route is korter dan de minimale transferafstand van {distance}. Kies een ophaalpunt en bestemming die verder uit elkaar liggen.',
     routeDuration: '{minutes} min', routeDurationLabel: 'Geschatte tijd'
   },
   fr: {
@@ -253,6 +258,7 @@ const routePlannerCopy = {
     mapNotConfigured: 'Le service de cartes n’est pas configuré. Contactez l’administrateur.',
     mapPermissionDenied: 'La clé du service de cartes n’est pas autorisée pour ce site.', mapQuotaExceeded: 'Le quota du service de cartes est épuisé. Réessayez plus tard.',
     mapNetworkError: 'Le service de cartes est inaccessible. Vérifiez votre connexion et réessayez.',
+    routeTooShort: 'Cet itinéraire est plus court que la distance minimale de {distance} pour un transfert. Choisissez un départ et une destination plus éloignés.',
     routeDuration: '{minutes} min', routeDurationLabel: 'Durée estimée'
   },
   de: {
@@ -261,6 +267,7 @@ const routePlannerCopy = {
     mapNotConfigured: 'Der Kartendienst ist nicht konfiguriert. Kontaktieren Sie den Administrator.',
     mapPermissionDenied: 'Der Schlüssel des Kartendienstes ist für diese Website nicht erlaubt.', mapQuotaExceeded: 'Das Kontingent des Kartendienstes ist aufgebraucht. Versuchen Sie es später erneut.',
     mapNetworkError: 'Der Kartendienst ist nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    routeTooShort: 'Diese Route ist kürzer als die Mindeststrecke von {distance} für einen Transfer. Wählen Sie einen weiter entfernten Abholort und ein weiter entferntes Ziel.',
     routeDuration: '{minutes} Min.', routeDurationLabel: 'Geschätzte Zeit'
   },
   ms: {
@@ -269,19 +276,20 @@ const routePlannerCopy = {
     mapNotConfigured: 'Perkhidmatan peta belum dikonfigurasikan. Hubungi pentadbir.',
     mapPermissionDenied: 'Kunci perkhidmatan peta tidak dibenarkan untuk laman ini.', mapQuotaExceeded: 'Kuota perkhidmatan peta telah habis. Cuba lagi kemudian.',
     mapNetworkError: 'Perkhidmatan peta tidak dapat dihubungi. Semak sambungan anda dan cuba lagi.',
+    routeTooShort: 'Laluan ini lebih pendek daripada jarak minimum {distance} untuk perkhidmatan travel. Pilih lokasi jemput dan destinasi yang lebih jauh.',
     routeDuration: '{minutes} min', routeDurationLabel: 'Anggaran masa'
   }
 };
 
 const bookingErrorCopy = {
-  id: { invalid: 'Data pemesanan belum lengkap atau tidak valid.', contact: 'Nama dan nomor WhatsApp belum valid.', date: 'Tanggal perjalanan tidak valid.', time: 'Jam jemput sudah lewat. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', route: 'Rute perjalanan tidak ditemukan. Periksa titik jemput dan tujuan.', service: 'Layanan peta sedang tidak tersedia. Coba lagi sebentar.', busy: 'Pemesanan belum dapat disimpan. Coba lagi nanti.' },
-  en: { invalid: 'The booking details are incomplete or invalid.', contact: 'Please check your name and WhatsApp number.', date: 'The travel date is invalid.', time: 'The pick-up time has passed. Choose another time.', conflict: 'The price or travel distance has changed. Please recalculate.', route: 'No travel route was found. Check the pick-up and destination points.', service: 'The map service is unavailable right now. Please try again shortly.', busy: 'The booking could not be saved. Please try again later.' },
-  'zh-cn': { invalid: '预订信息不完整或无效。', contact: '姓名和 WhatsApp 号码无效。', date: '旅行日期无效。', time: '接送时间已过，请选择其他时间。', conflict: '价格或行程距离已变化，请重新计算。', route: '未找到行程路线，请检查接送地点和目的地。', service: '地图服务暂时不可用，请稍后重试。', busy: '预订暂时无法保存，请稍后再试。' },
-  'zh-tw': { invalid: '預訂資訊不完整或無效。', contact: '姓名和 WhatsApp 號碼無效。', date: '旅行日期無效。', time: '接送時間已過，請選擇其他時間。', conflict: '價格或行程距離已變更，請重新計算。', route: '找不到行程路線，請檢查接送地點和目的地。', service: '地圖服務暫時無法使用，請稍後再試。', busy: '預訂暫時無法儲存，請稍後再試。' },
-  nl: { invalid: 'De boekingsgegevens zijn onvolledig of ongeldig.', contact: 'Controleer je naam en WhatsApp-nummer.', date: 'De reisdatum is ongeldig.', time: 'De ophaaltijd is verstreken. Kies een ander tijdstip.', conflict: 'De prijs of reisafstand is gewijzigd. Bereken opnieuw.', route: 'Geen reisroute gevonden. Controleer het ophaalpunt en de bestemming.', service: 'De kaartdienst is nu niet beschikbaar. Probeer het zo opnieuw.', busy: 'De boeking kon niet worden opgeslagen. Probeer het later opnieuw.' },
-  fr: { invalid: 'Les informations de réservation sont incomplètes ou invalides.', contact: 'Vérifiez votre nom et votre numéro WhatsApp.', date: 'La date du voyage est invalide.', time: 'L’heure de prise en charge est passée. Choisissez un autre horaire.', conflict: 'Le prix ou la distance du trajet a changé. Recalculez.', route: 'Aucun itinéraire trouvé. Vérifiez le départ et la destination.', service: 'Le service de cartes est indisponible pour le moment. Réessayez dans un instant.', busy: 'La réservation n’a pas pu être enregistrée. Réessayez plus tard.' },
-  de: { invalid: 'Die Buchungsdaten sind unvollständig oder ungültig.', contact: 'Bitte prüfen Sie Name und WhatsApp-Nummer.', date: 'Das Reisedatum ist ungültig.', time: 'Die Abholzeit ist vorbei. Wählen Sie eine andere Uhrzeit.', conflict: 'Preis oder Fahrstrecke haben sich geändert. Bitte neu berechnen.', route: 'Keine Reiseroute gefunden. Prüfen Sie Abholort und Ziel.', service: 'Der Kartendienst ist derzeit nicht verfügbar. Versuchen Sie es gleich noch einmal.', busy: 'Die Buchung konnte nicht gespeichert werden. Versuchen Sie es später erneut.' },
-  ms: { invalid: 'Butiran tempahan tidak lengkap atau tidak sah.', contact: 'Nama dan nombor WhatsApp belum sah.', date: 'Tarikh perjalanan tidak sah.', time: 'Waktu jemput telah berlalu. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan telah berubah. Sila kira semula.', route: 'Laluan perjalanan tidak ditemui. Semak lokasi jemput dan destinasi.', service: 'Perkhidmatan peta tidak tersedia buat masa ini. Cuba lagi sebentar.', busy: 'Tempahan tidak dapat disimpan. Cuba lagi kemudian.' }
+  id: { invalid: 'Data pemesanan belum lengkap atau tidak valid.', contact: 'Nama dan nomor WhatsApp belum valid.', date: 'Tanggal perjalanan tidak valid.', time: 'Jam jemput sudah lewat. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan sudah berubah. Silakan hitung ulang.', route: 'Rute perjalanan tidak ditemukan. Periksa titik jemput dan tujuan.', service: 'Layanan peta sedang tidak tersedia. Coba lagi sebentar.', busy: 'Pemesanan belum dapat disimpan. Coba lagi nanti.', too_short: 'Rute terlalu dekat untuk layanan travel. Jarak minimum {distance}.' },
+  en: { invalid: 'The booking details are incomplete or invalid.', contact: 'Please check your name and WhatsApp number.', date: 'The travel date is invalid.', time: 'The pick-up time has passed. Choose another time.', conflict: 'The price or travel distance has changed. Please recalculate.', route: 'No travel route was found. Check the pick-up and destination points.', service: 'The map service is unavailable right now. Please try again shortly.', busy: 'The booking could not be saved. Please try again later.', too_short: 'This route is too short for a transfer. The minimum is {distance}.' },
+  'zh-cn': { invalid: '预订信息不完整或无效。', contact: '姓名和 WhatsApp 号码无效。', date: '旅行日期无效。', time: '接送时间已过，请选择其他时间。', conflict: '价格或行程距离已变化，请重新计算。', route: '未找到行程路线，请检查接送地点和目的地。', service: '地图服务暂时不可用，请稍后重试。', busy: '预订暂时无法保存，请稍后再试。', too_short: '此路线太短，无法预订接送服务。最低距离为 {distance}。' },
+  'zh-tw': { invalid: '預訂資訊不完整或無效。', contact: '姓名和 WhatsApp 號碼無效。', date: '旅行日期無效。', time: '接送時間已過，請選擇其他時間。', conflict: '價格或行程距離已變更，請重新計算。', route: '找不到行程路線，請檢查接送地點和目的地。', service: '地圖服務暫時無法使用，請稍後再試。', busy: '預訂暫時無法儲存，請稍後再試。', too_short: '此路線太短，無法預訂接送服務。最低距離為 {distance}。' },
+  nl: { invalid: 'De boekingsgegevens zijn onvolledig of ongeldig.', contact: 'Controleer je naam en WhatsApp-nummer.', date: 'De reisdatum is ongeldig.', time: 'De ophaaltijd is verstreken. Kies een ander tijdstip.', conflict: 'De prijs of reisafstand is gewijzigd. Bereken opnieuw.', route: 'Geen reisroute gevonden. Controleer het ophaalpunt en de bestemming.', service: 'De kaartdienst is nu niet beschikbaar. Probeer het zo opnieuw.', busy: 'De boeking kon niet worden opgeslagen. Probeer het later opnieuw.', too_short: 'Deze route is te kort voor een transfer. Het minimum is {distance}.' },
+  fr: { invalid: 'Les informations de réservation sont incomplètes ou invalides.', contact: 'Vérifiez votre nom et votre numéro WhatsApp.', date: 'La date du voyage est invalide.', time: 'L’heure de prise en charge est passée. Choisissez un autre horaire.', conflict: 'Le prix ou la distance du trajet a changé. Recalculez.', route: 'Aucun itinéraire trouvé. Vérifiez le départ et la destination.', service: 'Le service de cartes est indisponible pour le moment. Réessayez dans un instant.', busy: 'La réservation n’a pas pu être enregistrée. Réessayez plus tard.', too_short: 'Cet itinéraire est trop court pour un transfert. Le minimum est de {distance}.' },
+  de: { invalid: 'Die Buchungsdaten sind unvollständig oder ungültig.', contact: 'Bitte prüfen Sie Name und WhatsApp-Nummer.', date: 'Das Reisedatum ist ungültig.', time: 'Die Abholzeit ist vorbei. Wählen Sie eine andere Uhrzeit.', conflict: 'Preis oder Fahrstrecke haben sich geändert. Bitte neu berechnen.', route: 'Keine Reiseroute gefunden. Prüfen Sie Abholort und Ziel.', service: 'Der Kartendienst ist derzeit nicht verfügbar. Versuchen Sie es gleich noch einmal.', busy: 'Die Buchung konnte nicht gespeichert werden. Versuchen Sie es später erneut.', too_short: 'Diese Route ist zu kurz für einen Transfer. Das Minimum beträgt {distance}.' },
+  ms: { invalid: 'Butiran tempahan tidak lengkap atau tidak sah.', contact: 'Nama dan nombor WhatsApp belum sah.', date: 'Tarikh perjalanan tidak sah.', time: 'Waktu jemput telah berlalu. Pilih waktu lain.', conflict: 'Harga atau jarak perjalanan telah berubah. Sila kira semula.', route: 'Laluan perjalanan tidak ditemui. Semak lokasi jemput dan destinasi.', service: 'Perkhidmatan peta tidak tersedia buat masa ini. Cuba lagi sebentar.', busy: 'Tempahan tidak dapat disimpan. Cuba lagi kemudian.', too_short: 'Laluan ini terlalu pendek untuk perkhidmatan travel. Minimum ialah {distance}.' }
 };
 
 const bookingErrorAliases = {
@@ -293,23 +301,17 @@ const bookingErrorAliases = {
   search_failed: 'service',
   not_found: 'route',
   no_road_access: 'route',
+  route_too_short: 'too_short',
   invalid_points: 'route'
 };
 
-export function bookingErrorMessage(copy, code, fallback = '') {
-  return copy?.bookingErrors?.[bookingErrorAliases[code] || code] || fallback;
+export function interpolateMessage(template, values = {}) {
+  return String(template ?? '').replace(/\{(\w+)\}/g, (match, key) => (key in values ? String(values[key]) : match));
 }
 
-const enquiryCopy = {
-  id: { enquiryLabel: 'Tanya via WhatsApp', enquiryMessage: 'Halo Wonderful Lombok, saya ingin bertanya tentang paket wisata atau antar-jemput di Lombok.' },
-  en: { enquiryLabel: 'Ask on WhatsApp', enquiryMessage: 'Hello Wonderful Lombok, I would like to ask about tours or transfers in Lombok.' },
-  'zh-cn': { enquiryLabel: '通过 WhatsApp 咨询', enquiryMessage: '您好 Wonderful Lombok，我想咨询龙目岛的旅游套餐或接送服务。' },
-  'zh-tw': { enquiryLabel: '透過 WhatsApp 諮詢', enquiryMessage: '您好 Wonderful Lombok，我想諮詢龍目島的旅遊行程或接送服務。' },
-  nl: { enquiryLabel: 'Vraag via WhatsApp', enquiryMessage: 'Hallo Wonderful Lombok, ik heb een vraag over tours of transfers op Lombok.' },
-  fr: { enquiryLabel: 'Question sur WhatsApp', enquiryMessage: 'Bonjour Wonderful Lombok, je souhaite me renseigner sur les excursions ou les transferts à Lombok.' },
-  de: { enquiryLabel: 'Frage per WhatsApp', enquiryMessage: 'Hallo Wonderful Lombok, ich habe eine Frage zu Touren oder Transfers auf Lombok.' },
-  ms: { enquiryLabel: 'Tanya melalui WhatsApp', enquiryMessage: 'Helo Wonderful Lombok, saya ingin bertanya tentang pakej pelancongan atau perkhidmatan jemput-hantar di Lombok.' }
-};
+export function bookingErrorMessage(copy, code, fallback = '', values = {}) {
+  return interpolateMessage(copy?.bookingErrors?.[bookingErrorAliases[code] || code] || fallback, values);
+}
 
 const publicFlowCopy = {
   id: { checkTransferFare: 'Cek tarif antar-jemput', packageDuration: 'Durasi', startingPrice: 'Harga mulai', priceConfirmation: 'Harga awal, bukan total otomatis. Tim mengonfirmasi harga akhir sesuai jumlah peserta dan rencana perjalanan.' },
@@ -324,5 +326,5 @@ const publicFlowCopy = {
 
 export function getFormCopy(locale) {
   const base = locale === 'id' ? formId : { ...formEn, ...(formTranslations[locale] || {}) };
-  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(enquiryCopy[locale] || enquiryCopy.en), ...(publicFlowCopy[locale] || publicFlowCopy.en), ...getJourneyCopy(locale), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
+  return { ...base, ...(mapCopy[locale] || mapCopy.en), ...(routePlannerCopy[locale] || routePlannerCopy.en), ...(publicFlowCopy[locale] || publicFlowCopy.en), ...getJourneyCopy(locale), bookingErrors: bookingErrorCopy[locale] || bookingErrorCopy.en };
 }

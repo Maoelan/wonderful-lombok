@@ -6,11 +6,12 @@
   import { createIdempotencyKey } from './idempotency.js';
   import { currentTimeInWita, todayInWita } from './date.js';
   import { bookingErrorMessage, getFormCopy, localeTag } from './i18n.js';
+  import { isBookableTransferDistance, MIN_TRANSFER_DISTANCE_LABEL } from './travel-rules.js';
 
   let mapElement;
   let map = null;
   let mapLoading = true, mapError = '', routeLoading = false, routeError = '', routeNotice = '';
-  let distance = 0, routeDuration = null, routePoints = [];
+  let distance = 0, routeDuration = null, routePoints = [], routeShort = false;
   let origin = null, destination = null, originQuery = '', destinationQuery = '';
   let mapTarget = 'origin';
   let locationMessage = '', searchLoading = '', searchTarget = '', searchResults = [];
@@ -374,6 +375,7 @@
     routePoints = [];
     distance = 0;
     routeDuration = null;
+    routeShort = false;
     routeError = '';
     routeNotice = '';
     formError = '';
@@ -397,8 +399,18 @@
         })
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || t.routeUnavailable);
+      if (!response.ok) {
+        const failure = new Error(payload.error || t.routeUnavailable);
+        failure.code = payload.code;
+        throw failure;
+      }
       if (key !== currentRouteKey || !map) return;
+      const actualMeters = Number(payload.distanceMeters);
+      if (!isBookableTransferDistance(actualMeters)) {
+        routeShort = true;
+        routeError = message(t.routeTooShort, { distance: MIN_TRANSFER_DISTANCE_LABEL });
+        return;
+      }
       distance = payload.distanceKm;
       routeDuration = payload.durationMinutes;
       routePoints = payload.points || [];
@@ -408,7 +420,10 @@
         fitRoute();
       }
     } catch (error) {
-      if (key === currentRouteKey && error.name !== 'AbortError') routeError = error.message || t.roadRouteUnavailable;
+      if (key === currentRouteKey && error.name !== 'AbortError') {
+        routeShort = error.code === 'route_too_short';
+        routeError = error.message || t.roadRouteUnavailable;
+      }
     } finally {
       if (key === currentRouteKey) routeLoading = false;
     }
@@ -427,6 +442,7 @@
     submitted = false;
     if (!origin || !destination) { formError = t.chooseBothPoints; return; }
     if (!routeReady) { formError = t.chooseDifferent; return; }
+    if (routeShort) { formError = message(t.routeTooShort, { distance: MIN_TRANSFER_DISTANCE_LABEL }); return; }
     if (routeLoading || routeError || !distance) { formError = t.waitForRoute; return; }
     if (!customerName.trim() || !phone.trim() || !pickupDate || !pickupTime) { formError = t.completeBooking; return; }
     const currentToday = todayInWita();
@@ -479,7 +495,7 @@
       if (!response.ok) {
         if (response.status === 409) { idempotencyKey = ''; lastBookingFingerprint = ''; }
         const code = result.code || (response.status === 429 || response.status === 503 ? 'busy' : '');
-        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed));
+        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed, { distance: MIN_TRANSFER_DISTANCE_LABEL }));
       }
       submitted = true;
       idempotencyKey = '';

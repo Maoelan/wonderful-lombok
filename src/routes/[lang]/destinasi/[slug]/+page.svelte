@@ -2,7 +2,6 @@
   import { imageSrcset, imageUrl } from '#lib/image.js';
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
   import SiteHeader from '#lib/SiteHeader.svelte';
-  import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   import SiteFooter from '#lib/SiteFooter.svelte';
   import PhotoGallery from '#lib/PhotoGallery.svelte';
   import TourCard from '#lib/TourCard.svelte';
@@ -41,11 +40,10 @@
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`${home}#destinasi`}>{c.destinations}</a><span>/</span><span>{data.item.name}</span></nav>
     <section class="tour-hero">
       <PhotoGallery images={gallery} name={data.item.name} locale={data.locale} />
-      <div class="tour-summary"><p class="label">{destinationSeo.label}</p><h1>{data.item.name}</h1><p>{data.item.note}</p><div class="tour-route"><span>{destinationSeo.about}</span><div class="rich-content">{@html data.item.detail}</div></div><a class="button primary" href={data.relatedPackages.length ? '#related-packages' : localePath(data.locale, '/paket-wisata')} data-whatsapp-float-avoid>{c.viewTours}</a></div>
+      <div class="tour-summary"><p class="label">{destinationSeo.label}</p><h1>{data.item.name}</h1><p>{data.item.note}</p><div class="tour-route"><span>{destinationSeo.about}</span><div class="rich-content">{@html data.item.detail}</div></div><a class="button primary" href={data.relatedPackages.length ? '#related-packages' : localePath(data.locale, '/paket-wisata')}>{c.viewTours}</a></div>
     </section>
-    {#if data.relatedPackages.length}<section class="destination-related" id="related-packages" aria-labelledby="related-title"><div class="section-heading"><div><h2 id="related-title">{destinationSeo.related}</h2></div><p>{destinationSeo.relatedIntro}</p></div><div class="tour-catalog package-list">{#each data.relatedPackages as item}<TourCard {item} locale={data.locale} onBook={() => booking = packageBooking(item)} />{/each}</div></section>{:else}<aside class="catalog-help destination-related" data-whatsapp-float-avoid><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(customMessage, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>{/if}
+    {#if data.relatedPackages.length}<section class="destination-related" id="related-packages" aria-labelledby="related-title"><div class="section-heading"><div><h2 id="related-title">{destinationSeo.related}</h2></div><p>{destinationSeo.relatedIntro}</p></div><div class="tour-catalog package-list">{#each data.relatedPackages as item}<TourCard {item} locale={data.locale} onBook={() => booking = packageBooking(item)} />{/each}</div></section>{:else}<aside class="catalog-help destination-related"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(customMessage, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>{/if}
   </main>
   <SiteFooter settings={data.catalog.settings} locale={data.locale} />
   <BookingDialog bind:booking whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
-  <WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

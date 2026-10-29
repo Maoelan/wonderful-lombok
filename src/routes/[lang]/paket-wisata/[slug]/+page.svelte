@@ -5,7 +5,6 @@
   import { getCopy, getFormCopy, languages, localePath } from '#lib/i18n.js';
   import { getSeoCopy, jsonLdScript, plainDescription, tourSchema } from '#lib/seo.js';
   import SiteHeader from '#lib/SiteHeader.svelte';
-  import WhatsAppFloat from '#lib/WhatsAppFloat.svelte';
   import SiteFooter from '#lib/SiteFooter.svelte';
   export let data;
   $: c = getCopy(data.locale);
@@ -37,7 +36,7 @@
 <SiteHeader locale={data.locale} suffix={`/paket-wisata/${item.slug}`} packages={data.catalog.packages} destinations={data.catalog.destinations} />
 <main class="tour-detail-page">
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`/${data.locale}/paket-wisata`}>{c.tours}</a></nav>
-    <section class="tour-hero" data-whatsapp-float-avoid>
+    <section class="tour-hero">
     <PhotoGallery images={gallery} name={item.name} locale={data.locale} />
     <div class="tour-summary"><div class="tour-meta"><span>{item.category}</span><span>{item.duration}</span></div><h1>{item.name}</h1><div class="rich-content">{@html item.detail}</div><div class="tour-route"><span>{c.highlights}</span><strong>{item.route}</strong></div><div class="tour-price"><span>{c.from}</span><b>{item.price}</b><small>{item.unit}</small></div><button class="button primary" type="button" on:click={() => booking = packageBooking(item)}>{c.bookWhatsapp}</button></div>
   </section>
@@ -46,9 +45,8 @@
     <aside class="tour-inclusions"><div><h2>{c.includes}</h2><ul>{#each item.includes as line}<li>{line}</li>{/each}</ul></div><div><h2>{c.excludes}</h2><ul>{#each item.excludes as line}<li>{line}</li>{/each}</ul></div></aside>
   </div>
   {#if item.priceTiers?.length}<section class="price-section"><p class="label">{c.prices}</p><h2>{c.priceHeading}</h2><div class="price-table" role="table" aria-label={c.priceHeading}>{#each item.priceTiers as tier}<div class="price-row" role="row"><span role="cell"><strong>{tier.guests}</strong></span><b role="cell">{tier.price}</b><span role="cell">{tier.note}</span></div>{/each}</div></section>{/if}
-  <section class="detail-cta" data-whatsapp-float-avoid><div><p class="label">Wonderful Lombok</p><h2>{c.readyTitle}</h2></div><button class="button primary" type="button" on:click={() => booking = packageBooking(item)}>{c.bookWhatsapp}</button></section>
+  <section class="detail-cta"><div><p class="label">Wonderful Lombok</p><h2>{c.readyTitle}</h2></div><button class="button primary" type="button" on:click={() => booking = packageBooking(item)}>{c.bookWhatsapp}</button></section>
 </main>
 <SiteFooter settings={data.catalog.settings} locale={data.locale} />
 <BookingDialog bind:booking whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
-<WhatsAppFloat whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

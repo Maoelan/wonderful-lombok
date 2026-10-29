@@ -102,7 +102,7 @@
 {#if booking}
   <div class="booking-backdrop" role="presentation" on:click={close} on:keydown={(e) => e.key === 'Escape' && close()}>
     <div class="booking-dialog" use:focusDialog role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
-      <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
+      <button class="booking-close" type="button" on:click={close} aria-label={t.close}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
       <div class="booking-body">
         <div class="booking-context">
         {#if booking.image}<img class="booking-photo" src={imageUrl(booking.image, 640)} srcset={imageSrcset(booking.image, [480,640,800])} sizes="(max-width: 760px) 90vw, 300px" alt="" width="640" height="480" />{/if}

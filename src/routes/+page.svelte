@@ -7,7 +7,6 @@
   import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
-  import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
   import SiteFooter from '../lib/SiteFooter.svelte';
   import TourCard from '../lib/TourCard.svelte';
@@ -165,7 +164,7 @@
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
     <div class="section pickup-block" id="hitung-travel" use:reveal>
       <div class="pickup-intro"><div><h2 id="travel-title">{formCopy.checkTransferFare}</h2></div><p>{c.transferIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p></div>
-      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
+      <div class="calculator-wrap"><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
 
@@ -190,5 +189,4 @@
 
 <SiteFooter {settings} {locale} {rentalEnabled} homepage />
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
-<WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
 </div>

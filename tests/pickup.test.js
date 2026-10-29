@@ -151,11 +151,35 @@ test('Mapbox route data uses distance, duration, GeoJSON geometry, and snap dist
     { lat: -8.5, lng: 116.1 },
     { lat: -8.6, lng: 116.2 }
   ]);
+  assert.equal(route.distanceMeters, 12_100);
   assert.equal(route.distanceKm, 13);
   assert.equal(route.durationMinutes, 30);
   assert.equal(route.snapDistanceM, 0.04);
   assert.equal(route.roadAccess, true);
   assert.deepEqual(route.points, [[-8.5, 116.1], [-8.55, 116.15], [-8.6, 116.2]]);
+});
+
+test('Mapbox route data keeps the actual metres for a route shorter than 1 km', () => {
+  const route = readMapboxRoute({
+    waypoints: [
+      { distance: 0, location: [116.10645, -8.58415] },
+      { distance: 0, location: [116.10742, -8.58403] }
+    ],
+    routes: [{
+      distance: 150,
+      duration: 90,
+      geometry: {
+        type: 'LineString',
+        coordinates: [[116.10645, -8.58415], [116.10742, -8.58403]]
+      },
+      legs: [{ steps: [{ mode: 'driving', maneuver: { type: 'depart' } }, { mode: 'driving', maneuver: { type: 'arrive' } }] }]
+    }]
+  }, 'No route', [
+    { lat: -8.58415, lng: 116.10645 },
+    { lat: -8.58403, lng: 116.10742 }
+  ]);
+  assert.equal(route.distanceMeters, 150);
+  assert.equal(route.distanceKm, 1);
 });
 
 test('Mapbox route data only grants road access to all-driving routes without ferries', () => {

@@ -170,3 +170,54 @@ test('Mapbox providers fail closed without an access token or when the route is 
     (error) => error instanceof TravelQuoteError && error.code === 'not_found'
   );
 });
+
+const shortStops = [
+  { lat: -8.58415, lng: 116.10645 },
+  { lat: -8.58403, lng: 116.10742 }
+];
+
+function shortRoutePayload(distance) {
+  return {
+    waypoints: [
+      { distance: 0, location: [116.10645, -8.58415] },
+      { distance: 0, location: [116.10742, -8.58403] }
+    ],
+    routes: [{
+      distance,
+      duration: 90,
+      geometry: {
+        type: 'LineString',
+        coordinates: [[116.10645, -8.58415], [116.10742, -8.58403]]
+      },
+      legs: [{
+        steps: [
+          { mode: 'driving', maneuver: { type: 'depart' } },
+          { mode: 'driving', maneuver: { type: 'arrive' } }
+        ]
+      }]
+    }]
+  };
+}
+
+test('Mapbox road routes below the 1 km minimum fail closed at the 999 m boundary', async () => {
+  for (const distance of [150, 999]) {
+    await assert.rejects(
+      getRoadRoute(shortStops, 'en', {
+        token: 'test-mapbox-token',
+        fetchImpl: async () => new Response(JSON.stringify(shortRoutePayload(distance)), { status: 200 })
+      }),
+      (error) => error instanceof TravelQuoteError && error.status === 422 && error.code === 'route_too_short'
+    );
+  }
+});
+
+test('Mapbox road routes are bookable from the 1000 m boundary upward', async () => {
+  for (const distance of [1000, 1001]) {
+    const route = await getRoadRoute(shortStops, 'en', {
+      token: 'test-mapbox-token',
+      fetchImpl: async () => new Response(JSON.stringify(shortRoutePayload(distance)), { status: 200 })
+    });
+    assert.equal(route.distanceMeters, distance);
+    assert.equal(route.distanceKm, distance === 1000 ? 1 : 2);
+  }
+});

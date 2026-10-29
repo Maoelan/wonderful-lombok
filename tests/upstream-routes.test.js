@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GET as geocode } from '../src/routes/api/geocode/+server.js';
 import { GET as route, POST as multiStopRoute } from '../src/routes/api/route/+server.js';
+import { getFormCopy } from '../src/lib/i18n.js';
 
 process.env.MAPBOX_SERVER_TOKEN = 'test-server-token';
 
@@ -166,6 +167,7 @@ test('route retries one transient Mapbox Directions outage', async () => {
   assert.equal(response.status, 200);
   assert.equal(calls, 2);
   const body = await response.json();
+  assert.equal(body.distanceMeters, 12_100);
   assert.equal(body.distanceKm, 13);
   assert.equal(body.durationMinutes, 30);
   assert.equal(body.roadAccess, true);
@@ -292,4 +294,43 @@ test('route maps provider quota exhaustion to a retryable message', async () => 
   });
   assert.equal(response.status, 503);
   assert.equal((await response.json()).error, 'The map service quota is exhausted. Try again later.');
+});
+
+const reportedShortRoute = {
+  waypoints: [
+    { distance: 0, location: [116.10645, -8.58415] },
+    { distance: 0, location: [116.10742, -8.58403] }
+  ],
+  routes: [{
+    distance: 150,
+    duration: 90,
+    geometry: {
+      type: 'LineString',
+      coordinates: [[116.10645, -8.58415], [116.10742, -8.58403]]
+    },
+    legs: [{
+      steps: [
+        { mode: 'driving', maneuver: { type: 'depart' } },
+        { mode: 'driving', maneuver: { type: 'arrive' } }
+      ]
+    }]
+  }]
+};
+
+test('route rejects the reported 150 m route with a localized message in every locale', async () => {
+  const locales = ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms'];
+  const messages = [];
+  for (const [index, lang] of locales.entries()) {
+    const response = await route({
+      url: new URL(`http://localhost/api/route?fromLat=-8.58415&fromLng=116.10645&toLat=-8.58403&toLng=116.10742&lang=${lang}`),
+      getClientAddress: () => `203.0.113.${40 + index}`,
+      fetch: async () => new Response(JSON.stringify(reportedShortRoute), { status: 200 })
+    });
+    assert.equal(response.status, 422, lang);
+    const body = await response.json();
+    assert.equal(body.code, 'route_too_short', lang);
+    assert.equal(body.error, getFormCopy(lang).routeTooShort.replace('{distance}', '1 km'), lang);
+    messages.push(body.error);
+  }
+  assert.equal(new Set(messages).size, locales.length);
 });

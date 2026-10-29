@@ -198,6 +198,9 @@ export function readMapboxRoute(payload, notFoundMessage = 'Rute jalan tidak dit
   };
   const snapDistanceM = stops.length === 2 ? Math.max(snapFor(0), snapFor(1)) : 0;
   return {
+    // Keep the raw road distance so callers can enforce a minimum before
+    // rounding up to billable kilometres.
+    distanceMeters,
     distanceKm: Math.max(1, Math.ceil(distanceMeters / 1000)),
     points,
     durationMinutes: Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.ceil(seconds / 60)) : null,
