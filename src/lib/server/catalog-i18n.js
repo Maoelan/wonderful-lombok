@@ -1,10 +1,19 @@
 import { defaultCatalog } from '../catalog.js';
-import { destinationSlug, localeTag, slugify } from '../i18n.js';
+import { destinationSlug, getCopy, localeTag, slugify } from '../i18n.js';
 import { heroCopy } from '../hero-copy.js';
 
 const hasText = (value) => typeof value === 'string' ? value.trim().length > 0 : value !== undefined && value !== null;
 const hasItems = (value) => Array.isArray(value) && value.length > 0;
-const sameValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+// Convex returns object keys in its own order, so compare structurally instead
+// of by serialized text or every saved itinerary looks edited.
+const sortKeys = (value) => {
+  if (Array.isArray(value)) return value.map(sortKeys);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortKeys(value[key])]));
+  }
+  return value;
+};
+const sameValue = (left, right) => JSON.stringify(sortKeys(left ?? null)) === JSON.stringify(sortKeys(right ?? null));
 
 // Admin base content is canonical. Bundled translations are used only while
 // the corresponding base field is unchanged; once an admin edits it, every
@@ -45,10 +54,47 @@ const localizedList = (item, field, locale, fallback, defaultItem) => {
   return base;
 };
 
+// Day labels are structural, so they stay translatable even when edited
+// itinerary copy falls back to the CMS base language.
+const dayLabels = {
+  en: { day: (number) => `Day ${number}`, pagi: 'Morning', siang: 'Afternoon', sore: 'Evening' },
+  'zh-cn': { day: (number) => `第${number}天`, pagi: '上午', siang: '下午', sore: '傍晚' },
+  'zh-tw': { day: (number) => `第${number}天`, pagi: '上午', siang: '下午', sore: '傍晚' },
+  nl: { day: (number) => `Dag ${number}`, pagi: 'Ochtend', siang: 'Middag', sore: 'Avond' },
+  fr: { day: (number) => `Jour ${number}`, pagi: 'Matin', siang: 'Après-midi', sore: 'Soir' },
+  de: { day: (number) => `Tag ${number}`, pagi: 'Morgen', siang: 'Nachmittag', sore: 'Abend' },
+  ms: { day: (number) => `Hari ${number}`, pagi: 'Pagi', siang: 'Petang', sore: 'Senja' }
+};
+
+const localizedDayLabel = (value, locale) => {
+  const labels = dayLabels[locale];
+  const label = typeof value === 'string' ? value.trim() : '';
+  if (!labels || !label) return value;
+  const numbered = label.match(/^hari\s+(\d+)$/i);
+  if (numbered) return labels.day(numbered[1]);
+  return labels[label.toLowerCase()] || value;
+};
+
+const localizedItinerary = (item, locale, fallback, defaultItem) => {
+  const days = localizedList(item, 'itinerary', locale, fallback, defaultItem);
+  if (locale === 'id') return days;
+  return days.map((day) => ({ ...day, day: localizedDayLabel(day.day, locale) }));
+};
+
+const isContactPrice = (value) => hasText(value) && !/\d/.test(String(value));
+const localizedTierPrice = (tier, locale, fallback = {}, defaultItem) => {
+  if (locale === 'id' || !isContactPrice(tier.price)) return tier.price;
+  const defaultPrice = defaultItem?.price;
+  if (defaultPrice !== undefined && tier.price !== defaultPrice) return tier.price;
+  if (hasText(fallback.price)) return fallback.price;
+  return getCopy(locale).contact || tier.price;
+};
+
 const localizedTier = (tier, locale, fallback = {}, defaultItem) => ({
   ...tier,
   guests: localizedField(tier, 'guests', locale, fallback.guests, defaultItem),
-  note: localizedField(tier, 'note', locale, fallback.note, defaultItem)
+  note: localizedField(tier, 'note', locale, fallback.note, defaultItem),
+  price: localizedTierPrice(tier, locale, fallback, defaultItem)
 });
 
 const localizedSettings = {
@@ -396,7 +442,7 @@ export function localizeCatalog(catalog, locale) {
         category: localizedField(item, 'category', locale, packageFallback.category, defaultItem),
         duration: localizedField(item, 'duration', locale, packageFallback.duration, defaultItem),
         unit: localizedField(item, 'unit', locale, packageFallback.unit, defaultItem),
-        itinerary: localizedList(item, 'itinerary', locale, detailFallback.itinerary, defaultItem),
+        itinerary: localizedItinerary(item, locale, detailFallback.itinerary, defaultItem),
         includes: localizedList(item, 'includes', locale, detailFallback.includes, defaultItem),
         excludes: localizedList(item, 'excludes', locale, detailFallback.excludes, defaultItem),
         priceTiers: (item.priceTiers || []).map((tier) => {

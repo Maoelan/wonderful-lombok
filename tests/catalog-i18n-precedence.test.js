@@ -95,6 +95,61 @@ test('edited admin base content wins over stale bundled non-English copy', () =>
   assert.equal(catalog.settings.whatsapp, '+620000000000');
 });
 
+test('itinerary day labels follow the page locale even when admin copy wins', () => {
+  const expectations = { en: 'Day 1', 'zh-cn': '第1天', 'zh-tw': '第1天', nl: 'Dag 1', fr: 'Jour 1', de: 'Tag 1', ms: 'Hari 1', id: 'Hari 1' };
+
+  for (const [locale, label] of Object.entries(expectations)) {
+    const day = localizeCatalog(adminCatalog, locale).packages[0].itinerary[0];
+    assert.equal(day.day, label, locale);
+    assert.equal(day.title, locale === 'en' ? 'Admin itinerary' : 'Itinerary admin', locale);
+  }
+});
+
+test('object key order from the CMS does not count as an edited itinerary', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.itinerary = packageItem.itinerary.map(({ day, title, items }) => ({ day, items, title }));
+
+  const catalog = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'de');
+
+  assert.equal(catalog.packages[0].itinerary[0].day, 'Morgen');
+  assert.equal(catalog.packages[0].itinerary[0].title, 'Abholung und Sade-Dorf');
+});
+
+test('time-of-day itinerary labels follow the page locale when admin copy wins', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.itinerary = packageItem.itinerary.map((day) => ({ ...day, title: `${day.title} (admin)` }));
+
+  const catalog = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'de');
+
+  assert.deepEqual(catalog.packages[0].itinerary.map((day) => day.day), ['Morgen', 'Nachmittag', 'Abend']);
+});
+
+test('contact price placeholders follow the page locale', () => {
+  const expectations = {
+    en: 'Contact us',
+    'zh-cn': '联系我们',
+    'zh-tw': '聯絡我們',
+    nl: 'Neem contact op',
+    fr: 'Contactez-nous',
+    de: 'Kontaktieren Sie uns',
+    ms: 'Hubungi kami',
+    id: 'Hubungi kami'
+  };
+
+  for (const [locale, price] of Object.entries(expectations)) {
+    assert.equal(localizeCatalog(defaultCatalog, locale).packages[0].priceTiers[1].price, price, locale);
+  }
+});
+
+test('an edited contact price is not replaced by localized copy', () => {
+  const packageItem = structuredClone(defaultCatalog.packages[0]);
+  packageItem.priceTiers[1] = { ...packageItem.priceTiers[1], price: 'Tanya admin' };
+
+  const catalog = localizeCatalog({ ...defaultCatalog, packages: [packageItem] }, 'de');
+
+  assert.equal(catalog.packages[0].priceTiers[1].price, 'Tanya admin');
+});
+
 test('unedited default content still uses the bundled non-English copy', () => {
   const catalog = localizeCatalog(defaultCatalog, 'nl');
 
