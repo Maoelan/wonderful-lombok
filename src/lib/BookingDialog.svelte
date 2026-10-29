@@ -117,16 +117,18 @@
           {#if booking.price}<p class="booking-price-notice">{t.priceConfirmation}</p>{/if}
         {/if}
         </div>
-        <form on:submit|preventDefault={submit}>
+        <form id="booking-form" on:submit|preventDefault={submit}>
           <h3>{t.customerDetails}</h3>
           <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
           <label><span>{t.fullName}</span><input bind:value={name} autocomplete="name" required /></label>
           <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" required /></label>
           <div class="form-row"><label><span>{t.travelDate}</span><input bind:value={travelDate} type="date" min={today} on:focus={() => (today = todayInWita())} required /></label><label><span>{t.guests}</span><input bind:value={people} type="number" min="1" max="50" required /></label></div>
           <label><span>{t.notes}</span><textarea bind:value={notes} rows="3" placeholder={t.notesPlaceholder}></textarea></label>
-          {#if error}<p class="form-message error" role="alert">{error}</p>{/if}
-          <button class="submit" disabled={loading}>{loading ? t.saving : t.saveContinue}</button>
         </form>
+      </div>
+      <div class="booking-footer">
+        {#if error}<p class="form-message error" role="alert">{error}</p>{/if}
+        <button class="submit" type="submit" form="booking-form" disabled={loading}>{loading ? t.saving : t.saveContinue}</button>
       </div>
     </div>
   </div>

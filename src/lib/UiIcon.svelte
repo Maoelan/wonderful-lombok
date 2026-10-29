@@ -17,6 +17,12 @@
     <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2.5" />
   {:else if name === 'clock'}
     <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+  {:else if name === 'check'}
+    <path d="m5 12 4 4L19 6" />
+  {:else if name === 'minus'}
+    <path d="M5 12h14" />
+  {:else if name === 'whatsapp'}
+    <path d="M20 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l1.2-4.2A8.5 8.5 0 1 1 20 11.5Z" /><path d="M8.7 8.3c.3 3.2 2.3 5.2 5.5 5.5" />
   {:else if name === 'overview'}
     <path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />
   {:else if name === 'booking'}

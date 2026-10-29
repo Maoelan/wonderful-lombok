@@ -231,9 +231,10 @@ export function calculatePickupPrice(distanceKm, rate = 10_000) {
   return Math.ceil(distanceKm) * rate;
 }
 
-export function estimateLabel({ loading = false, error = '', ready = false, price = 0, format = (value) => String(value), calculating = '…' } = {}) {
+export function estimateLabel({ loading = false, error = '', ready = false, price = 0, format = (value) => String(value), calculating = '…', empty = '—' } = {}) {
   if (loading) return calculating;
-  if (error || !ready) return '—';
+  if (error) return '—';
+  if (!ready) return empty;
   return format(price);
 }
 

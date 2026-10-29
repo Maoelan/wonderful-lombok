@@ -8,6 +8,7 @@
   import { breadcrumbSchema, getSeoCopy, jsonLdScript } from '#lib/seo.js';
   import SiteHeader from '#lib/SiteHeader.svelte';
   import SiteFooter from '#lib/SiteFooter.svelte';
+  import SkipLink from '#lib/SkipLink.svelte';
   export let data;
   let booking = null;
   $: c = getCopy(data.locale);
@@ -51,11 +52,13 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
+<SkipLink locale={data.locale} />
 <SiteHeader locale={data.locale} suffix="/paket-wisata" packages={data.catalog.packages} destinations={data.catalog.destinations} />
-  <main class="catalog-page">
+  <main id="main-content" tabindex="-1" class="catalog-page">
   <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><span>{c.tours}</span></nav>
   <section class="catalog-intro"><h1>{c.catalogTitle}</h1><p>{c.catalogIntro}</p></section>
-  <section class="tour-catalog package-list" aria-label={c.catalogTitle}>
+  <section class="tour-catalog package-list" aria-labelledby="package-grid-title">
+    <h2 id="package-grid-title" class="sr-only">{c.tours}</h2>
     {#each data.catalog.packages as item, index}
       <TourCard {item} locale={data.locale} onBook={() => booking = packageBooking(item)} />
     {/each}
@@ -63,6 +66,6 @@
   <FaqSection faqs={data.catalog.faqs} locale={data.locale} />
   <aside class="catalog-help"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(message, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>
 </main>
-<SiteFooter settings={data.catalog.settings} locale={data.locale} />
+<SiteFooter settings={data.catalog.settings} locale={data.locale} current="tours" />
 <BookingDialog bind:booking whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

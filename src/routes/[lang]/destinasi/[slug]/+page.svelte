@@ -3,6 +3,7 @@
   import { createWhatsAppUrl } from '#lib/whatsapp.js';
   import SiteHeader from '#lib/SiteHeader.svelte';
   import SiteFooter from '#lib/SiteFooter.svelte';
+  import SkipLink from '#lib/SkipLink.svelte';
   import PhotoGallery from '#lib/PhotoGallery.svelte';
   import TourCard from '#lib/TourCard.svelte';
   import BookingDialog from '#lib/BookingDialog.svelte';
@@ -35,8 +36,9 @@
 </svelte:head>
 
 <div class="site-theme" class:theme-ocean={data.catalog.settings.colorTheme === 'ocean'}>
+  <SkipLink locale={data.locale} />
   <SiteHeader locale={data.locale} suffix={`/destinasi/${data.item.slug}`} packages={data.catalog.packages} destinations={data.catalog.destinations} />
-  <main class="tour-detail-page">
+  <main id="main-content" tabindex="-1" class="tour-detail-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={home}>{c.home}</a><span>/</span><a href={`${home}#destinasi`}>{c.destinations}</a><span>/</span><span>{data.item.name}</span></nav>
     <section class="tour-hero">
       <PhotoGallery images={gallery} name={data.item.name} locale={data.locale} />
@@ -44,6 +46,6 @@
     </section>
     {#if data.relatedPackages.length}<section class="destination-related" id="related-packages" aria-labelledby="related-title"><div class="section-heading"><div><h2 id="related-title">{destinationSeo.related}</h2></div><p>{destinationSeo.relatedIntro}</p></div><div class="tour-catalog package-list">{#each data.relatedPackages as item}<TourCard {item} locale={data.locale} onBook={() => booking = packageBooking(item)} />{/each}</div></section>{:else}<aside class="catalog-help destination-related"><h2>{c.customItinerary}</h2><a class="button primary" href={createWhatsAppUrl(customMessage, data.catalog.settings.whatsapp)} target="_blank" rel="noreferrer">{c.consult}</a></aside>{/if}
   </main>
-  <SiteFooter settings={data.catalog.settings} locale={data.locale} />
+  <SiteFooter settings={data.catalog.settings} locale={data.locale} current="destinations" />
   <BookingDialog bind:booking whatsapp={data.catalog.settings.whatsapp} locale={data.locale} />
 </div>

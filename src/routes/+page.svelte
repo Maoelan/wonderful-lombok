@@ -1,4 +1,5 @@
 <script>
+  import { tick } from 'svelte';
   import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
   import { packageBooking } from '../lib/booking-context.js';
@@ -9,6 +10,7 @@
   import LanguageSelector from '../lib/LanguageSelector.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
   import SiteFooter from '../lib/SiteFooter.svelte';
+  import SkipLink from '../lib/SkipLink.svelte';
   import TourCard from '../lib/TourCard.svelte';
   import FaqSection from '../lib/FaqSection.svelte';
 
@@ -18,6 +20,7 @@
   let tourMenu;
   let destinationMenu;
   let menuToggle;
+  let nav;
   const fallbackImage = '/wonderful-lombok-icon-192.png';
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
@@ -37,13 +40,38 @@
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
-  function closeMenu() {
+  let lockedScrollY = 0;
+  function setMenuBackground(inert) {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('main, footer, .skip-link').forEach((node) => node.toggleAttribute('inert', inert));
+  }
+  async function openMenu() {
+    if (typeof window === 'undefined') return;
+    lockedScrollY = window.scrollY;
+    menuOpen = true;
+    document.documentElement.classList.add('menu-open');
+    document.body.classList.add('menu-open');
+    setMenuBackground(true);
+    await tick();
+    nav?.querySelector('summary, nav > a')?.focus();
+  }
+  function closeMenu({ restoreFocus = false } = {}) {
+    const wasOpen = menuOpen;
     menuOpen = false;
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.remove('menu-open');
+    document.body.classList.remove('menu-open');
+    setMenuBackground(false);
+    if (wasOpen && lockedScrollY) window.scrollTo(0, lockedScrollY);
+    lockedScrollY = 0;
+    if (restoreFocus) menuToggle?.focus();
   }
+  function closeMenuAndRestore() { closeMenu({ restoreFocus: true }); }
+  function toggleMenu() { menuOpen ? closeMenuAndRestore() : openMenu(); }
   function handlePageClick(event) {
-    if (event.target instanceof Element && (event.target.closest('.language-picker') || !event.target.closest('.site-header'))) menuOpen = false;
+    if (event.target instanceof Element && (event.target.closest('.language-picker') || !event.target.closest('.site-header'))) closeMenu();
     if (event.target instanceof Element && event.target.closest('.nav-dropdown')) return;
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
@@ -91,12 +119,13 @@
 <svelte:window on:click={handlePageClick} on:keydown={(event) => { if (event.key === 'Escape') { const control = menuOpen ? menuToggle : tourMenu?.open ? tourMenu.querySelector('summary') : destinationMenu?.open ? destinationMenu.querySelector('summary') : null; closeMenu(); control?.focus(); } }} />
 
 <div class="site-theme" class:theme-ocean={settings.colorTheme === 'ocean'}>
-<a class="skip-link" href="#top">{c.heroPrimary}</a>
+<SkipLink {locale} />
+{#if menuOpen}<button class="menu-scrim" type="button" tabindex="-1" aria-hidden="true" on:click|stopPropagation={closeMenuAndRestore}></button>{/if}
 <header class="site-header">
-  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
+  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok" aria-current="page"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
-  <button bind:this={menuToggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
-  <nav id="main-navigation" class:open={menuOpen} aria-label={c.menu}>
+  <button bind:this={menuToggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={toggleMenu}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
+  <nav id="main-navigation" bind:this={nav} class:open={menuOpen} aria-label={c.mainNav}>
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
       <div class="nav-dropdown-menu">
@@ -117,7 +146,7 @@
   </nav>
 </header>
 
-<main id="top" itemscope itemtype="https://schema.org/TravelAgency">
+<main id="main-content" tabindex="-1" itemscope itemtype="https://schema.org/TravelAgency">
   <meta itemprop="name" content="Wonderful Lombok" />
   <meta itemprop="url" content={data.canonicalUrl} />
   <meta itemprop="image" content={data.socialImageUrl} />
@@ -145,7 +174,7 @@
   </section>{/if}
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><h2 id="packages-title">{c.tourHeading}</h2><p>{c.tourIntro}</p></div></div>
+    <div class="section-heading"><div><h2 id="packages-title">{c.tourHeading}</h2></div></div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
       {#each packages as item}<TourCard {item} {locale} onBook={() => booking = packageBooking(item)} />{/each}
@@ -187,6 +216,6 @@
   <FaqSection {faqs} {locale} />
 </main>
 
-<SiteFooter {settings} {locale} {rentalEnabled} homepage />
+<SiteFooter {settings} {locale} {rentalEnabled} homepage current="home" />
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
 </div>

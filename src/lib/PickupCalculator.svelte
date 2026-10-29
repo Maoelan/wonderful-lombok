@@ -1,5 +1,5 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import { calculatePickupPrice, estimateLabel, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces } from './pickup.js';
   import { createMap } from './maps/index.js';
   import { createWhatsAppUrl } from './whatsapp.js';
@@ -9,6 +9,7 @@
   import { isBookableTransferDistance, MIN_TRANSFER_DISTANCE_LABEL } from './travel-rules.js';
 
   let mapElement;
+  let quoteElement;
   let map = null;
   let mapLoading = true, mapError = '', routeLoading = false, routeError = '', routeNotice = '';
   let distance = 0, routeDuration = null, routePoints = [], routeShort = false;
@@ -39,7 +40,8 @@
     ready: routeReady,
     price,
     format: (value) => rupiah.format(value),
-    calculating: t.calculating
+    calculating: t.calculating,
+    empty: t.chooseRoute
   });
   $: if (map) renderMarkers(origin, destination);
   $: if (map) updateRoute(routeKey);
@@ -365,6 +367,14 @@
     map.fitRoute(routePoints);
   }
 
+  function scrollToEstimate() {
+    if (typeof window === 'undefined' || !quoteElement) return;
+    if (!window.matchMedia('(max-width: 760px)').matches) return;
+    const rect = quoteElement.getBoundingClientRect();
+    if (rect.top >= 0 && rect.top < window.innerHeight * 0.6) return;
+    quoteElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   async function updateRoute(key) {
     if (!map) return;
     if (key === currentRouteKey) return;
@@ -419,6 +429,8 @@
         map.setRoute(routePoints);
         fitRoute();
       }
+      await tick();
+      scrollToEstimate();
     } catch (error) {
       if (key === currentRouteKey && error.name !== 'AbortError') {
         routeShort = error.code === 'route_too_short';
@@ -633,11 +645,11 @@
     </div>
   </div>
 
-  <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
+  <form class="quote" bind:this={quoteElement} on:submit|preventDefault={submitRequest} novalidate>
     <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
     <div class="quote-heading">
       <p>{t.estimate}</p>
-      <strong class:calculating={routeLoading}>{estimateText}</strong>
+      <strong class:calculating={routeLoading} class:empty={!routeLoading && !routeReady} aria-live="polite" aria-atomic="true">{estimateText}</strong>
       <span>{distance ? `${distance} km × ${rupiah.format(rate)}${routeDuration ? ` · ${message(t.routeDuration, { minutes: routeDuration })}` : ''}` : `${t.rate}: ${rupiah.format(rate)}`}</span>
     </div>
     <div class="route-summary" aria-live="polite">
