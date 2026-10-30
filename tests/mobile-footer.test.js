@@ -42,6 +42,14 @@ test('mobile and tablet rows keep a 44px touch target while desktop stays compac
   assert.match(refresh, /@media \(min-width: 761px\) and \(max-width: 900px\) \{[\s\S]*?travel-footer-list a, body \.site-theme \.travel-footer-list p \{ min-height: 44px; \}/);
 });
 
+test('social links are contact rows instead of a separate bottom row', () => {
+  assert.doesNotMatch(footer, /travel-footer-bottom/);
+  const contactBlock = footer.match(/<section class="travel-footer-contact"[\s\S]*?<\/section>/);
+  assert.ok(contactBlock, 'contact section is present');
+  for (const key of ['instagram', 'tiktok', 'facebook']) assert.match(contactBlock[0], new RegExp(`settings\\.${key}`));
+  assert.match(contactBlock[0], /<UiIcon name="instagram" \/>Instagram/);
+});
+
 test('mobile footer gutter matches page content and the logo has no transparent offset', () => {
   assert.match(mobileBlock(), /footer\.travel-footer \{ padding: 28px max\(18px, env\(safe-area-inset-right\)\) calc\(24px \+ env\(safe-area-inset-bottom\)\) max\(18px, env\(safe-area-inset-left\)\); \}/);
   assert.match(footer, /src="\/wonderful-lombok-logo-footer\.png" alt="Wonderful Lombok" width="287" height="183"/);

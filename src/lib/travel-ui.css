@@ -187,8 +187,6 @@ body .site-theme .travel-footer a { text-decoration: none; min-height: 44px; dis
 body .site-theme .travel-footer a:hover { text-decoration: underline; }
 body .site-theme .travel-footer-contact { display: grid; align-content: start; gap: 8px; }
 body .site-theme .travel-footer-contact p { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 14px; }
-body .site-theme .travel-footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 40px; color: #d6e4df; font-size: 12px; }
-body .site-theme .social-links { display: flex; flex-wrap: wrap; gap: 24px; }
 
 /* Tour and destination pages use the same photograph / itinerary vocabulary. */
 body .site-theme .catalog-page, body .site-theme .tour-detail-page { width: min(1320px, calc(100% - 80px)); padding: 48px 0 80px; }
@@ -492,7 +490,6 @@ body .login-back { font-size: 14px; font-weight: 500; }
   body .site-theme .footer-copyright { margin: 0; }
   body .site-theme .travel-footer-main { grid-template-columns: 1fr 1fr; gap: 28px; }
   body .site-theme .travel-footer-contact { grid-column: 1 / -1; }
-  body .site-theme .travel-footer-bottom { align-items: flex-start; flex-direction: column; margin-top: 28px; gap: 12px; }
   body .site-theme .catalog-page, body .site-theme .tour-detail-page { padding-top: 30px; padding-bottom: 50px; }
   body .site-theme .catalog-intro h1 { font-size: 38px; }
   body .site-theme .catalog-intro > p:not(.label) { font-size: 15px; }
@@ -569,7 +566,6 @@ body .site-theme .travel-description > p,
 body .site-theme .about-copy .rich-content,
 body .site-theme .faq-list details > div { font-size: 16px; color: var(--ink); }
 body .site-theme .footer-copyright,
-body .site-theme .travel-footer-bottom,
 body .site-theme .destination-card p,
 body .site-theme .helper,
 body .site-theme label > span,
@@ -688,7 +684,6 @@ body .site-theme .package-inclusions,
 body .site-theme .package-price span,
 body .site-theme .package-book,
 body .site-theme .footer-copyright,
-body .site-theme .travel-footer-bottom,
 body .site-theme .service-tile small { font-size: 13px; }
 body .admin-field-group { border-top: 1px solid var(--color-border); padding-top: 16px; }
 body .admin-field-group > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--color-primary); }

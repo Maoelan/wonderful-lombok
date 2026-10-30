@@ -10,7 +10,6 @@
   $: c = getCopy(locale);
   $: home = localePath(locale);
   $: year = new Date().getFullYear();
-  $: hasSocial = Boolean(settings.instagram || settings.tiktok || settings.facebook);
 </script>
 
 <footer id="kontak" class="travel-footer">
@@ -32,9 +31,11 @@
         {#if settings.whatsapp}<a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />{formatWhatsAppNumber(settings.whatsapp)}</a>{/if}
         {#if settings.email}<a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a>{/if}
         {#if settings.location}<p><UiIcon name="pin" />{settings.location}</p>{/if}
+        {#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}
+        {#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}
+        {#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}
       </div>
     </section>
   </div>
-  {#if hasSocial}<div class="travel-footer-bottom"><div class="social-links">{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div></div>{/if}
   <p class="travel-footer-legal">© {year} Wonderful Lombok</p>
 </footer>

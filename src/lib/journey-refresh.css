@@ -94,8 +94,6 @@ body .site-theme .travel-footer-list a[aria-current="page"] { color: var(--color
 body .site-theme .travel-footer-list :is(svg, img) { flex: 0 0 20px; }
 body .site-theme .travel-footer-contact { display: block; min-width: 0; }
 body .site-theme .travel-footer .travel-footer-nav { display: block; min-width: 0; }
-body .site-theme .travel-footer-bottom { margin-top: 24px; gap: 0; color: var(--color-ink); }
-body .site-theme .travel-footer .social-links { gap: 4px 24px; }
 body .site-theme .travel-footer-legal { margin: 20px 0 0; padding-top: 12px; border-top: 1px solid var(--color-border); color: var(--color-body); font-size: 13px; line-height: 1.5; }
 @media (min-width: 761px) and (max-width: 900px) {
   body .site-theme .travel-footer-main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px 40px; }
@@ -195,7 +193,6 @@ body .site-theme .image-disclosure { grid-column: 1 / -1; margin: 0; font-size: 
   body .site-theme .travel-footer-nav .travel-footer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
   body .site-theme .travel-footer-nav .travel-footer-list a { align-items: center; padding-block: 11px; }
   body .site-theme .travel-footer-legal { margin-top: 20px; padding-top: 14px; font-size: 13px; }
-  body .site-theme .travel-footer-bottom { margin-top: 16px; }
   body .site-theme .faq h2 { margin-bottom: 18px; }
   body .site-theme .faq-list summary { padding: 16px 48px 16px 16px; }
   body .site-theme .faq-list summary::after { right: 18px; }
