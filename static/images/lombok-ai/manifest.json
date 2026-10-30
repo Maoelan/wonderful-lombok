@@ -1,0 +1,47 @@
+{
+  "negativePrompt": "text, watermark, logo, signature, caption, signboard lettering, gibberish text,\noversaturated, HDR look, over-sharpened, plastic skin, airbrushed, glossy smooth surfaces,\ncgi, 3d render, illustration, painting, cartoon, anime, digital art, concept art,\nfake bokeh, excessive depth of field blur, glowing edges, dreamy haze, orange-teal filter,\nperfectly symmetrical composition, stock photo pose, staged smiling at camera,\nextra fingers, deformed hands, distorted faces, extra limbs, merged people,\nwarped boat, warped car, wrong number of wheels, melted objects, impossible architecture,\nduplicate subjects, repeating patterns, cloned background,\ncrowd of tiny blurry people, tourists with identical clothing,\nunrealistic water color, neon turquoise sea, fantasy sky, giant moon, impossible rock formations,\nlow resolution, jpeg artifacts, noisy, banding, vignette, border, frame",
+  "generatedWith": "built-in image_gen",
+  "date": "2026-10-28",
+  "assets": [
+    {
+      "key": "hero-coast",
+      "prompt": "Wide horizontal editorial photograph for a Lombok travel website hero. A south Lombok coast inspired by the real rolling grassy headlands of Bukit Merese, broad pale sand curving naturally into a bay, naturally blue Indian Ocean with muted aquamarine shallows and visible depth transitions, low tropical vegetation and believable distant hills, normal late morning daylight. View from a low grassy headland, not a fantastical island panorama. Landscape 16:9, calm darker water and hillside on the left for HTML text overlay, main curving beach on the right, no people, no built-in text. Natural colors, real grain and irregular shoreline, restrained saturation."
+    },
+    {
+      "key": "sasak-culture",
+      "prompt": "Landscape 4:3 photorealistic editorial travel photograph in a Sasak village in Lombok, Indonesia, inspired by Sade: several authentic lumbung rice granaries with tall curved thatched roofs on sturdy timber supports, modest woven bamboo and earthen walls, stone and packed-earth footpath. Intimate eye-level view, imperfect thatch and timber texture, green vegetation and hazy low hills far behind, soft normal daylight. Empty village lane, no people, no lettering or commercial signage. This must communicate local Sasak culture, not Bali temples or a beach resort."
+    },
+    {
+      "key": "gili-snorkeling",
+      "prompt": "Landscape 4:3 natural editorial photograph of a snorkeling excursion off the Gili islands near Lombok. A single adult snorkeler seen from a respectful high oblique angle, floating face-down parallel to the surface with arms relaxed, dark swimwear and realistic fins, anatomically normal body, in clear naturally blue water with subtle sun ripples, seagrass and patchy coral beneath, not bright neon sea. A single simple unbranded wooden outrigger boat appears farther behind with physically plausible straight hull and supports. Low Gili palm shoreline in the far background, real daylight, no posed faces or crowds. All elements remain legible at small travel-card size."
+    },
+    {
+      "key": "couples-sunset",
+      "prompt": "Landscape 4:3 natural editorial travel photograph of a quiet Senggigi-area west Lombok beach at sunset, sandy shore, gentle small waves, irregular coconut palms along one edge, a modest low coastline receding toward Malimbu. A pair of adults walking away from the camera near the waterline, seen small but clear, natural unposed posture, no visible facial detail, realistic separate limbs. Soft peach and pale gold sunset, ordinary clouds, naturally darkening blue water, subdued saturation, no fiery fantasy sky or Bali temple."
+    },
+    {
+      "key": "kuta-mandalika",
+      "prompt": "Landscape 4:3 photorealistic natural photograph inspired by Kuta Mandalika in south Lombok: a broad inhabited bay with pale coarse sand in foreground, gentle blue water, low rounded dry-green headlands beyond, a few modest shore trees. View from a rocky low lookout beside the bay, shoreline and recognizable everyday coastal texture rather than a deserted fantasy islet. Late morning light, warm natural greens, no resort skyscrapers, no people or writing. A distinctly wider town-side bay composition, different from Tanjung Aan."
+    },
+    {
+      "key": "tanjung-aan",
+      "prompt": "Landscape 4:3 natural travel photograph of Tanjung Aan-inspired coastal scenery in south Lombok. Eye-level near the broad pale pepper-grain sand, two gentle crescent bays with clear shallow blue-green water and low smooth grassy headlands, subtle small waves and natural sand footprints, a patch of shoreline grass in a corner. Bright but unfiltered daylight, sea green only where shallow, deep water naturally blue. No people, no boats, no structures or lettering. Distinct beach-level composition, not the elevated hero view."
+    },
+    {
+      "key": "three-gilis",
+      "prompt": "Landscape 4:3 photorealistic editorial aerial photograph inspired by Gili Air and Gili Meno, off northwest Lombok: low flat palm-covered island shoreline and naturally blue reef shallows transitioning to deeper water, sandy shore, only a few discreet modest roofs among palms and one small straight wooden boat distant from shore. Oblique low aerial angle, a neighboring low island far away, no conical mountains on the island, no miniature fantasy island and no exaggerated turquoise ring. Gentle daylight, natural tropical colors, no people or text."
+    },
+    {
+      "key": "sembalun-rinjani",
+      "prompt": "Landscape 4:3 natural editorial photograph of Sembalun valley in east Lombok, agricultural patchwork fields of vegetables and grasses in the foreground, a narrow earth path, low village roofs well apart, the broad high flanks and rugged upper ridge of Mount Rinjani in the distance. View from valley level, believable scale and geology, ordinary soft late-morning clouds and clear natural air, varied green and brown field textures. No snow, no rice-terrace staircase, no isolated perfect volcanic cone, no Bali temples or text, no people."
+    },
+    {
+      "key": "senggigi-coast",
+      "prompt": "Landscape 4:3 natural editorial photograph of Senggigi and Malimbu-inspired west Lombok coast: a shoreline bend viewed from a low palm-covered coastal lookout, mature coconut palms at right, a dark-sand and pale-sand beach curve, gentle naturally blue water, hazy low headlands in the distance. Clear early afternoon daylight with natural shadow detail. No sunset, to contrast with the couples package. No people, hotels, giant mountains, lettering or invented landmarks."
+    },
+    {
+      "key": "local-journey",
+      "prompt": "Landscape 4:3 natural editorial travel photograph of an ordinary scenic road through Lombok countryside, a narrow well-maintained asphalt road curving past irregular coconut palms and small green fields, low volcanic hills in the background, a single unbranded modest white MPV seen from behind far enough away that no plate or markings are legible, physically plausible vehicle with correct wheels and proportions. Late afternoon neutral daylight, realistic unposed everyday scene, no people, no lettering. Friendly local travel rather than a luxury automobile advertisement."
+    }
+  ]
+}

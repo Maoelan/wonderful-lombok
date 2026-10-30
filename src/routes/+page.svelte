@@ -1,13 +1,20 @@
 <script>
+  import { tick } from 'svelte';
   import LazyPickupCalculator from '../lib/LazyPickupCalculator.svelte';
   import BookingDialog from '../lib/BookingDialog.svelte';
-  import { createWhatsAppUrl, formatWhatsAppNumber } from '../lib/whatsapp.js';
+  import { packageBooking } from '../lib/booking-context.js';
+  import { createWhatsAppUrl } from '../lib/whatsapp.js';
   import { imageSrcset, imageUrl } from '../lib/image.js';
   import { destinationSlug, getCopy, getFormCopy, languages, localePath } from '../lib/i18n.js';
   import { getSeoCopy, jsonLdScript, travelAgencySchema } from '../lib/seo.js';
   import LanguageSelector from '../lib/LanguageSelector.svelte';
-  import WhatsAppFloat from '../lib/WhatsAppFloat.svelte';
   import UiIcon from '../lib/UiIcon.svelte';
+  import SiteFooter from '../lib/SiteFooter.svelte';
+  import SkipLink from '../lib/SkipLink.svelte';
+  import TourCard from '../lib/TourCard.svelte';
+  import FaqSection from '../lib/FaqSection.svelte';
+  import DestinationCard from '../lib/DestinationCard.svelte';
+  import { HOME_DESTINATION_LIMIT, HOME_PACKAGE_LIMIT, NAV_DESTINATION_LIMIT, NAV_PACKAGE_LIMIT, groupDestinationsByRegion, pickFeatured } from '../lib/catalog-display.js';
 
   export let data;
   let menuOpen = false;
@@ -15,7 +22,7 @@
   let tourMenu;
   let destinationMenu;
   let menuToggle;
-  const rights = { id: 'Hak cipta dilindungi.', en: 'All rights reserved.', 'zh-cn': '保留所有权利。', 'zh-tw': '保留所有權利。', nl: 'Alle rechten voorbehouden.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.', ms: 'Hak cipta terpelihara.' };
+  let nav;
   const fallbackImage = '/wonderful-lombok-icon-192.png';
   $: locale = data.locale || 'id';
   $: c = getCopy(locale);
@@ -31,21 +38,47 @@
   $: seoTitle = seo.homeTitle;
   $: formattedTravelRate = new Intl.NumberFormat('id-ID').format(travelRate);
   $: destinations = data.catalog.destinations;
+  $: homePackages = pickFeatured(packages, HOME_PACKAGE_LIMIT);
+  $: homeDestinations = pickFeatured(destinations, HOME_DESTINATION_LIMIT);
+  $: navPackages = pickFeatured(packages, NAV_PACKAGE_LIMIT);
+  $: navDestinations = pickFeatured(destinations, NAV_DESTINATION_LIMIT);
+  $: navDestinationGroups = groupDestinationsByRegion(destinations);
   $: faqs = data.catalog.faqs;
   $: heroSource = imageUrl(settings.heroImage || fallbackImage, 1280);
   $: heroSrcset = imageSrcset(settings.heroImage || fallbackImage, [640, 960, 1280, 1600]);
   $: businessSchema = travelAgencySchema({ homeUrl: data.alternateUrls[locale], imageUrl: data.socialImageUrl, description: seoDescription, settings, languages: languages.map((language) => language.hreflang) });
-  const packageGallery = (item) => {
-    const images = [...new Set([item.image, ...(item.images || [])].filter(Boolean))];
-    return images.length ? images : [fallbackImage];
-  };
-  function closeMenu() {
+  let lockedScrollY = 0;
+  function setMenuBackground(inert) {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('main, footer, .skip-link').forEach((node) => node.toggleAttribute('inert', inert));
+  }
+  async function openMenu() {
+    if (typeof window === 'undefined') return;
+    lockedScrollY = window.scrollY;
+    menuOpen = true;
+    document.documentElement.classList.add('menu-open');
+    document.body.classList.add('menu-open');
+    setMenuBackground(true);
+    await tick();
+    nav?.querySelector('summary, nav > a')?.focus();
+  }
+  function closeMenu({ restoreFocus = false } = {}) {
+    const wasOpen = menuOpen;
     menuOpen = false;
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.remove('menu-open');
+    document.body.classList.remove('menu-open');
+    setMenuBackground(false);
+    if (wasOpen && lockedScrollY) window.scrollTo(0, lockedScrollY);
+    lockedScrollY = 0;
+    if (restoreFocus) menuToggle?.focus();
   }
+  function closeMenuAndRestore() { closeMenu({ restoreFocus: true }); }
+  function toggleMenu() { menuOpen ? closeMenuAndRestore() : openMenu(); }
   function handlePageClick(event) {
-    if (event.target instanceof Element && (event.target.closest('.language-picker') || !event.target.closest('.site-header'))) menuOpen = false;
+    if (event.target instanceof Element && (event.target.closest('.language-picker') || !event.target.closest('.site-header'))) closeMenu();
     if (event.target instanceof Element && event.target.closest('.nav-dropdown')) return;
     if (tourMenu) tourMenu.open = false;
     if (destinationMenu) destinationMenu.open = false;
@@ -93,33 +126,41 @@
 <svelte:window on:click={handlePageClick} on:keydown={(event) => { if (event.key === 'Escape') { const control = menuOpen ? menuToggle : tourMenu?.open ? tourMenu.querySelector('summary') : destinationMenu?.open ? destinationMenu.querySelector('summary') : null; closeMenu(); control?.focus(); } }} />
 
 <div class="site-theme" class:theme-ocean={settings.colorTheme === 'ocean'}>
-<a class="skip-link" href="#top">{c.heroPrimary}</a>
+<SkipLink {locale} />
+{#if menuOpen}<button class="menu-scrim" type="button" tabindex="-1" aria-hidden="true" on:click|stopPropagation={closeMenuAndRestore}></button>{/if}
 <header class="site-header">
-  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
+  <a class="brand brand-logo" href={localeHome} aria-label="Wonderful Lombok" aria-current="page"><img src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="420" height="210" decoding="async" /></a>
   <div class="mobile-language"><LanguageSelector {locale} prominent /></div>
-  <button bind:this={menuToggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={() => menuOpen ? closeMenu() : menuOpen = true}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
-  <nav id="main-navigation" class:open={menuOpen} aria-label={c.menu}>
+  <button bind:this={menuToggle} class="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" on:click={toggleMenu}><span class="sr-only">{c.menu}</span><i></i><i></i></button>
+  <nav id="main-navigation" bind:this={nav} class:open={menuOpen} aria-label={c.mainNav}>
     <details class="nav-dropdown" bind:this={tourMenu} on:toggle={() => keepOneDropdown(tourMenu, destinationMenu)}>
       <summary>{c.tours}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href={`/${locale}/paket-wisata`} on:click={closeMenu}>{c.allTours}</a>
-        {#each packages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        {#each navPackages as item}<a href={`/${locale}/paket-wisata/${item.slug}`} on:click={closeMenu}><span>{item.name}</span><small>{item.duration}</small></a>{/each}
+        <a class="nav-dropdown-more" href={`/${locale}/paket-wisata`} on:click={closeMenu}>{c.allTours}<UiIcon name="chevron" /></a>
       </div>
     </details>
     <details class="nav-dropdown" bind:this={destinationMenu} on:toggle={() => keepOneDropdown(destinationMenu, tourMenu)}>
       <summary>{c.destinations}</summary>
       <div class="nav-dropdown-menu">
-        <a class="nav-dropdown-all" href="#destinasi" on:click={closeMenu}>{c.destinationLabel}</a>
-        {#each destinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {#if navDestinationGroups.length}
+          {#each navDestinationGroups as group}
+            <p class="nav-dropdown-group">{c.regions[group.key]}</p>
+            {#each group.items.slice(0, NAV_DESTINATION_LIMIT) as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+          {/each}
+        {:else}
+          {#each navDestinations as destination}<a href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)} on:click={closeMenu}><span>{destination.name}</span><small>{destination.note}</small></a>{/each}
+        {/if}
+        <a class="nav-dropdown-more" href={localePath(locale, '/destinasi')} on:click={closeMenu}>{c.allDestinations}<UiIcon name="chevron" /></a>
       </div>
     </details>
-    <a href={localePath(locale, '/travel-lombok')} on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
+    <a href="#hitung-travel" on:click={closeMenu}>{c.travel}</a>{#if rentalEnabled}<a href="#rental" on:click={closeMenu}>{c.rental}</a>{/if}
     <a href={`${localeHome}#faq`} on:click={closeMenu}>{c.faq}</a>
     <div class="nav-language"><LanguageSelector {locale} /></div>
   </nav>
 </header>
 
-<main id="top" itemscope itemtype="https://schema.org/TravelAgency">
+<main id="main-content" tabindex="-1" itemscope itemtype="https://schema.org/TravelAgency">
   <meta itemprop="name" content="Wonderful Lombok" />
   <meta itemprop="url" content={data.canonicalUrl} />
   <meta itemprop="image" content={data.socialImageUrl} />
@@ -132,57 +173,51 @@
     <div class="hero-copy">
       <h1 id="hero-title">{settings.heroTitle}</h1>
       <div class="hero-intro rich-content">{@html settings.heroDescription}</div>
+      <div class="hero-actions"><a class="button primary" href="#paket">{c.heroPrimary}</a><a class="button secondary" href="#hitung-travel">{formCopy.checkTransferFare}</a></div>
+      <ul class="hero-benefits">{#each c.benefits.slice(0, 3) as benefit}<li>{benefit}</li>{/each}</ul>
     </div>
   </section>
 
-  <section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
+  {#if rentalEnabled}<section class="service-choice section" id="pilih-layanan" aria-labelledby="choice-title" use:reveal>
     <div class="choice-heading sr-only"><h2 id="choice-title">{c.start}</h2><p>{c.choiceTitle}</p></div>
     <div class:without-rental={!rentalEnabled} class="choice-list">
       <a class="service-tile" href={localePath(locale, '/paket-wisata')}><UiIcon name="palm" /><span><strong>{c.tours}</strong><span>{c.tourChoice}</span></span><UiIcon name="chevron" /></a>
-      <a class="service-tile" href={localePath(locale, '/travel-lombok')}><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
+      <a class="service-tile" href="#hitung-travel"><UiIcon name="travel" /><span><strong>{c.travel}</strong><span>{c.travelChoice}</span></span><UiIcon name="chevron" /></a>
       {#if rentalEnabled}<article><UiIcon name="travel" /><h3>{c.rental}</h3><p>{c.rentalChoice}</p><a href="#rental">{c.viewRental}</a></article>{/if}
     </div>
-  </section>
+  </section>{/if}
 
   <section class="packages section" id="paket" aria-labelledby="packages-title" use:reveal>
-    <div class="section-heading"><div><h2 id="packages-title">{c.tours}</h2><p>{c.tourIntro}</p></div><a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon /></a></div>
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">{c.featuredTours}</p>
+        <h2 id="packages-title">{c.tourHeading}</h2>
+      </div>
+      <a class="section-more" href={localePath(locale, '/paket-wisata')}>{c.allTours}<UiIcon name="chevron" /></a>
+    </div>
     <div class="package-list" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
       <meta itemprop="name" content={seo.catalogTitle} />
-      {#each packages as item, index}
-        {@const gallery = packageGallery(item)}
-        <article class:featured={index === 0} class="package-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
-          <a class="card-image-button" href={`/${locale}/paket-wisata/${item.slug}`} aria-label={`${c.viewDetail}: ${item.name}`}><img class="package-slide" src={imageUrl(gallery[0], 640)} srcset={imageSrcset(gallery[0], [480, 640, 800])} sizes="(max-width: 760px) 92vw, 42vw" alt="" loading="lazy" decoding="async" width="640" height="420" itemprop="image" />{#if gallery.length > 1}<span class="gallery-progress" aria-hidden="true">1/{gallery.length}</span>{/if}</a>
-          <div class="package-body">
-            <h3 itemprop="name">{item.name}</h3>
-            <div class="package-facts"><span>{item.category}</span><span><UiIcon name="clock" />{item.duration}</span></div>
-            <p class="package-route" itemprop="description"><UiIcon name="pin" />{item.route}</p>
-            {#if index === 0}<div class="package-description rich-content">{@html item.detail}</div>{/if}
-            {#if item.includes?.length}<ul class="package-inclusions">{#each item.includes.slice(0, 2) as inclusion}<li>{inclusion}</li>{/each}</ul>{/if}
-            <div class="package-price"><strong>{item.price}</strong><span>{item.unit}</span></div>
-            <div class="package-actions"><a class="inline-book" href={`/${locale}/paket-wisata/${item.slug}`}>{c.viewDetail}<UiIcon /></a><button class="package-book" type="button" on:click={() => booking = { type: 'wisata', name: item.name }}>{c.bookTour}</button></div>
-          </div>
-        </article>
-      {/each}
+      {#each homePackages as item}<TourCard {item} {locale} onBook={() => booking = packageBooking(item)} />{/each}
     </div>
   </section>
 
   <section class="destinations" id="destinasi" aria-labelledby="destinations-title">
-    <div class="section section-heading" use:reveal><div><p class="label">{c.destinationLabel}</p><h2 id="destinations-title">{c.destinationHeading}</h2></div><p>{c.destinationIntro}</p></div>
-    <div class="destination-grid section" use:reveal>
-      {#each destinations as destination, index}
-        <a class:wide={index === 0} class="destination-card" href={localePath(locale, `/destinasi/${destinationSlug(destination)}`)}><img src={imageUrl(destination.image || fallbackImage, 640)} srcset={imageSrcset(destination.image || fallbackImage, [480, 640, 800])} sizes="(max-width: 760px) 92vw, 40vw" alt="" loading="lazy" decoding="async" width="720" height="500" /><div><h3>{destination.name}</h3><p>{destination.note}</p></div></a>
-      {/each}
+    <div class="section section-heading" use:reveal>
+      <div>
+        <p class="section-kicker">{c.featuredDestinations}</p>
+        <h2 id="destinations-title">{c.destinationHeading}</h2>
+      </div>
+      <a class="section-more" href={localePath(locale, '/destinasi')}>{c.allDestinations}<UiIcon name="chevron" /></a>
+    </div>
+    <div class="destination-grid homepage-destinations section" use:reveal>
+      {#each homeDestinations as destination}<DestinationCard item={destination} {locale} />{/each}
     </div>
   </section>
 
   <section class="travel-section" id="paket-travel" aria-labelledby="travel-title">
-    <div class="section travel-heading" use:reveal>
-      <div><p class="label">{c.travel}</p><h2 id="travel-title">{c.travelHeading}</h2></div>
-      <div class="travel-description"><p>{c.travelIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p><dl><div><dt>{c.suitable}</dt><dd>{c.suitableValue}</dd></div><div><dt>{c.ordering}</dt><dd>{c.orderingValue}</dd></div></dl></div>
-    </div>
     <div class="section pickup-block" id="hitung-travel" use:reveal>
-      <div class="pickup-intro"><div><p class="label">{c.travelCalc}</p><h2>{c.travelCalcHeading}</h2></div><p>{c.travelCalcIntro}</p></div>
-      <div class="calculator-wrap" data-whatsapp-float-avoid><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
+      <div class="pickup-intro"><div><h2 id="travel-title">{formCopy.checkTransferFare}</h2></div><p>{c.transferIntro} {formCopy.rate}: Rp{formattedTravelRate}.</p></div>
+      <div class="calculator-wrap"><LazyPickupCalculator rate={travelRate} whatsapp={settings.whatsapp} {locale} mapboxToken={data.mapboxToken} /></div>
     </div>
   </section>
 
@@ -202,18 +237,9 @@
     <div class="about-copy"><p class="label">{c.why}</p><h2 id="about-title">{settings.aboutTitle}</h2><div class="rich-content">{@html settings.aboutDescription}</div><ul class="check-list">{#each c.benefits as benefit}<li>{benefit}</li>{/each}</ul><a class="button dark" href={createWhatsAppUrl('Halo Wonderful Lombok, saya ingin konsultasi untuk merencanakan perjalanan di Lombok.', settings.whatsapp)} target="_blank" rel="noreferrer">{c.consultTrip}</a></div>
   </section>
 
-  <section class="faq section" id="faq" aria-labelledby="faq-title" use:reveal itemscope itemtype="https://schema.org/FAQPage">
-    <div><p class="label">{c.faq}</p><h2 id="faq-title">{c.faqHeading}</h2></div>
-    <div class="faq-list">{#each faqs as faq}<details itemprop="mainEntity" itemscope itemtype="https://schema.org/Question"><summary itemprop="name">{faq.question}</summary><div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer"><div class="rich-content" itemprop="text">{@html faq.answer}</div></div></details>{/each}</div>
-  </section>
+  <FaqSection {faqs} {locale} />
 </main>
 
-<footer id="kontak" data-whatsapp-float-avoid>
-  <div class="footer-brand"><img class="footer-logo" src="/wonderful-lombok-logo-ui.png" alt="Wonderful Lombok" width="160" height="80" /><p>{c.localPartner}</p></div>
-  <div class="footer-links"><a href="#paket">{c.tours}</a><a href={localePath(locale, '/travel-lombok')}>{c.travel}</a>{#if rentalEnabled}<a href="#rental">{c.rentalLabel}</a>{/if}<a href="#destinasi">{c.destinations}</a></div>
-  <div class="footer-contact"><strong>{c.contact}</strong><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />WhatsApp {formatWhatsAppNumber(settings.whatsapp)}</a><a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a><span><UiIcon name="pin" />{settings.location}</span>{#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}{#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}{#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}</div>
-  <p class="footer-copyright">© {new Date().getFullYear()} Wonderful Lombok. {rights[locale] || rights.en} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></p>
-</footer>
+<SiteFooter {settings} {locale} {rentalEnabled} homepage current="home" />
 <BookingDialog bind:booking whatsapp={settings.whatsapp} {locale} />
-<WhatsAppFloat whatsapp={settings.whatsapp} {locale} />
 </div>

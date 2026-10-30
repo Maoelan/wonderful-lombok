@@ -187,11 +187,6 @@ body .site-theme .travel-footer a { text-decoration: none; min-height: 44px; dis
 body .site-theme .travel-footer a:hover { text-decoration: underline; }
 body .site-theme .travel-footer-contact { display: grid; align-content: start; gap: 8px; }
 body .site-theme .travel-footer-contact p { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 14px; }
-body .site-theme .travel-footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 40px; color: #d6e4df; font-size: 12px; }
-body .site-theme .social-links { display: flex; flex-wrap: wrap; gap: 24px; }
-body .site-theme .whatsapp-float { right: 24px; bottom: 24px; width: 52px; min-height: 52px; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: #176445; box-shadow: 0 6px 18px #15343c33; }
-body .site-theme .whatsapp-float span { display: none; }
-body .site-theme .whatsapp-float img { width: 27px; height: 27px; flex-basis: 27px; }
 
 /* Tour and destination pages use the same photograph / itinerary vocabulary. */
 body .site-theme .catalog-page, body .site-theme .tour-detail-page { width: min(1320px, calc(100% - 80px)); padding: 48px 0 80px; }
@@ -244,6 +239,11 @@ body .site-theme .booking-dialog { padding: 0; border-radius: 8px; background: v
 body .site-theme .booking-body { padding: 36px; }
 body .site-theme .booking-dialog h2 { padding-right: 52px; font-size: 32px; line-height: 1.2; }
 body .site-theme .booking-body > p { font-size: 14px; }
+body .site-theme .booking-summary { display: grid; gap: 12px; margin: 20px 0 12px; padding: 16px; background: var(--surface-soft); border-radius: 6px; }
+body .site-theme .booking-summary > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; gap: 12px; }
+body .site-theme .booking-summary dt { font-size: 14px; }
+body .site-theme .booking-summary dd { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0; overflow-wrap: anywhere; font-size: 14px; }
+body .site-theme .booking-price-notice { margin: 0; line-height: 1.6; }
 body .site-theme .booking-close { color: var(--ink); background: var(--surface-muted); border-radius: 50%; width: 44px; height: 44px; }
 body .site-theme .detail-dialog { border-radius: 8px; }
 body .site-theme .detail-copy h2 { font-size: 36px; }
@@ -490,7 +490,6 @@ body .login-back { font-size: 14px; font-weight: 500; }
   body .site-theme .footer-copyright { margin: 0; }
   body .site-theme .travel-footer-main { grid-template-columns: 1fr 1fr; gap: 28px; }
   body .site-theme .travel-footer-contact { grid-column: 1 / -1; }
-  body .site-theme .travel-footer-bottom { align-items: flex-start; flex-direction: column; margin-top: 28px; gap: 12px; }
   body .site-theme .catalog-page, body .site-theme .tour-detail-page { padding-top: 30px; padding-bottom: 50px; }
   body .site-theme .catalog-intro h1 { font-size: 38px; }
   body .site-theme .catalog-intro > p:not(.label) { font-size: 15px; }
@@ -515,7 +514,6 @@ body .login-back { font-size: 14px; font-weight: 500; }
   body .site-theme .booking-dialog { padding: 0; }
   body .site-theme .booking-body { padding: 28px 22px; }
   body .site-theme .booking-dialog h2 { font-size: 28px; }
-  body .site-theme .whatsapp-float { right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
   body .admin-main { padding: 24px 18px 40px; margin: 0 8px 8px; }
   body .admin-header { gap: 16px; }
   body .admin-header h1 { font-size: 26px; }
@@ -568,7 +566,6 @@ body .site-theme .travel-description > p,
 body .site-theme .about-copy .rich-content,
 body .site-theme .faq-list details > div { font-size: 16px; color: var(--ink); }
 body .site-theme .footer-copyright,
-body .site-theme .travel-footer-bottom,
 body .site-theme .destination-card p,
 body .site-theme .helper,
 body .site-theme label > span,
@@ -687,7 +684,6 @@ body .site-theme .package-inclusions,
 body .site-theme .package-price span,
 body .site-theme .package-book,
 body .site-theme .footer-copyright,
-body .site-theme .travel-footer-bottom,
 body .site-theme .service-tile small { font-size: 13px; }
 body .admin-field-group { border-top: 1px solid var(--color-border); padding-top: 16px; }
 body .admin-field-group > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--color-primary); }
@@ -829,7 +825,6 @@ body .site-theme .detail-backdrop { padding: max(16px, env(safe-area-inset-top))
   body .site-theme .site-header nav > a { padding: 12px 14px; white-space: normal; line-height: 1.5; }
   body .site-theme .site-header .nav-dropdown summary { white-space: normal; padding: 12px 38px 12px 14px; line-height: 1.5; }
   body .site-theme .menu-toggle { flex: 0 0 44px; width: 44px; height: 44px; gap: 6px; }
-  body:has(.site-header nav.open) .whatsapp-float, body:has(.inner-header nav.open) .whatsapp-float { display: none; }
   body .site-theme .tour-listing-body h2 a, body .site-theme .tour-listing-body h3 a { display: inline-flex; min-height: 44px; align-items: center; }
   body .site-theme .menu-toggle[aria-expanded='true'] i:first-of-type { transform: translateY(4px) rotate(45deg); }
   body .site-theme .menu-toggle[aria-expanded='true'] i:last-of-type { transform: translateY(-4px) rotate(-45deg); }
@@ -846,7 +841,6 @@ body .site-theme .detail-backdrop { padding: max(16px, env(safe-area-inset-top))
   body .site-theme .price-row > b { text-align: right; overflow-wrap: anywhere; }
   body .site-theme .package-price { align-items: start; }
   body .site-theme .section-heading > .section-more { max-width: 110px; }
-  body .site-theme .whatsapp-float { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); }
 }
 @media (max-width: 480px) {
   body .site-theme .booking-dialog .form-row { grid-template-columns: minmax(0, 1fr); }
@@ -862,4 +856,16 @@ body .site-theme .detail-backdrop { padding: max(16px, env(safe-area-inset-top))
   body .site-theme .mobile-language .language-picker img { width: 18px; }
   body .site-theme .section-heading:has(> .section-more) { grid-template-columns: minmax(0, 1fr); }
   body .site-theme .section-heading > .section-more { max-width: none; text-align: left; }
+}
+/* Destination detail: read the related-packages intro below its heading on desktop.
+   Mobile already stacks this heading through the max-width: 760px rules. */
+@media (min-width: 761px) {
+  body .site-theme .destination-related .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  body .site-theme .destination-related .section-heading > p {
+    margin: 0;
+  }
 }

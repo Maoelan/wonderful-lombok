@@ -56,7 +56,7 @@
 {#if item}
   <div class="detail-backdrop" role="presentation" on:click={close}>
     <div class="detail-dialog" role="dialog" aria-modal="true" aria-labelledby="detail-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
-      <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
+      <button class="booking-close" type="button" on:click={close} aria-label={t.close}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
       <div class="detail-media" role="group" aria-label="Galeri foto {item.name}" on:mouseenter={() => paused = true} on:mouseleave={() => paused = false} on:focusin={() => paused = true} on:focusout={() => paused = false}>
         <div class="detail-stage">
           {#key selectedImage}<img src={imageUrl(selectedImage || gallery[0], 900)} srcset={imageSrcset(selectedImage || gallery[0], [600, 900, 1200])} sizes="(max-width: 760px) 100vw, 55vw" alt="{item.name}" decoding="async" width="900" height="650" />{/key}

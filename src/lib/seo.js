@@ -6,7 +6,10 @@ const seoByLocale = {
     catalogTitle: 'Paket Wisata Lombok Privat | Wonderful Lombok',
     catalogDescription: 'Pilih paket wisata Lombok berdasarkan durasi, destinasi, itinerary, dan jumlah tamu. Lihat rincian harga sebelum memesan melalui WhatsApp.',
     imageAlt: 'Perjalanan privat di Lombok bersama Wonderful Lombok',
-    toursBreadcrumb: 'Paket Wisata Lombok'
+    toursBreadcrumb: 'Paket Wisata Lombok',
+    destinationsTitle: 'Destinasi Lombok: Pantai, Gili, Air Terjun & Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Jelajahi destinasi Lombok dari pantai selatan, Gili, air terjun, hingga Rinjani. Pilih inspirasi perjalanan lalu susun itinerary melalui WhatsApp.',
+    destinationsBreadcrumb: 'Destinasi Lombok'
   },
   en: {
     tag: 'en', og: 'en_US',
@@ -15,7 +18,10 @@ const seoByLocale = {
     catalogTitle: 'Private Lombok Tour Packages | Wonderful Lombok',
     catalogDescription: 'Compare private Lombok tours by duration, destinations, itinerary, and group size. Review the price details before booking through WhatsApp.',
     imageAlt: 'Private travel in Lombok with Wonderful Lombok',
-    toursBreadcrumb: 'Lombok Tour Packages'
+    toursBreadcrumb: 'Lombok Tour Packages',
+    destinationsTitle: 'Lombok Destinations: Beaches, Gilis, Waterfalls & Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Explore Lombok destinations from the south coast and the Gilis to waterfalls and Rinjani. Pick your inspiration and shape an itinerary through WhatsApp.',
+    destinationsBreadcrumb: 'Lombok Destinations'
   },
   'zh-cn': {
     tag: 'zh-Hans', og: 'zh_CN',
@@ -24,7 +30,10 @@ const seoByLocale = {
     catalogTitle: '龙目岛私人旅游套餐 | Wonderful Lombok',
     catalogDescription: '按照天数、目的地、行程和人数比较龙目岛私人旅游套餐，查看价格详情后通过 WhatsApp 预订。',
     imageAlt: '与 Wonderful Lombok 一起体验龙目岛私人旅行',
-    toursBreadcrumb: '龙目岛旅游套餐'
+    toursBreadcrumb: '龙目岛旅游套餐',
+    destinationsTitle: '龙目岛目的地：海滩、吉利群岛、瀑布与林贾尼 | Wonderful Lombok',
+    destinationsDescription: '从南部海岸、吉利群岛到瀑布与林贾尼，探索龙目岛目的地。挑选旅行灵感，并通过 WhatsApp 安排行程。',
+    destinationsBreadcrumb: '龙目岛目的地'
   },
   'zh-tw': {
     tag: 'zh-Hant', og: 'zh_TW',
@@ -33,7 +42,10 @@ const seoByLocale = {
     catalogTitle: '龍目島私人旅遊套裝 | Wonderful Lombok',
     catalogDescription: '依照天數、目的地、行程和人數比較龍目島私人旅遊套裝，查看價格詳情後透過 WhatsApp 預訂。',
     imageAlt: '與 Wonderful Lombok 一起體驗龍目島私人旅行',
-    toursBreadcrumb: '龍目島旅遊套裝'
+    toursBreadcrumb: '龍目島旅遊套裝',
+    destinationsTitle: '龍目島目的地：海灘、吉利群島、瀑布與林賈尼 | Wonderful Lombok',
+    destinationsDescription: '從南部海岸、吉利群島到瀑布與林賈尼，探索龍目島目的地。挑選旅行靈感，並透過 WhatsApp 安排行程。',
+    destinationsBreadcrumb: '龍目島目的地'
   },
   nl: {
     tag: 'nl', og: 'nl_NL',
@@ -42,7 +54,10 @@ const seoByLocale = {
     catalogTitle: 'Privéreispakketten Lombok | Wonderful Lombok',
     catalogDescription: 'Vergelijk privéreizen op Lombok op duur, bestemmingen, programma en groepsgrootte. Bekijk prijzen en boek vervolgens via WhatsApp.',
     imageAlt: 'Privéreis op Lombok met Wonderful Lombok',
-    toursBreadcrumb: 'Reispakketten Lombok'
+    toursBreadcrumb: 'Reispakketten Lombok',
+    destinationsTitle: 'Bestemmingen op Lombok: stranden, Gili’s, watervallen & Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Ontdek bestemmingen op Lombok, van de zuidkust en de Gili’s tot watervallen en de Rinjani. Kies inspiratie en stel je route samen via WhatsApp.',
+    destinationsBreadcrumb: 'Bestemmingen op Lombok'
   },
   fr: {
     tag: 'fr', og: 'fr_FR',
@@ -51,7 +66,10 @@ const seoByLocale = {
     catalogTitle: 'Circuits privés à Lombok | Wonderful Lombok',
     catalogDescription: 'Comparez les circuits privés à Lombok par durée, destinations, programme et taille du groupe avant de réserver via WhatsApp.',
     imageAlt: 'Voyage privé à Lombok avec Wonderful Lombok',
-    toursBreadcrumb: 'Circuits à Lombok'
+    toursBreadcrumb: 'Circuits à Lombok',
+    destinationsTitle: 'Destinations à Lombok : plages, Gili, cascades et Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Explorez les destinations de Lombok, de la côte sud et des Gili aux cascades et au Rinjani. Choisissez vos envies et composez votre itinéraire sur WhatsApp.',
+    destinationsBreadcrumb: 'Destinations à Lombok'
   },
   de: {
     tag: 'de', og: 'de_DE',
@@ -60,7 +78,10 @@ const seoByLocale = {
     catalogTitle: 'Private Lombok-Reisepakete | Wonderful Lombok',
     catalogDescription: 'Vergleichen Sie private Lombok-Reisen nach Dauer, Zielen, Ablauf und Gruppengröße. Preise ansehen und über WhatsApp buchen.',
     imageAlt: 'Private Lombok-Reise mit Wonderful Lombok',
-    toursBreadcrumb: 'Lombok-Reisepakete'
+    toursBreadcrumb: 'Lombok-Reisepakete',
+    destinationsTitle: 'Reiseziele auf Lombok: Strände, Gilis, Wasserfälle & Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Entdecken Sie Lomboks Reiseziele von der Südküste und den Gilis bis zu Wasserfällen und dem Rinjani. Inspiration wählen und die Route über WhatsApp planen.',
+    destinationsBreadcrumb: 'Reiseziele auf Lombok'
   },
   ms: {
     tag: 'ms', og: 'ms_MY',
@@ -69,7 +90,10 @@ const seoByLocale = {
     catalogTitle: 'Pakej Pelancongan Lombok Persendirian | Wonderful Lombok',
     catalogDescription: 'Bandingkan pakej Lombok mengikut tempoh, destinasi, jadual dan bilangan tetamu. Semak harga sebelum menempah melalui WhatsApp.',
     imageAlt: 'Perjalanan persendirian di Lombok bersama Wonderful Lombok',
-    toursBreadcrumb: 'Pakej Pelancongan Lombok'
+    toursBreadcrumb: 'Pakej Pelancongan Lombok',
+    destinationsTitle: 'Destinasi Lombok: Pantai, Gili, Air Terjun & Rinjani | Wonderful Lombok',
+    destinationsDescription: 'Jelajahi destinasi Lombok dari pantai selatan dan Gili hingga air terjun serta Rinjani. Pilih inspirasi dan susun jadual perjalanan melalui WhatsApp.',
+    destinationsBreadcrumb: 'Destinasi Lombok'
   }
 };
 

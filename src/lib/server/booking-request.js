@@ -63,6 +63,7 @@ export async function createBookingRequest({
     }
     details = {
       ...details,
+      distanceMeters: quote.distanceMeters,
       distanceKm: quote.distanceKm,
       durationMinutes: quote.durationMinutes,
       estimatedPrice: quote.estimatedPrice,

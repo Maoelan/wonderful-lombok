@@ -1,16 +1,18 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import { calculatePickupPrice, estimateLabel, hasStableGpsFix, isInsideLombok, isUsableGpsFix, localizedPlaces } from './pickup.js';
   import { createMap } from './maps/index.js';
   import { createWhatsAppUrl } from './whatsapp.js';
   import { createIdempotencyKey } from './idempotency.js';
   import { currentTimeInWita, todayInWita } from './date.js';
   import { bookingErrorMessage, getFormCopy, localeTag } from './i18n.js';
+  import { isBookableTransferDistance, MIN_TRANSFER_DISTANCE_LABEL } from './travel-rules.js';
 
   let mapElement;
+  let quoteElement;
   let map = null;
   let mapLoading = true, mapError = '', routeLoading = false, routeError = '', routeNotice = '';
-  let distance = 0, routeDuration = null, routePoints = [];
+  let distance = 0, routeDuration = null, routePoints = [], routeShort = false;
   let origin = null, destination = null, originQuery = '', destinationQuery = '';
   let mapTarget = 'origin';
   let locationMessage = '', searchLoading = '', searchTarget = '', searchResults = [];
@@ -38,7 +40,8 @@
     ready: routeReady,
     price,
     format: (value) => rupiah.format(value),
-    calculating: t.calculating
+    calculating: t.calculating,
+    empty: t.chooseRoute
   });
   $: if (map) renderMarkers(origin, destination);
   $: if (map) updateRoute(routeKey);
@@ -364,6 +367,14 @@
     map.fitRoute(routePoints);
   }
 
+  function scrollToEstimate() {
+    if (typeof window === 'undefined' || !quoteElement) return;
+    if (!window.matchMedia('(max-width: 760px)').matches) return;
+    const rect = quoteElement.getBoundingClientRect();
+    if (rect.top >= 0 && rect.top < window.innerHeight * 0.6) return;
+    quoteElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   async function updateRoute(key) {
     if (!map) return;
     if (key === currentRouteKey) return;
@@ -374,6 +385,7 @@
     routePoints = [];
     distance = 0;
     routeDuration = null;
+    routeShort = false;
     routeError = '';
     routeNotice = '';
     formError = '';
@@ -397,8 +409,18 @@
         })
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || t.routeUnavailable);
+      if (!response.ok) {
+        const failure = new Error(payload.error || t.routeUnavailable);
+        failure.code = payload.code;
+        throw failure;
+      }
       if (key !== currentRouteKey || !map) return;
+      const actualMeters = Number(payload.distanceMeters);
+      if (!isBookableTransferDistance(actualMeters)) {
+        routeShort = true;
+        routeError = message(t.routeTooShort, { distance: MIN_TRANSFER_DISTANCE_LABEL });
+        return;
+      }
       distance = payload.distanceKm;
       routeDuration = payload.durationMinutes;
       routePoints = payload.points || [];
@@ -407,8 +429,13 @@
         map.setRoute(routePoints);
         fitRoute();
       }
+      await tick();
+      scrollToEstimate();
     } catch (error) {
-      if (key === currentRouteKey && error.name !== 'AbortError') routeError = error.message || t.roadRouteUnavailable;
+      if (key === currentRouteKey && error.name !== 'AbortError') {
+        routeShort = error.code === 'route_too_short';
+        routeError = error.message || t.roadRouteUnavailable;
+      }
     } finally {
       if (key === currentRouteKey) routeLoading = false;
     }
@@ -427,6 +454,7 @@
     submitted = false;
     if (!origin || !destination) { formError = t.chooseBothPoints; return; }
     if (!routeReady) { formError = t.chooseDifferent; return; }
+    if (routeShort) { formError = message(t.routeTooShort, { distance: MIN_TRANSFER_DISTANCE_LABEL }); return; }
     if (routeLoading || routeError || !distance) { formError = t.waitForRoute; return; }
     if (!customerName.trim() || !phone.trim() || !pickupDate || !pickupTime) { formError = t.completeBooking; return; }
     const currentToday = todayInWita();
@@ -479,7 +507,7 @@
       if (!response.ok) {
         if (response.status === 409) { idempotencyKey = ''; lastBookingFingerprint = ''; }
         const code = result.code || (response.status === 429 || response.status === 503 ? 'busy' : '');
-        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed));
+        throw new Error(bookingErrorMessage(t, code, result.error || t.bookingSaveFailed, { distance: MIN_TRANSFER_DISTANCE_LABEL }));
       }
       submitted = true;
       idempotencyKey = '';
@@ -554,7 +582,7 @@
         <button class="gps-action" type="button" on:click={gpsLoading ? cancelGps : useCurrentLocation}>{gpsLoading ? t.cancelGps : t.useLocation}</button>
       </div>
 
-      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}>⇅</button>
+      <button class="swap" type="button" on:click={swapLocations} disabled={!origin && !destination} aria-label={t.swapLocations}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 19V5m-4 4 4-4 4 4M16 5v14m-4-4 4 4 4-4" /></svg></button>
 
       <div class="location-field">
         <div class="field-heading">
@@ -617,21 +645,23 @@
     </div>
   </div>
 
-  <form class="quote" on:submit|preventDefault={submitRequest} novalidate>
+  <form class="quote" bind:this={quoteElement} on:submit|preventDefault={submitRequest} novalidate>
     <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
     <div class="quote-heading">
       <p>{t.estimate}</p>
-      <strong class:calculating={routeLoading}>{estimateText}</strong>
+      <strong class:calculating={routeLoading} class:empty={!routeLoading && !routeReady} aria-live="polite" aria-atomic="true">{estimateText}</strong>
       <span>{distance ? `${distance} km × ${rupiah.format(rate)}${routeDuration ? ` · ${message(t.routeDuration, { minutes: routeDuration })}` : ''}` : `${t.rate}: ${rupiah.format(rate)}`}</span>
     </div>
     <div class="route-summary" aria-live="polite">
       <div><span>{t.from}</span><b>{origin?.name ?? t.notSelected}</b></div>
       <div><span>{t.to}</span><b>{destination?.name ?? t.notSelected}</b></div>
     </div>
+    <fieldset class="quote-details"><legend>{t.customerDetails}</legend>
     <label><span>{t.customer}</span><input bind:value={customerName} autocomplete="name" placeholder={t.fullName} /></label>
     <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" /></label>
     <div class="form-row"><label><span>{t.date}</span><input bind:value={pickupDate} type="date" min={today} on:focus={() => (today = todayInWita())} /></label><label><span>{t.time}</span><input bind:value={pickupTime} type="time" min={minimumPickupTime || undefined} /></label></div>
     <label><span>{t.passengers}</span><input bind:value={passengers} type="number" min="1" max="12" /></label>
+    </fieldset>
     {#if formError}<p class="form-message error" role="alert">{formError}</p>{/if}{#if submitted}<p class="form-message success" role="status">{t.bookingOpened}</p>{/if}
     <button class="submit" type="submit" disabled={submitting}>{submitting ? t.saving : t.bookTravel}</button>
     <small>{t.estimateNote}</small>

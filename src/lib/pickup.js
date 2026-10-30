@@ -198,6 +198,9 @@ export function readMapboxRoute(payload, notFoundMessage = 'Rute jalan tidak dit
   };
   const snapDistanceM = stops.length === 2 ? Math.max(snapFor(0), snapFor(1)) : 0;
   return {
+    // Keep the raw road distance so callers can enforce a minimum before
+    // rounding up to billable kilometres.
+    distanceMeters,
     distanceKm: Math.max(1, Math.ceil(distanceMeters / 1000)),
     points,
     durationMinutes: Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.ceil(seconds / 60)) : null,
@@ -228,9 +231,10 @@ export function calculatePickupPrice(distanceKm, rate = 10_000) {
   return Math.ceil(distanceKm) * rate;
 }
 
-export function estimateLabel({ loading = false, error = '', ready = false, price = 0, format = (value) => String(value), calculating = '…' } = {}) {
+export function estimateLabel({ loading = false, error = '', ready = false, price = 0, format = (value) => String(value), calculating = '…', empty = '—' } = {}) {
   if (loading) return calculating;
-  if (error || !ready) return '—';
+  if (error) return '—';
+  if (!ready) return empty;
   return format(price);
 }
 

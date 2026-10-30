@@ -10,6 +10,7 @@ import {
 } from '../../pickup.js';
 import { fetchWithRetry } from '../upstream.js';
 import { TravelQuoteError } from '../travel-quote-error.js';
+import { isBookableTransferDistance, MIN_TRANSFER_DISTANCE_LABEL } from '../../travel-rules.js';
 
 function placeSearchError(code) {
   if (code === 'permission_denied') return new TravelQuoteError('Layanan peta belum dikonfigurasi. Hubungi admin.', 503, 'permission_denied');
@@ -105,6 +106,13 @@ export async function getRoadRoute(stops, locale = 'id', {
     }
     if (route.snapDistanceM > MAX_ROUTE_SNAP_METRES) {
       throw new TravelQuoteError('Titik jemput atau tujuan terlalu jauh dari jalan. Pilih titik lain di dekat jalan.', 422, 'no_road_access');
+    }
+    if (!isBookableTransferDistance(route.distanceMeters)) {
+      throw new TravelQuoteError(
+        `Rute terlalu dekat untuk layanan travel. Jarak minimum ${MIN_TRANSFER_DISTANCE_LABEL}.`,
+        422,
+        'route_too_short'
+      );
     }
     return route;
   } catch (error) {

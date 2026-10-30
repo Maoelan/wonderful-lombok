@@ -1,6 +1,7 @@
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { mapboxLanguage } from '../pickup.js';
+import { getMapboxLocale } from './mapbox-locale.js';
 
 // Streets shows the richest set of places and POIs, which keeps the pick-up
 // planner useful at neighbourhood zoom. Swap this for another Mapbox style
@@ -120,6 +121,7 @@ export async function createMapboxMap({ element, token, locale = 'en', onPick, o
   mapboxgl.accessToken = token;
   const map = new mapboxgl.Map({
     container: element,
+    locale: getMapboxLocale(locale),
     style: MAPBOX_STYLE,
     center: LOMBOK_CENTER,
     zoom: 9,

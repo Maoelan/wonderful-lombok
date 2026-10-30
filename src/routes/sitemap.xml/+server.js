@@ -21,7 +21,7 @@ export async function GET({ url }) {
       }
     });
   }
-  const groups = ['', '/paket-wisata', '/travel-lombok', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`), ...catalog.destinations.map((item) => `/destinasi/${destinationSlug(item)}`)];
+  const groups = ['', '/paket-wisata', '/destinasi', '/travel-lombok', ...catalog.packages.map((item) => `/paket-wisata/${item.slug}`), ...catalog.destinations.map((item) => `/destinasi/${destinationSlug(item)}`)];
   const entries = groups.flatMap((suffix, groupIndex) => {
     // Reviewed: every attribute value is XML-escaped before interpolation (including URLs).
     // nosemgrep: security-rules.javascript.lang.security.html-in-template-string

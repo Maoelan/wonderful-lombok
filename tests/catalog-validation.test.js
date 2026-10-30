@@ -95,3 +95,21 @@ test('catalog allows a package without a related destination', () => {
   catalog.packages[0].destinationSlugs = [];
   assert.equal(validateCatalog(catalog), null);
 });
+
+test('catalog accepts optional featured flags and known destination regions', () => {
+  const catalog = structuredClone(defaultCatalog);
+  catalog.packages[0].featured = true;
+  catalog.destinations[0].featured = true;
+  catalog.destinations[0].region = 'south-coast';
+  catalog.destinations[1].region = '';
+  assert.equal(validateCatalog(catalog), null);
+
+  catalog.destinations[1].region = 'unknown-region';
+  assert.equal(validateCatalog(catalog), 'Data destinasi tidak valid.');
+  catalog.destinations[1].region = 'other';
+  catalog.packages[0].featured = 'yes';
+  assert.equal(validateCatalog(catalog), 'Data Paket Wisata tidak valid.');
+  catalog.packages[0].featured = false;
+  catalog.destinations[0].featured = 1;
+  assert.equal(validateCatalog(catalog), 'Data destinasi tidak valid.');
+});

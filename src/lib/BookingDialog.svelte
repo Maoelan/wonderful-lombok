@@ -4,6 +4,7 @@
   import { createIdempotencyKey } from './idempotency.js';
   import { todayInWita } from './date.js';
   import { bookingErrorMessage, getFormCopy } from './i18n.js';
+  import { imageSrcset, imageUrl } from './image.js';
   export let booking = null;
   export let whatsapp = '';
   export let locale = 'id';
@@ -101,19 +102,33 @@
 {#if booking}
   <div class="booking-backdrop" role="presentation" on:click={close} on:keydown={(e) => e.key === 'Escape' && close()}>
     <div class="booking-dialog" use:focusDialog role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
-      <button class="booking-close" type="button" on:click={close} aria-label={t.close}>×</button>
+      <button class="booking-close" type="button" on:click={close} aria-label={t.close}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
       <div class="booking-body">
+        <div class="booking-context">
+        {#if booking.image}<img class="booking-photo" src={imageUrl(booking.image, 640)} srcset={imageSrcset(booking.image, [480,640,800])} sizes="(max-width: 760px) 90vw, 300px" alt="" width="640" height="480" />{/if}
         <p class="label">{t.booking}</p><h2 id="booking-title">{booking.name}</h2>
         <p>{t.bookingIntro}</p>
-        <form on:submit|preventDefault={submit}>
+        {#if booking.route}<p class="booking-route">{booking.route}</p>{/if}
+        {#if booking.duration || booking.price}
+          <dl class="booking-summary">
+            {#if booking.duration}<div><dt>{t.packageDuration}</dt><dd>{booking.duration}</dd></div>{/if}
+            {#if booking.price}<div><dt>{t.startingPrice}</dt><dd><strong>{booking.price}</strong>{#if booking.unit}<span>{booking.unit}</span>{/if}</dd></div>{/if}
+          </dl>
+          {#if booking.price}<p class="booking-price-notice">{t.priceConfirmation}</p>{/if}
+        {/if}
+        </div>
+        <form id="booking-form" on:submit|preventDefault={submit}>
+          <h3>{t.customerDetails}</h3>
           <div class="honeypot" aria-hidden="true"><label><span>Website</span><input bind:value={website} name="website" tabindex="-1" autocomplete="off" /></label></div>
           <label><span>{t.fullName}</span><input bind:value={name} autocomplete="name" required /></label>
           <label><span>{t.whatsapp}</span><input bind:value={phone} inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890" required /></label>
           <div class="form-row"><label><span>{t.travelDate}</span><input bind:value={travelDate} type="date" min={today} on:focus={() => (today = todayInWita())} required /></label><label><span>{t.guests}</span><input bind:value={people} type="number" min="1" max="50" required /></label></div>
           <label><span>{t.notes}</span><textarea bind:value={notes} rows="3" placeholder={t.notesPlaceholder}></textarea></label>
-          {#if error}<p class="form-message error" role="alert">{error}</p>{/if}
-          <button class="submit" disabled={loading}>{loading ? t.saving : t.saveContinue}</button>
         </form>
+      </div>
+      <div class="booking-footer">
+        {#if error}<p class="form-message error" role="alert">{error}</p>{/if}
+        <button class="submit" type="submit" form="booking-form" disabled={loading}>{loading ? t.saving : t.saveContinue}</button>
       </div>
     </div>
   </div>

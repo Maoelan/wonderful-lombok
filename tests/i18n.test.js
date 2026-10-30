@@ -39,7 +39,7 @@ test('map and GPS messages are complete for every supported locale', () => {
     'bookingOpened', 'whatsappGreeting', 'interactiveMap', 'searchResultsPickup', 'searchResultsDestination',
     'swapLocations', 'pickOnMap', 'cancelGps', 'chooseBothPoints', 'routeStopCount', 'routeDuplicateStop',
     'mapNotConfigured', 'mapPermissionDenied', 'mapQuotaExceeded', 'mapNetworkError', 'routeDuration',
-    'routeNoRoadAccess'
+    'routeNoRoadAccess', 'routeTooShort'
   ];
   for (const locale of ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
     const copy = getFormCopy(locale);
@@ -53,7 +53,7 @@ test('map and GPS messages are complete for every supported locale', () => {
 });
 
 test('booking error codes are translated for every supported locale', () => {
-  const codes = ['invalid', 'contact', 'date', 'time', 'conflict', 'route', 'service', 'busy'];
+  const codes = ['invalid', 'contact', 'date', 'time', 'conflict', 'route', 'service', 'busy', 'too_short'];
   for (const locale of ['id', 'en', 'zh-cn', 'zh-tw', 'nl', 'fr', 'de', 'ms']) {
     const copy = getFormCopy(locale);
     codes.forEach((code) => assert.ok(copy.bookingErrors[code], `${locale}.${code}`));
@@ -61,6 +61,7 @@ test('booking error codes are translated for every supported locale', () => {
   const english = getFormCopy('en');
   assert.equal(bookingErrorMessage(english, 'not_found'), english.bookingErrors.route);
   assert.equal(bookingErrorMessage(english, 'permission_denied'), english.bookingErrors.service);
+  assert.equal(bookingErrorMessage(english, 'route_too_short', '', { distance: '1 km' }), english.bookingErrors.too_short.replace('{distance}', '1 km'));
   assert.equal(bookingErrorMessage(english, 'unknown_code', 'fallback'), 'fallback');
   assert.notEqual(bookingErrorMessage(getFormCopy('id'), 'busy'), bookingErrorMessage(english, 'busy'));
 });
