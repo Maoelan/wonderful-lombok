@@ -48,6 +48,8 @@ test('social links are contact rows instead of a separate bottom row', () => {
   assert.ok(contactBlock, 'contact section is present');
   for (const key of ['instagram', 'tiktok', 'facebook']) assert.match(contactBlock[0], new RegExp(`settings\\.${key}`));
   assert.match(contactBlock[0], /<UiIcon name="instagram" \/>Instagram/);
+  assert.ok(contactBlock[0].indexOf('settings.email') < contactBlock[0].indexOf('settings.instagram'), 'Instagram follows email');
+  assert.ok(contactBlock[0].indexOf('settings.instagram') < contactBlock[0].indexOf('settings.location'), 'location stays last');
 });
 
 test('mobile footer gutter matches page content and the logo has no transparent offset', () => {

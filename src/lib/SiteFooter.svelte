@@ -30,10 +30,10 @@
       <div class="travel-footer-list">
         {#if settings.whatsapp}<a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><img src="/whatsapp-logo.svg" width="20" height="20" alt="" />{formatWhatsAppNumber(settings.whatsapp)}</a>{/if}
         {#if settings.email}<a href={`mailto:${settings.email}`}><UiIcon name="mail" />{settings.email}</a>{/if}
-        {#if settings.location}<p><UiIcon name="pin" />{settings.location}</p>{/if}
         {#if settings.instagram}<a href={settings.instagram} target="_blank" rel="noreferrer"><UiIcon name="instagram" />Instagram</a>{/if}
         {#if settings.tiktok}<a href={settings.tiktok} target="_blank" rel="noreferrer"><UiIcon name="tiktok" />TikTok</a>{/if}
         {#if settings.facebook}<a href={settings.facebook} target="_blank" rel="noreferrer"><UiIcon name="facebook" />Facebook</a>{/if}
+        {#if settings.location}<p><UiIcon name="pin" />{settings.location}</p>{/if}
       </div>
     </section>
   </div>
